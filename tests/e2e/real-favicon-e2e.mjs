@@ -25,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
 const EXT_DIR = join(ROOT, 'extension');
-const CHROME = '/home/z/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome';
+const CHROME = process.env.HLX_CHROME || '/root/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome';
 const CDP_PORT = 9333;
 const SITE_PORT = 8078;
 const SITE = `http://127.0.0.1:${SITE_PORT}/`;
