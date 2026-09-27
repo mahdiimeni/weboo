@@ -28,7 +28,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
 const EXT_DIR = join(ROOT, 'extension');
-const CHROME = '/home/z/.cache/ms-playwright/chromium-1234/chrome-linux64/chrome';
+const CHROME = process.env.HLX_CHROME || '/root/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome';
 const CDP_PORT = 9340 + Math.floor(Math.random() * 40); /* random port — zombies from a previous run must not hold us hostage */
 const SITE_PORT = 8079;
 const SITE = `http://127.0.0.1:${SITE_PORT}/`;
@@ -112,10 +112,14 @@ const mouse = (sessionId, type, x, y) =>
 async function shot(sessionId, file) {
   for (let i = 0; i < 3; i++) {
     try {
-      const s = await browser.send('Page.captureScreenshot', { format: 'png' }, sessionId);
+      /* hard cap per attempt — a hung composer must not hang the whole run */
+      const s = await Promise.race([
+        browser.send('Page.captureScreenshot', { format: 'png' }, sessionId),
+        new Promise((_, rej) => setTimeout(() => rej(new Error('capture timeout')), 8000)),
+      ]);
       writeFileSync(join(HERE, file), Buffer.from(s.data, 'base64'));
       return true;
-    } catch (e) { await sleep(1500); }
+    } catch (e) { log('screenshot retry', file, String(e && e.message || e)); await sleep(1500); }
   }
   fail('screenshot failed:', file);
   return false;
