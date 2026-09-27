@@ -1,0 +1,64 @@
+/**
+ * Web Highlighter — styles for highlight elements on web pages
+ * !important to resist the pages' own styles.
+ * Colors must stay in sync with shared/constants.js (HL.COLORS).
+ * Dark-mode variant for dark pages.
+ *
+ * The underline = the "this highlight has a note" marker;
+ * it applies only to elements on which domwrap.setNoted has set the
+ * data-hl-noted="1" attribute (a highlight without a note gets no underline).
+ */
+
+mark.hlx-marker {
+  background-color: #ffe380 !important;
+  color: inherit;
+  border-radius: 2px;
+  padding: 0;
+  margin: 0;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease;
+}
+
+mark.hlx-marker[data-hl-color="green"]  { background-color: #b6e6a8 !important; }
+mark.hlx-marker[data-hl-color="teal"]   { background-color: #9fe3e0 !important; }
+mark.hlx-marker[data-hl-color="pink"]   { background-color: #f7b1c8 !important; }
+mark.hlx-marker[data-hl-color="purple"] { background-color: #d9bdf2 !important; }
+
+mark.hlx-marker:hover {
+  box-shadow: 0 0 0 2px rgba(180, 83, 9, 0.35);
+}
+
+/* ---------- Note marker (only highlights that have a note) ---------- */
+mark.hlx-marker[data-hl-noted="1"]                         { border-bottom: 2px solid rgba(180, 83, 9, 0.50); }
+mark.hlx-marker[data-hl-noted="1"][data-hl-color="green"]  { border-bottom-color: rgba(21, 94, 50, 0.45); }
+mark.hlx-marker[data-hl-noted="1"][data-hl-color="teal"]   { border-bottom-color: rgba(10, 96, 92, 0.50); }
+mark.hlx-marker[data-hl-noted="1"][data-hl-color="pink"]   { border-bottom-color: rgba(162, 28, 78, 0.45); }
+mark.hlx-marker[data-hl-noted="1"][data-hl-color="purple"] { border-bottom-color: rgba(91, 33, 182, 0.45); }
+
+/* Dark pages: semi-transparent background; underline only for highlights with a note */
+@media (prefers-color-scheme: dark) {
+  mark.hlx-marker                              { background-color: rgba(255, 200, 40, 0.30) !important; border-bottom: none; }
+  mark.hlx-marker[data-hl-color="green"]       { background-color: rgba(80, 200, 90, 0.28) !important; }
+  mark.hlx-marker[data-hl-color="teal"]        { background-color: rgba(64, 200, 190, 0.28) !important; }
+  mark.hlx-marker[data-hl-color="pink"]        { background-color: rgba(240, 100, 160, 0.28) !important; }
+  mark.hlx-marker[data-hl-color="purple"]      { background-color: rgba(170, 110, 240, 0.30) !important; }
+
+  mark.hlx-marker[data-hl-noted="1"]                            { border-bottom: 2px solid rgba(245, 158, 11, 0.65); }
+  mark.hlx-marker[data-hl-noted="1"][data-hl-color="green"]     { border-bottom-color: rgba(88, 184, 92, 0.7); }
+  mark.hlx-marker[data-hl-noted="1"][data-hl-color="teal"]      { border-bottom-color: rgba(53, 179, 174, 0.7); }
+  mark.hlx-marker[data-hl-noted="1"][data-hl-color="pink"]      { border-bottom-color: rgba(229, 103, 155, 0.7); }
+  mark.hlx-marker[data-hl-noted="1"][data-hl-color="purple"]    { border-bottom-color: rgba(164, 120, 232, 0.7); }
+}
+
+/* Flash effect when jumping to a highlight */
+mark.hlx-flash {
+  animation: hlx-flash-anim 0.8s ease-out 3;
+}
+
+@keyframes hlx-flash-anim {
+  0%   { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.75); }
+  50%  { box-shadow: 0 0 0 7px rgba(217, 119, 6, 0.25); }
+  100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); }
+}

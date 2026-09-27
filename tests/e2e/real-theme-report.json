@@ -1,0 +1,32 @@
+{
+  "extensionLoaded": true,
+  "contentScriptInjected": true,
+  "popupPageReady": true,
+  "popupCycle": {
+    "afterLight": "light",
+    "afterDark": "dark",
+    "storageTheme": "dark",
+    "finalCycle": [
+      "light",
+      "dark"
+    ]
+  },
+  "hostsFlippedLive": true,
+  "toolbarThemedDarkLive": true,
+  "toolbarPaletteDark": [
+    "rgba(17, 24, 39, 0.97)",
+    "rgb(249, 250, 251)"
+  ],
+  "markCreated": true,
+  "popoverThemedDark": true,
+  "popoverPaletteDark": [
+    "rgb(31, 41, 55)",
+    "rgb(243, 244, 246)"
+  ],
+  "liveFlip": {
+    "to": "auto",
+    "popoverStillOpen": true,
+    "flippedToLight": true
+  },
+  "bootPathToolbarDark": true
+}

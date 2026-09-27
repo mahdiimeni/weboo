@@ -1,0 +1,20 @@
+{
+  "extensionLoaded": true,
+  "contentScriptInjected": true,
+  "realHighlight": true,
+  "selectionText": 54,
+  "dashboardOpened": true,
+  "storageKeys": [
+    "hlx:d:127.0.0.1 (549b)",
+    "hlx:f:127.0.0.1 (271b)"
+  ],
+  "faviconCaptured": true,
+  "faviconImgMounted": true,
+  "faviconLoaded": true,
+  "imgSrcStartsWithData": true,
+  "naturalSize": [
+    32,
+    32
+  ],
+  "favicon2StillBroken": true
+}

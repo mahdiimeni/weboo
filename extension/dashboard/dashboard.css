@@ -1,0 +1,1006 @@
+/* Web Highlighter — dashboard styles (RTL, responsive down to 380px)
+   Theme: auto = follow the system (default); light/dark = user's forced choice (data-theme).
+   ⚠️ The «:root[data-theme="dark"]» block must stay in sync with the dark palette inside the media query. */
+
+:root {
+  color-scheme: light dark;
+  /* Light palette (v1.2.2): tonal steps one notch deeper than the base
+     gray/amber/green/red so cards/borders/hovers/note boxes get past the
+     lightness-contrast threshold — the contract tested in uitheme.test.ts. */
+  --bg: #f3f4f6;
+  --card: #fff;
+  --text: #1f2937;
+  --muted: #4b5563;
+  --line: #d1d5db;
+  --accent: #d97706;
+  --accent-h: #b45309;
+  --accent-soft: #fef3c7;
+  --accent-line: rgba(217, 119, 6, .45);
+  --hover: #e5e7eb;
+  --toggle: #d1d5db;
+  --ok-bg: #dcfce7;
+  --ok-line: #86efac;
+  --ok-text: #166534;
+  --danger: #dc2626;
+  --danger-h: #b91c1c;
+  --danger-bg: #fee2e2;
+  --danger-line: #fca5a5;
+  /* Light-blue count capsules (v0.6.3) — the owner's requested chip color;
+     the amber accent stays the chrome accent. Same tonal discipline as the
+     amber trio (text/soft/line — uitheme.test.ts floors apply). */
+  --info-h: #1d4ed8;
+  --info-soft: #dbeafe;
+  --info-line: rgba(59, 130, 246, .45);
+  --shadow: 0 1px 3px rgba(17, 24, 39, .1);
+}
+
+/* System dark — unless light is forced (⚠️ immutable — uitheme.test.ts contract) */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #111318;
+    --card: #1a1d24;
+    --text: #e5e7eb;
+    --muted: #9ca3af;
+    --line: #2a2f3a;
+    --accent: #f59e0b;
+    --accent-h: #fbbf24;
+    --accent-soft: #2f2510;
+    --accent-line: rgba(217, 119, 6, .3);
+    --hover: #22262f;
+    --toggle: #4b5563;
+    --ok-bg: #0c2317;
+    --ok-line: #1e4630;
+    --ok-text: #6ee7a0;
+    --danger: #ef4444;
+    --danger-h: #f87171;
+    --danger-bg: #2b1313;
+    --danger-line: #5c1f1f;
+    --info-h: #93c5fd;
+    --info-soft: #1b2a45;
+    --info-line: rgba(96, 165, 250, .35);
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4);
+  }
+}
+
+/* Forced light (dark system) */
+:root[data-theme="light"] { color-scheme: light; }
+
+/* Forced dark (light system) — in sync with the dark block above (⚠️ immutable) */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111318;
+  --card: #1a1d24;
+  --text: #e5e7eb;
+  --muted: #9ca3af;
+  --line: #2a2f3a;
+  --accent: #f59e0b;
+  --accent-h: #fbbf24;
+  --accent-soft: #2f2510;
+  --accent-line: rgba(217, 119, 6, .3);
+  --hover: #22262f;
+  --toggle: #4b5563;
+  --ok-bg: #0c2317;
+  --ok-line: #1e4630;
+  --ok-text: #6ee7a0;
+  --danger: #ef4444;
+  --danger-h: #f87171;
+  --danger-bg: #2b1313;
+  --danger-line: #5c1f1f;
+  --info-h: #93c5fd;
+  --info-soft: #1b2a45;
+  --info-line: rgba(96, 165, 250, .35);
+  --shadow: 0 1px 2px rgba(0, 0, 0, .4);
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font-family: Vazirmatn, 'Segoe UI', Tahoma, sans-serif;
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.muted { color: var(--muted); }
+.small { font-size: 12px; }
+.warn { color: var(--danger-h); font-weight: 700; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+* { scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- Sticky header ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+}
+.topbar-in {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.logo {
+  width: 38px; height: 38px; border-radius: 11px; flex: none;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff; display: grid; place-items: center;
+}
+.brand-txt { display: flex; flex-direction: column; }
+.brand-txt strong { font-size: 16px; font-weight: 800; line-height: 1.4; }
+.ver {
+  font-size: 11px; font-weight: 700;
+  color: var(--accent-h); background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  padding: 1px 9px; border-radius: 999px;
+  align-self: center; margin-inline-start: 4px;
+}
+.topbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+/* v0.6.3 — ONE explicit action-row height: the text button («کتابچه»), the
+   two icon-only buttons and the size badge all share it, so the row reads as
+   one aligned family in every theme and viewport (the badge was visibly
+   shorter before — the owner's aspect-ratio request). .btn keeps its own
+   padding; flex centers the content vertically inside the fixed height. */
+.topbar-actions .btn,
+.topbar-actions .size-badge { height: 40px; }
+.size-badge {
+  display: inline-flex; align-items: center;
+  font-size: 12px; font-weight: 700;
+  color: var(--muted);
+  background: var(--hover);
+  border: 1px solid var(--line);
+  padding: 0 12px; border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* ---------- Buttons ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 8px 14px; border-radius: 10px;
+  font: inherit; font-weight: 700; font-size: 13px;
+  cursor: pointer; border: 1px solid transparent;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.btn svg { flex: none; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-h); }
+.btn-ghost { background: var(--card); color: var(--text); border-color: var(--line); }
+.btn-ghost:hover { background: var(--hover); }
+.btn-danger { background: var(--danger); color: #fff; }
+.btn-danger:hover { background: var(--danger-h); }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+/* Button in the two-step confirm state */
+.btn.armed {
+  background: var(--danger-bg) !important;
+  color: var(--danger-h) !important;
+  border-color: var(--danger-line) !important;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, .25); }
+  50% { box-shadow: 0 0 0 5px rgba(220, 38, 38, 0); }
+}
+
+.icon-btn {
+  width: 32px; height: 32px; flex: none;
+  display: grid; place-items: center;
+  border: none; background: transparent;
+  color: var(--muted); border-radius: 8px; cursor: pointer;
+  transition: background .14s, color .14s;
+}
+.icon-btn:hover { background: var(--hover); color: var(--text); }
+.icon-btn.danger:hover { background: var(--danger-bg); color: var(--danger-h); }
+.icon-btn.armed {
+  width: auto; padding: 0 10px;
+  background: var(--danger-bg); color: var(--danger-h);
+  font-size: 11.5px; font-weight: 800;
+}
+
+/* Icon-only .btn (v0.6.3) — the topbar's «خروجی پشتیبان» and «تنظیمات»:
+   their names live in aria-label/title (HTML), the square shape here. Same
+   height family as the action row (40px), a 15px icon centered inside. */
+.btn-icon { width: 40px; padding-inline: 0; }
+
+/* ---------- Body ---------- */
+.container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 16px 44px;
+}
+
+/* ---------- Stats ---------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 2px;
+  text-align: center; /* v0.5.2 — the number and its label read centered in the card */
+}
+.stat-num { font-size: 27px; font-weight: 800; color: var(--accent-h); line-height: 1.35; }
+.stat-lbl { color: var(--muted); font-size: 12.5px; }
+
+/* ---------- Filter toolbar ---------- */
+.toolbar {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 10px;
+  margin-bottom: 16px;
+}
+.search-box {
+  display: flex; align-items: center; gap: 9px;
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 8px 12px;
+  background: var(--bg);
+  transition: border-color .15s;
+}
+.search-box:focus-within { border-color: var(--accent); }
+.search-ic { color: var(--muted); flex: none; }
+.search-box input {
+  flex: 1; min-width: 0;
+  border: none; outline: none; background: transparent;
+  color: inherit; font: inherit;
+}
+.search-box input::placeholder { color: var(--muted); }
+
+.filter-row {
+  display: flex; align-items: center; gap: 14px;
+  flex-wrap: wrap;
+}
+.color-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.cchip {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--card); color: var(--text);
+  padding: 4px 12px;
+  font: inherit; font-size: 12.5px; font-weight: 600;
+  cursor: pointer;
+  transition: border-color .14s, background .14s;
+}
+.cchip .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.cchip:hover { border-color: var(--accent); }
+.cchip.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-h);
+}
+
+/* Tag filter row (v1.2.15) — same visual language as the color chips:
+   color chips filter highlights, tag chips filter whole articles (union). */
+.tag-filter {
+  display: flex; align-items: center; gap: 8px;
+  flex-wrap: wrap;
+}
+.tag-filter-lbl { flex: none; }
+.tag-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.tchip {
+  display: inline-flex; align-items: center; gap: 7px;
+  border: 1px solid var(--line); border-radius: 999px;
+  background: var(--card); color: var(--text);
+  padding: 3px 11px;
+  font: inherit; font-size: 12px; font-weight: 600;
+  cursor: pointer;
+  transition: border-color .14s, background .14s, color .14s;
+}
+.tchip:hover { border-color: var(--accent); }
+.tchip.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-h);
+}
+.tchip-n {
+  font-size: 10.5px; font-weight: 800;
+  color: var(--muted);
+  background: var(--hover);
+  border-radius: 999px;
+  padding: 0 7px;
+  line-height: 1.7;
+}
+.tchip.active .tchip-n { background: var(--card); color: var(--accent-h); }
+
+/* Switch (checkbox) */
+.switch-box {
+  display: inline-flex; align-items: center; gap: 9px;
+  cursor: pointer; user-select: none;
+}
+.switch { position: relative; display: inline-block; flex: none; }
+.switch input {
+  position: absolute; opacity: 0;
+  width: 100%; height: 100%;
+  margin: 0; cursor: pointer;
+}
+.switch .track {
+  display: block;
+  width: 44px; height: 24px; border-radius: 999px;
+  background: var(--toggle);
+  transition: background .18s;
+}
+.switch .knob {
+  position: absolute; top: 3px; inset-inline-start: 3px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .35);
+  transition: inset-inline-start .18s;
+  pointer-events: none;
+}
+.switch input:checked ~ .track { background: var(--accent); }
+.switch input:checked ~ .track .knob { inset-inline-start: calc(100% - 21px); }
+.switch input:focus-visible ~ .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+.switch-lbl { font-size: 13px; font-weight: 600; }
+
+.sort-box { display: inline-flex; align-items: center; gap: 8px; margin-inline-start: auto; }
+.sort-box select {
+  border: 1px solid var(--line); border-radius: 9px;
+  background: var(--card); color: var(--text);
+  font: inherit; font-size: 13px;
+  padding: 6px 10px; cursor: pointer;
+}
+
+/* ---------- Main list ---------- */
+.list-wrap { min-height: 200px; }
+
+/* ---------- List bar — bulk expand/collapse (v0.3.0) ----------
+   One quiet button above the direction sections flips every article card;
+   both modes also load all unloaded highlights (the controller lifts the
+   pagination limit — CSS only presents). The spacing lives on the BUTTON,
+   not the bar: a hidden button (display:none via the global [hidden] rule)
+   leaves zero footprint, so the empty state keeps its exact v0.2.0 geometry. */
+.list-bar {
+  display: flex; align-items: center; gap: 10px;
+}
+.bulk-toggle { margin-bottom: 14px; }
+.bulk-toggle .bt-ic { display: inline-flex; color: var(--accent-h); }
+.bulk-toggle .bt-ic svg { display: block; }
+.bulk-toggle .bt-lbl { white-space: nowrap; }
+
+/* ---------- Direction sections (v0.2.0) ----------
+   RTL and LTR articles render in their own labeled sections; the section
+   holding the most recently highlighted article renders FIRST (the data
+   layer's leadDir decides, the controller wires it — CSS only presents).
+   The section takes no dir attribute: the Persian header stays in the
+   document's RTL flow while each card below applies its own v1.2.6 smart
+   direction. Quiet by design — the cards stay the visual protagonists.
+   Collapsible (v0.5.0): the header row is the section's toggle (the
+   group-head contract one level up) — pointer cursor, a rounded whisper
+   of a hover background, and the state chevron that rotates when the
+   section collapses. The whole row stays inside the content column. */
+.dir-sec { margin-top: 14px; }
+.dir-sec:first-child { margin-top: 2px; }
+.dir-sec + .dir-sec { margin-top: 20px; }
+.dir-sec-head {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 4px 8px 2px;
+  margin-bottom: 8px;
+  border-radius: 8px;
+  cursor: pointer; user-select: none;
+  transition: background .14s;
+}
+.dir-sec-head:hover { background: var(--hover); }
+.dir-sec-head:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* State chevron (v0.5.0) — the card chev's quiet sibling; the head always
+   lives in the document's RTL flow, so one rotation rule mirrors the card's
+   (.group.collapsed .chev). */
+.dir-sec-chev { color: var(--muted); flex: none; transition: transform .18s; }
+.dir-sec-chev svg { display: block; }
+.dir-sec.collapsed .dir-sec-chev { transform: rotate(90deg); }
+/* The collapsed body hides via the hidden attribute the view sets (the exact
+   .group-items mechanism) — .dir-sec-body carries no display rule of its own,
+   so the UA style stands and the headers keep their geometry untouched. */
+.dir-sec-title {
+  display: inline-flex; align-items: center; gap: 7px;
+  margin: 0;
+  font-size: 13px; font-weight: 800;
+  color: var(--muted);
+  letter-spacing: .1px;
+}
+.dir-ic { color: var(--accent-h); display: inline-flex; }
+.dir-ic svg { display: block; }
+.dir-sec-count {
+  font-size: 11px; font-weight: 700;
+  color: var(--muted);
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 1px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+/* Lead badge — the section that holds the most recently highlighted article
+   (and therefore renders on top). The dot echoes the accent color registry
+   (a filled accent dot, like the color chips). */
+.dir-sec-lead {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 800;
+  color: var(--accent-h);
+  background: var(--accent-soft);
+  border: 1px solid var(--accent-line);
+  padding: 1px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  cursor: help; /* the title tooltip explains the ordering rule */
+}
+.dir-sec-lead::before {
+  content: "";
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent);
+  flex: none;
+}
+.dir-sec-lead:hover { background: var(--accent-soft); filter: brightness(.97); }
+
+.group {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  margin-bottom: 12px;
+  overflow: hidden;
+}
+.group-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  cursor: pointer; user-select: none;
+  transition: background .14s;
+}
+.group-head:hover { background: var(--hover); }
+.group-head:focus-visible { outline-offset: -2px; }
+.fl {
+  width: 38px; height: 38px; border-radius: 10px; flex: none;
+  background: var(--accent-soft); color: var(--accent-h);
+  font-weight: 800; font-size: 17px;
+  display: grid; place-items: center;
+  position: relative; overflow: hidden;
+}
+/* Real favicon (Chrome cache) — the first letter stays as placeholder/fallback */
+.fl-img {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  object-fit: contain; padding: 6px; box-sizing: border-box;
+  opacity: 0; transition: opacity .18s ease-out;
+  border-radius: inherit; pointer-events: none;
+}
+.fl-img.on { opacity: 1; }
+.fl.has-fav { color: transparent; }
+.group-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.group-title {
+  font-size: 14px; font-weight: 700;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.group-url {
+  color: var(--muted); font-size: 11.5px;
+  direction: ltr; text-align: right;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.gchips { display: flex; gap: 6px; flex: none; }
+/* Count capsules (v0.6.3): LIGHT BLUE — the owner's requested color, tokened
+   (--info-*) so both themes carry it with the same text/soft/line discipline
+   the amber accent taught (uitheme.test.ts asserts the floors + the wiring). */
+.chip {
+  font-size: 11.5px; font-weight: 700;
+  color: var(--info-h); background: var(--info-soft);
+  border: 1px solid var(--info-line);
+  padding: 2px 10px; border-radius: 999px;
+  white-space: nowrap;
+}
+.chev { color: var(--muted); flex: none; transition: transform .18s; }
+.group.collapsed .chev { transform: rotate(90deg); }
+
+/* ---------- Item order pill (v0.4.0) ----------
+   The per-card sort toggle — a quiet interactive sibling of the count chips:
+   muted at rest, accent on hover/focus. Same height family as .chip so the
+   header row stays aligned; logical padding keeps it correct in LTR cards. */
+.order-btn {
+  display: inline-flex; align-items: center; gap: 4px; flex: none;
+  font: inherit; font-size: 11.5px; font-weight: 700;
+  color: var(--muted); background: transparent;
+  border: 1px solid var(--line); border-radius: 999px;
+  padding: 2px 10px;
+  cursor: pointer; white-space: nowrap;
+  transition: color .14s, border-color .14s, background .14s;
+}
+.order-btn:hover { color: var(--accent-h); border-color: var(--accent-line); background: var(--accent-soft); }
+.order-btn .order-ic { display: inline-flex; }
+
+/* ---------- Article tags (v1.2.15) ----------
+   Categorization chips for the ARTICLE itself (orthogonal to the highlight
+   colors). The row sits between the header and the items and stays visible
+   when the card is collapsed — tags are article metadata, not content.
+   It lives outside the toggle surface (.group-head), so the collapse
+   machinery is untouched; logical paddings keep it correct in LTR cards. */
+.group-tags {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  padding: 8px 14px 9px;
+  border-top: 1px dashed var(--line);
+}
+.group-tags:empty { display: none; } /* builder without handlers and without tags */
+.atag {
+  display: inline-flex; align-items: center; gap: 5px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 999px;
+  padding-block: 2px;
+  padding-inline-start: 9px;
+  padding-inline-end: 4px;
+  font-size: 11.5px; font-weight: 700;
+  max-width: 240px;
+}
+.atag-t {
+  min-width: 0;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.atag-x {
+  width: 18px; height: 18px; flex: none;
+  display: grid; place-items: center;
+  border: none; border-radius: 50%; padding: 0;
+  background: transparent; color: var(--muted);
+  cursor: pointer;
+  transition: background .13s, color .13s;
+}
+.atag-x:hover { background: var(--danger-bg); color: var(--danger-h); }
+.atag-x svg { display: block; }
+.atag-add {
+  display: inline-flex; align-items: center; gap: 4px;
+  border: 1px dashed var(--line);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font: inherit; font-size: 11.5px; font-weight: 700;
+  cursor: pointer;
+  transition: border-color .14s, color .14s, background .14s;
+}
+.atag-add:hover { border-color: var(--accent); color: var(--accent-h); background: var(--accent-soft); }
+.atag-add svg { display: block; }
+.tag-input {
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit; font-size: 11.5px; font-weight: 600;
+  padding: 3px 11px;
+  width: 160px; max-width: 100%;
+  outline: none;
+  text-align: center; /* v0.5.2 — typing is centered regardless of the tag's (or card's) direction */
+}
+.tag-input::placeholder { color: var(--muted); font-weight: 400; }
+
+.group-items { border-top: 1px solid var(--line); }
+.group-items[hidden] { border-top: none; }
+
+/* ---------- LTR article card (v1.2.6 — smart card) ----------
+   dir="ltr" sits on the card itself; the rest of the layout flips automatically
+   through the existing logical properties
+   (inset-inline-start / padding-inline-start / text-align:start).
+   Only these two physical rules are needed explicitly: */
+.group[dir="ltr"] .group-url { text-align: left; }        /* URL is always LTR — left-aligned in an LTR card */
+.group[dir="ltr"].collapsed .chev { transform: rotate(-90deg); } /* collapsed chev should point right in LTR */
+
+.item {
+  position: relative;
+  padding: 12px 14px;
+  padding-inline-start: 20px;
+  border-bottom: 1px solid var(--line);
+  transition: background .14s;
+}
+.item:last-child { border-bottom: none; }
+.item:hover { background: var(--hover); } /* background change only — no stroke (uitheme.test contract) */
+.cbar {
+  position: absolute; inset-inline-start: 4px;
+  top: 12px; bottom: 12px; width: 4px;
+  border-radius: 99px;
+}
+.item-text {
+  margin: 0;
+  font-size: 14px;
+  word-break: break-word; overflow-wrap: anywhere;
+}
+/* Preview affordance (v0.6.1) — the card excerpts; the full text is one
+   click away. .peek marks the quote (and the note row) as that click
+   surface: pointer + a subtle inset ring on hover/keyboard focus, the same
+   --hover ground the item row already paints (no stroke — uitheme.test). */
+.item-text.peek,
+.note.peek {
+  cursor: pointer;
+  border-radius: 8px;
+}
+.item-text.peek:hover,
+.note.peek:hover {
+  background: var(--hover);
+}
+.item-text.peek:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.note {
+  display: flex; align-items: flex-start; gap: 8px;
+  margin-top: 9px;
+  background: var(--ok-bg);
+  border: 1px solid var(--ok-line);
+  color: var(--ok-text);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+.note-ic { flex: none; margin-top: 3px; display: inline-flex; }
+.note-text { word-break: break-word; overflow-wrap: anywhere; }
+.item-meta {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  margin-top: 8px; flex-wrap: wrap;
+}
+.item-date { color: var(--muted); font-size: 11.5px; }
+.item-actions { display: flex; align-items: center; gap: 2px; }
+
+.item-more {
+  padding: 8px 14px;
+  color: var(--muted); font-size: 12px;
+  border-top: 1px dashed var(--line);
+}
+
+.load-more {
+  display: block;
+  margin: 4px auto 0;
+  min-width: 220px;
+}
+
+/* ---------- Empty state ---------- */
+.empty { text-align: center; padding: 64px 16px; }
+.empty-ic { color: var(--muted); margin-bottom: 8px; }
+.empty-t { margin: 0 0 4px; font-weight: 800; font-size: 16px; }
+.empty .muted { margin: 0; }
+
+/* ---------- Footer ---------- */
+.foot {
+  margin-top: auto;
+  border-top: 1px solid var(--line);
+  background: var(--card);
+  padding: 14px 16px;
+  text-align: center;
+}
+.foot p { margin: 0; }
+
+/* ---------- Settings panel (drawer) ---------- */
+.overlay {
+  position: fixed; inset: 0;
+  background: rgba(17, 24, 39, .45);
+  z-index: 110;
+  opacity: 0; pointer-events: none;
+  transition: opacity .2s;
+}
+.overlay.show { opacity: 1; pointer-events: auto; }
+
+.drawer {
+  position: fixed;
+  top: 0; bottom: 0; left: 0;
+  width: min(380px, 92vw);
+  z-index: 120;
+  background: var(--card);
+  border-left: none;
+  border-right: 1px solid var(--line);
+  box-shadow: 4px 0 24px rgba(0, 0, 0, .18);
+  transform: translateX(-105%);
+  transition: transform .25s ease;
+  display: flex; flex-direction: column;
+}
+.drawer.open { transform: translateX(0); }
+.drawer-head {
+  flex: none;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+}
+.drawer-head strong { font-size: 15px; font-weight: 800; }
+.drawer-body {
+  flex: 1; min-height: 0;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+
+.set-sec { display: flex; flex-direction: column; gap: 10px; }
+.set-sec h3 {
+  margin: 0;
+  font-size: 13.5px; font-weight: 800;
+  display: flex; align-items: center; gap: 7px;
+  color: var(--accent-h);
+}
+.set-sec .muted { margin: 0; }
+.set-sec .switch-box + .switch-box { margin-top: 2px; }
+
+/* Backup restore section (v0.6.3) — the button that moved in from the topbar:
+   full-width like the export modal's action buttons (one visual family for
+   "primary action of a section"), the same .btn look it always had. */
+.restore-sec .btn { width: 100%; justify-content: center; }
+
+/* Theme radios (settings) — same pattern as the restore-modal radios */
+.set-sec .radio-list { margin-bottom: 0; }
+
+.color-dots { display: flex; gap: 12px; flex-wrap: wrap; padding: 4px 2px; }
+.cdot {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  background: transparent;
+  display: grid; place-items: center;
+  cursor: pointer;
+  transition: box-shadow .14s, border-color .14s;
+}
+.cdot .dot { width: 20px; height: 20px; border-radius: 50%; }
+.cdot:hover { border-color: var(--line); }
+.cdot.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.cdot { position: relative; }
+.cdot.active::after {
+  content: '✓';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -52%);
+  color: #fff;
+  font-size: 13px; font-weight: 800;
+  text-shadow: 0 0 4px rgba(0, 0, 0, .55);
+}
+
+.host-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.hchip {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--accent-soft);
+  color: var(--accent-h);
+  border: 1px solid var(--accent-line);
+  border-radius: 999px;
+  padding: 3px 6px 3px 10px;
+  font-size: 12.5px; font-weight: 700;
+  direction: ltr;
+}
+.hchip-x {
+  width: 20px; height: 20px;
+  display: grid; place-items: center;
+  border: none; border-radius: 50%;
+  background: transparent; color: inherit;
+  cursor: pointer;
+}
+.hchip-x:hover { background: rgba(220, 38, 38, .15); color: var(--danger-h); }
+.hchip-x svg { display: block; }
+
+.host-add { display: flex; gap: 6px; }
+.host-add input {
+  flex: 1; min-width: 0;
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--bg); color: var(--text);
+  font: inherit; font-size: 13px;
+  padding: 7px 12px;
+  direction: ltr; text-align: left;
+}
+.host-add input:focus { outline: none; border-color: var(--accent); }
+.host-add input::placeholder { direction: rtl; text-align: right; }
+
+.danger-zone {
+  border: 1px solid var(--danger-line);
+  background: var(--danger-bg);
+  border-radius: 14px;
+  padding: 14px;
+}
+.danger-zone h3 { color: var(--danger-h); }
+.danger-flow { display: flex; flex-direction: column; gap: 10px; }
+.danger-confirm { display: flex; gap: 6px; flex-wrap: wrap; }
+.danger-confirm input {
+  flex: 1; min-width: 160px;
+  border: 1px solid var(--danger-line); border-radius: 10px;
+  background: var(--card); color: var(--text);
+  font: inherit; font-size: 13px;
+  padding: 7px 12px;
+}
+.danger-confirm input:focus { outline: none; border-color: var(--danger); }
+
+/* ---------- Modal ---------- */
+/* Centering via margin:auto (not place-items) + overflow-y:auto: a card taller
+   than the viewport SCROLLS fully — top and bottom stay reachable. The v0.6.0
+   export modal (summary + two format sections) exceeds short viewports; with
+   place-items:center the grid would clip the overflowing ends (unreachable
+   buttons). Same visual centering for small cards (restore modal) — LSP kept. */
+.modal {
+  position: fixed; inset: 0;
+  z-index: 130;
+  display: grid;
+  padding: 16px;
+  background: rgba(17, 24, 39, .5);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.modal-card {
+  width: 100%; max-width: 520px;
+  margin: auto;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .25);
+  animation: pop .18s ease;
+}
+@keyframes pop {
+  from { transform: scale(.96); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.modal-card h2 { margin: 0 0 12px; font-size: 17px; font-weight: 800; }
+.modal-summary { display: flex; flex-direction: column; margin-bottom: 14px; }
+.sum-row {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px dashed var(--line);
+}
+.sum-row:last-child { border-bottom: none; }
+.sum-row strong { font-size: 13.5px; }
+
+.radio-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.radio {
+  display: flex; align-items: flex-start; gap: 10px;
+  border: 1px solid var(--line); border-radius: 12px;
+  padding: 11px 13px;
+  cursor: pointer;
+  transition: border-color .14s, background .14s;
+}
+.radio:hover { border-color: var(--accent); }
+.radio:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.radio input { margin-top: 5px; accent-color: var(--accent); flex: none; }
+.radio-txt { display: flex; flex-direction: column; }
+.radio-txt strong { font-size: 13.5px; }
+.radio-txt .small { line-height: 1.6; }
+.radio-danger:has(input:checked) { border-color: var(--danger); background: var(--danger-bg); }
+.radio-danger input { accent-color: var(--danger); }
+
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* ---------- Export modal sections (v0.6.0 — «کتابچه و Markdown») ---------- */
+/* Two format sections inside the modal-card, separated the same way the
+   settings drawer's .set-sec sections are (one visual family). */
+.exp-sec {
+  border-top: 1px dashed var(--line);
+  padding: 14px 0 16px;
+  margin-top: 2px;
+}
+.exp-sec:first-of-type { border-top: none; }
+.exp-sec h3 { margin: 0 0 4px; font-size: 14.5px; font-weight: 800; }
+.exp-sec .muted { margin: 0 0 12px; }
+.exp-sec .btn { width: 100%; justify-content: center; }
+.exp-sec + .exp-sec { margin-top: 2px; }
+.exp-sec .radio-list { margin-bottom: 12px; }
+
+/* ---------- Highlight preview modal (v0.6.1 — «متن کامل هایلایت») ---------- */
+/* A floating window over the same .modal overlay family as the restore and
+   export modals — but sized for READING: the card is capped to the viewport
+   and only the BODY scrolls, so the title row stays pinned while a long
+   highlight scrolls. The quote/note visuals are the card's own
+   (.cbar / .note) — one content look across surfaces.
+   v0.6.4 — the fully-smart window: the frame's dir is filled per record
+   (fillHighlightDir — LTR window for an English highlight, RTL for Persian),
+   the title aligns at ITS OWN reading start (the pinned RTL edge is gone),
+   and the meta row follows the frame's flow with the fa date as an inline
+   RTL island (.hl-meta > .hl-meta-t). The X button is gone — the overlay
+   click and Escape close; the card is the programmatic focus anchor. */
+.hl-card {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 64px); /* overlay padding 16×2 + breathing room */
+}
+/* The focus anchor (tabindex="-1", focused on every open): programmatic
+   only — the dialog's appearance IS the focus feedback, so no ring is drawn
+   on the container (there is nothing tabbable inside to cycle to). */
+.hl-card:focus {
+  outline: none;
+}
+.hl-head {
+  margin-bottom: 12px;
+}
+.hl-head h2 {
+  margin: 0; font-size: 15px; font-weight: 800; /* v0.6.4 — a notch smaller (the owner's ask) */
+  /* v0.6.4 — the article's own title, FULLY direction-smart: one line with
+     ellipsis as the backstop (the view excerpts at 60 — same policy as the
+     card header), and NO pinned alignment — text-align: start resolves
+     against the title's own dir, so an English title heads the window from
+     the left edge and a Persian one from the right; the full title rides the
+     element's title attribute. */
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.hl-body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-inline-end: 2px; /* scrollbar breathing room */
+}
+.hl-quote {
+  position: relative; /* anchors the reused .cbar (inset-inline-start) */
+  padding: 2px 6px 2px 0;
+  padding-inline-start: 18px;
+}
+.hl-quote-t {
+  margin: 0;
+  font-size: 14.5px; line-height: 1.9;
+  word-break: break-word; overflow-wrap: anywhere;
+  white-space: pre-wrap; /* the full text keeps its own line structure */
+}
+.hl-quote .cbar { top: 4px; bottom: 4px; }
+.hl-body .note { margin-top: 12px; }
+.hl-meta {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 11.5px;
+}
+
+/* ---------- Toasts ---------- */
+.toasts {
+  position: fixed; bottom: 16px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  display: flex; flex-direction: column; gap: 8px;
+  align-items: center;
+  pointer-events: none;
+  width: max-content;
+  max-width: 92vw;
+}
+.toast {
+  background: #047857; color: #fff;
+  padding: 10px 18px; border-radius: 10px;
+  font-size: 13px; font-weight: 700;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .28);
+  max-width: 92vw;
+  opacity: 0; transform: translateY(8px);
+  transition: opacity .22s, transform .22s;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: #047857; }
+.toast.error { background: #b91c1c; }
+.toast.info { background: #374151; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 900px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 760px) {
+  .container { padding: 14px 12px 36px; }
+  .topbar-in { padding: 10px 12px; }
+  .sort-box { margin-inline-start: 0; }
+  .group-head { flex-wrap: wrap; gap: 10px; }
+  .group-txt { flex-basis: calc(100% - 110px); }
+  .gchips { order: 3; flex-basis: 100%; }
+  .group-tags { padding: 7px 12px 8px; }
+  .item-meta { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .stat-num { font-size: 22px; }
+  .modal-card { padding: 16px; }
+}
+
+@media (max-width: 480px) {
+  .stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .stat-card { padding: 12px; }
+  .btn { padding: 7px 11px; font-size: 12.5px; }
+  .ver { display: none; }
+  .fl { width: 32px; height: 32px; font-size: 15px; border-radius: 8px; }
+  .filter-row { gap: 10px; }
+}
