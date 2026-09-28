@@ -1906,3 +1906,22 @@ Stage Summary:
 - Phase 5 complete: the persistence domain (store + schema gate + import/export) is now typechecked end-to-end behind the Phase-1 port, with the classic-script invariant and the port mirror both test-guarded
 - Behavior proven unchanged: byte-parity of the emit + 644 tests + both browser rigs
 - Next: content-side extraction (highlighter/UI layering v0.6.9 target) and/or WXT introduction (Phase 6 — bundler before globalThis.HL can leave the content path, per R1)
+---
+Task ID: 70
+Agent: main (Hermes)
+Task: Modernization Phase 6a — WXT toolchain introduced: first entrypoint, output-parity gate, R1 path opened
+
+Work Log:
+- Toolchain: wxt@0.21.4 installed (devDep; node 26 + bun fine on this machine, esbuild/rollup natives OK on the no-AVX2 CPU). wxt.config.ts: publicDir=extension/ (every file copied verbatim — same relative paths tests/harnesses/manifest reference) + manifest = extension/manifest.json parsed at config time (single version source stays the manifest).
+- WXT hard-refuses zero entrypoints (preventNoEntrypoints — no config escape), so Phase 6a lands ONE real entrypoint: background. Chosen because extension/background/service-worker.js is ALREADY an ES module that side-effect-imports the classic shared scripts (constants → chrome-storage → tags → store) — its header documents the globalThis.HL pattern; the entrypoint is a pure hand-off (import the SW + defineBackground marker). wxt.config deletes manifest.background so config and entrypoint never both claim the key.
+- Gate: scripts/wxt-parity.mjs chained into `bun run build:wxt` — .output/chrome-mv3 must be a functional twin of extension/: every source file present byte-for-byte (manifest compared structurally, not byte-wise), no stray extras (allowlist: the entrypoint bundle at its manifest path + assets/*), manifest.deep-equal on every key except background (fully entrypoint-owned: WXT picks path AND module style; contract = bundle exists). Current result: `wxt-parity: OK — 44 files byte-identical, manifest equal (13 keys)`, build 563 ms.
+- Bundle verification: background.js (15,144 B) contains every SW duty (context menu, badge count-report, createStoreReader, hlx:schemaVersion), load order preserved (constants < store), and ZERO leftover import/export statements — a self-contained worker valid without type:module (WXT drops that field deliberately; modeled in parity).
+- Typecheck interaction discovered: entrypoints/background.ts imports the classic SW, which pulls extension/**/*.js into the tsc program — globalThis.HL then carries a JS-inferred type and store.ts's single cast fails (TS2352). Fix = the standing `as unknown as` hop (comment at the site); emit erases it (1-line comment-only diff in extension/shared/store.js). tsconfig include += entrypoints/**/*.ts (module esnext/bundler already correct for the wxt subpath import).
+- Housekeeping: .gitignore += .output/ .wxt/; eslint ignores the generated dirs; `bun run build:wxt` script added.
+- Gates (all green): bun run test 644/0/2478 · lint 0 · typecheck 0 · zip 50 entries · build:wxt parity OK. extension/ changed by ONE comment line (the cast note) — no behavior delta, so the browser rigs were not re-run this phase; 6b re-runs all of them.
+- Commit series (§45): store unknown-hop cast → WXT toolchain + entrypoint + parity gate → this journal entry.
+
+Stage Summary:
+- Phase 6a complete: WXT builds the extension with a real entrypoint and a gate that fails on ANY output drift from the hand-maintained tree — the bundler now provably reproduces the product byte-for-byte before it starts owning it
+- R1 path opened: the content script moves to a bundled entrypoint next (6b), after which globalThis.HL can start leaving the content path
+- Next: Phase 6b — content entrypoint (side-effect imports in manifest order → single bundle), packaging tests updated to the bundled model, all rigs (next-compat/real-theme/live) re-run against .output; then popup/dashboard entrypoints (6c)
