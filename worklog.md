@@ -1841,6 +1841,6 @@ Work Log:
 - Commit series (§45): pipeline+format → lint no-var → detect-dir → url → utils → tags → textindex → tripwire → this journal entry.
 
 Stage Summary:
-- Phase 2 complete:6 modules (745 source lines) are now TypeScript with a compiling emit step wired into test/zip; behavior proven by 634 unit tests + both real-browser rigs
+- Phase 2 complete: 6 modules (872 source lines) are now TypeScript with a compiling emit step wired into test/zip; behavior proven by 634 unit tests + both real-browser rigs
 - Architectural boundary honored: emit output is classic-script-clean and tripwire-tested; ESM conversion waits for the bundler (Phase 6) per baseline R1
 - Next: Phase 3 — anchor engine extraction behind a CompositeAnchorResolver (textindex/domwrap/highlighter), the highest-risk refactor so far
