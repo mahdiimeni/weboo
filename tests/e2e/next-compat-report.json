@@ -1,0 +1,96 @@
+{
+  "browser": "Chrome/145.0.7632.6",
+  "extensionId": "bjmjmladojboiddcopnannoocdpmphgk",
+  "site": "http://127.0.0.1:8090",
+  "ranAt": "2026-09-28T05:33:14.368Z",
+  "passed": 16,
+  "failed": 0,
+  "pageErrors": [],
+  "results": [
+    {
+      "name": "S1-content-script-on-next",
+      "pass": true,
+      "detail": {
+        "href": "http://127.0.0.1:8090/"
+      }
+    },
+    {
+      "name": "S2-highlight-create-on-next",
+      "pass": true
+    },
+    {
+      "name": "S3-hard-reload-restore",
+      "pass": true
+    },
+    {
+      "name": "S4-popover-opens",
+      "pass": true
+    },
+    {
+      "name": "S5-popover-escape-closes",
+      "pass": true
+    },
+    {
+      "name": "S6-soft-nav-same-document",
+      "pass": true
+    },
+    {
+      "name": "S7-highlight-after-soft-nav",
+      "pass": true
+    },
+    {
+      "name": "S8-soft-back-to-a",
+      "pass": true
+    },
+    {
+      "name": "S9-restore-on-soft-return",
+      "pass": true,
+      "detail": {
+        "marks": 1
+      }
+    },
+    {
+      "name": "S10-restore-on-soft-nav-to-b",
+      "pass": true,
+      "detail": {
+        "marks": 1
+      }
+    },
+    {
+      "name": "S11-save-key-is-current-url",
+      "pass": true,
+      "detail": {
+        "marks": 1
+      }
+    },
+    {
+      "name": "S12-no-cross-page-contamination",
+      "pass": true,
+      "detail": {
+        "globalMarks": 1
+      }
+    },
+    {
+      "name": "S13-highlight-on-rerender-paragraph",
+      "pass": true
+    },
+    {
+      "name": "S14-mark-survives-react-remount",
+      "pass": true,
+      "detail": {
+        "wipedFirst": true
+      }
+    },
+    {
+      "name": "S15-highlight-on-delayed-content",
+      "pass": true
+    },
+    {
+      "name": "S16-delayed-content-restore",
+      "pass": true,
+      "detail": {
+        "lateShown": true
+      }
+    }
+  ]
+}

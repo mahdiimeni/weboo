@@ -31,6 +31,34 @@ describe("HL.ui.setTheme — اعتبارسنجی و میزبان‌ها", () =>
     expect(h.host.hasAttribute("data-theme")).toBe(false);
   });
 
+  /* ---------- watchdog (v0.6.6): the site wipes hosts → re-attach ---------- */
+
+  test("حذف میزبان از <html> → همان گره دوباره متصل می‌شود (و بار دوم هم)", async () => {
+    const h = HL.uiBase.makeHost();
+    expect(h.host.isConnected).toBe(true);
+    const sr = h.host.shadowRoot;
+
+    win.document.documentElement.removeChild(h.host); /* React hydration recovery wipe */
+    expect(h.host.isConnected).toBe(false);
+    await new Promise((r) => setTimeout(r, 450)); /* watchdog debounce 300ms */
+    expect(h.host.isConnected).toBe(true);
+
+    win.document.documentElement.removeChild(h.host); /* cleaner runs again */
+    await new Promise((r) => setTimeout(r, 450));
+    expect(h.host.isConnected).toBe(true);
+    expect(h.host.shadowRoot).toBe(sr); /* same node — shadow tree + popover state intact */
+  });
+
+  test("mutation بی‌ربط → میزبان سالم دست نمی‌خورد (بدون حلقه)", async () => {
+    const h = HL.uiBase.makeHost();
+    const p = win.document.createElement("p");
+    p.textContent = "unrelated";
+    win.document.body.appendChild(p);
+    await new Promise((r) => setTimeout(r, 450));
+    expect(h.host.isConnected).toBe(true);
+    expect(win.document.documentElement.contains(h.host)).toBe(true);
+  });
+
   test("کلیدهای معتبر رجیستری اعمال و برگردانده می‌شوند", () => {
     expect(HL.ui.setTheme("light")).toBe("light");
     expect(HL.ui.getTheme()).toBe("light");

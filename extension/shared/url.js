@@ -1,7 +1,8 @@
 /**
  * Web Highlighter — page URL normalization (SRP: the URL concern only)
  *
- * Consumers: content script (current page context) and popup (active tab URL).
+ * Consumers: content script (current page context — normalizeUrl at boot and
+ * watchHref for SPA navigations) and popup (active tab URL).
  * Output: { url, norm, site, host } or null
  *   - url  : clean address without hash and tracking params
  *   - norm : like url + sorted params (page identity key across sessions)
@@ -45,5 +46,30 @@
     }
   }
 
-  HL.url = { normalizeUrl: normalizeUrl };
+  HL.url = { normalizeUrl: normalizeUrl, watchHref: watchHref };
+
+  /**
+   * Watch for client-side (SPA) navigations — pushState/replaceState have no
+   * DOM event, so href is compared on a light interval plus the popstate/
+   * hashchange events (all observed on the injected window — DIP, testable).
+   * Fires onChange(newHref) once per real href change (deduped).
+   * Returns an unwatch() function.
+   */
+  function watchHref(win, onChange, intervalMs) {
+    var last = String(win.location.href);
+    var check = function () {
+      var now = String(win.location.href);
+      if (now === last) return;
+      last = now;
+      onChange(now);
+    };
+    var timer = win.setInterval(check, intervalMs || 400);
+    win.addEventListener('popstate', check);
+    win.addEventListener('hashchange', check);
+    return function unwatch() {
+      win.clearInterval(timer);
+      win.removeEventListener('popstate', check);
+      win.removeEventListener('hashchange', check);
+    };
+  }
 })();

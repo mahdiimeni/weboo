@@ -21,9 +21,12 @@ export default tseslint.config(
       "tool-results/**",
       // build output (release zips)
       "dist/**",
-      // next.js dev/build cache + generated env types
-      ".next/**",
+      // next.js dev/build cache + generated env types (any depth)
+      "**/.next/**",
       "next-env.d.ts",
+      // Next.js test-fixture app (tests/e2e/fixtures) — framework app code with
+      // JSX, exercised by tests/e2e/next-compat-e2e.mjs, not project sources
+      "tests/e2e/fixtures/**",
     ],
   },
   js.configs.recommended,

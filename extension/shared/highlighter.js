@@ -86,11 +86,23 @@
 
     /* ---------- Applying a record to the DOM ---------- */
 
-    function applyRecord(rec) {
-      if (HL.dom.marksOf(rec.id).filter(inScope).length) return true; /* already applied */
+    /* A record counts as applied only when VISIBLE marks exist: sites
+       duplicate content (pre-hydration fallbacks, SEO/mobile copies) and
+       hide one copy later — marks in the hidden copy are invisible and
+       unclickable. Hidden marks are kept, never unwrapped here (they are
+       correct again if the site re-shows that copy). */
+    function hasVisibleMarks(id) {
+      var ms = HL.dom.marksOf(id).filter(inScope);
+      for (var i = 0; i < ms.length; i++) if (!HL.dom.isHidden(ms[i])) return true;
+      return false;
+    }
 
-      /* Fast path: XPath */
+    function applyRecord(rec) {
+      if (hasVisibleMarks(rec.id)) return true; /* already applied where the user can see it */
+
+      /* Fast path: XPath — but skip it when it lands in a hidden duplicate */
       var range = HL.dom.resolveAnchor(rec.anchor, rec.text);
+      if (range && HL.dom.isHidden(range.commonAncestorContainer)) range = null;
       var located = null;
 
       /* Textual path (fallback) — the index must be fresh because the previous wrap split nodes */
@@ -101,6 +113,11 @@
       }
       if (!range) return false;
       if (!inScope(range.startContainer) || !inScope(range.endContainer)) return false;
+
+      /* re-entry guard: this occurrence is already wrapped by us (hidden) —
+         never nest a second mark inside it */
+      var sEl = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
+      if (sEl && sEl.closest && sEl.closest('mark[data-hl-id="' + rec.id + '"]')) return false;
 
       var marks = HL.dom.markRange(range, rec.id, rec.color);
       if (!marks.length) return false;
@@ -114,7 +131,8 @@
         rec.end = located.end;
         queueHealSave(rec);
       }
-      return true;
+      for (var i = 0; i < marks.length; i++) if (!HL.dom.isHidden(marks[i])) return true;
+      return false; /* wrapped only into a hidden copy — reconcile will retry */
     }
 
     function applyAll() {
@@ -125,6 +143,37 @@
         if (applyRecord(arr[i])) ok++;
       }
       return ok;
+    }
+
+    /* Re-apply every record whose marks vanished (SPA route swap, React
+       re-render/remount) and refresh the ones that never landed. Pure
+       reconciliation — no bookkeeping beyond the DOM: returns the records
+       STILL missing (empty array = healthy) so the orchestrator can own
+       its orphan queue. */
+    function reconcile() {
+      var missing = [];
+      state.recs.forEach(function (rec) {
+        if (!hasVisibleMarks(rec.id)) missing.push(rec); /* no marks, or only hidden ones */
+      });
+      if (!missing.length) return missing;
+      freshIndex();
+      for (var i = 0; i < missing.length; i++) {
+        if (applyRecord(missing[i])) missing.splice(i--, 1);
+      }
+      return missing;
+    }
+
+    /* Client-side (SPA) navigation: re-key the page context in place —
+       cfg.page's object identity is preserved (hl.page === the injected
+       object), so every consumer reading page.* sees the new URL. */
+    function setPage(next) {
+      if (!next) return page;
+      page.url = next.url || '';
+      page.norm = next.norm || '';
+      page.site = next.site || '';
+      page.host = next.host || '';
+      if ('title' in next) page.title = next.title;
+      return page;
     }
 
     /* ---------- Counting ---------- */
@@ -338,7 +387,12 @@
     function openPopover(id, opts) {
       var rec = state.recs.get(id);
       if (!rec) return;
-      var mark = HL.dom.marksOf(id).filter(inScope)[0];
+      var marks = HL.dom.marksOf(id).filter(inScope);
+      var mark = null;
+      for (var i = 0; i < marks.length; i++) { /* anchor to the copy the user sees */
+        if (!HL.dom.isHidden(marks[i])) { mark = marks[i]; break; }
+      }
+      if (!mark) mark = marks[0];
       if (!mark && !(opts && opts.mark)) return;
       toolbar.dismiss();
       popover.present({
@@ -431,6 +485,8 @@
       freshIndex: freshIndex,
       applyRecord: applyRecord,
       applyAll: applyAll,
+      reconcile: reconcile,
+      setPage: setPage,
       createFromCtx: createFromCtx,
       createFromRange: createFromRange,
       openPopover: openPopover,

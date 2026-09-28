@@ -8,6 +8,9 @@
  *  - site enable/disable state (disabledHosts) and live sync with storage
  *  - applying the extension UI theme (HL.ui.setTheme) to floating widgets — at boot and live
  *  - retrying orphaned highlights on dynamic pages
+ *  - client-side (SPA) navigation: re-keying the page context, swapping and
+ *    re-applying records when the URL changes without a reload (Next.js,
+ *    React Router, …) and re-applying marks a framework re-render removed
  *  - runtime messages (context menu / shortcut / popup) via the runtime bridge
  *  - jumping straight to a highlight via the #hlx-goto-<id> hash
  *  - reporting the count to the service worker for the badge
@@ -32,8 +35,11 @@
     faviconDone: false,  /* this page no longer attempts favicon capture */
     orphaned: new Set(),  /* highlights not yet found */
     retryTimer: null,
-    retries: 0
+    retries: 0,
+    safetyTimer1: null,   /* post-boot/post-nav visibility re-checks */
+    safetyTimer2: null
   };
+  var navSeq = 0; /* SPA navigation token — async loaders abort when it moves */
 
   var hl = HL.createHighlighter({
     page: page,
@@ -88,14 +94,11 @@
   }
 
   function retryOrphans() {
-    if (!state.orphaned.size || state.disabled) return;
+    if (state.disabled || !state.orphaned.size) return;
     state.retries++;
-    hl.freshIndex();
-    var arr = Array.from(state.orphaned);
-    for (var i = 0; i < arr.length; i++) {
-      if (hl.applyRecord(arr[i])) state.orphaned.delete(arr[i]);
-    }
-    scheduleOrphanRetry();
+    state.orphaned = new Set(hl.reconcile());
+    if (state.orphaned.size) scheduleOrphanRetry();
+    else state.retries = 0;
   }
 
   function applyAllRecords() {
@@ -107,14 +110,61 @@
     scheduleOrphanRetry();
   }
 
+  /* Load the records of the CURRENT page key and apply them (boot + SPA nav). */
+  async function loadPageRecords(seq) {
+    var fresh = await HL.store.getForUrl(page.norm, page.host);
+    if (seq !== navSeq) return; /* a newer navigation won the race */
+    fresh.forEach(function (rec) { hl.adoptRecord(rec); });
+    applyAllRecords();
+    /* Safety net: frameworks hide/show duplicated content with class flips
+       (attribute mutations the observer does not watch) right after
+       hydration — re-check visibility once the page has settled. */
+    clearTimeout(state.safetyTimer1);
+    clearTimeout(state.safetyTimer2);
+    state.safetyTimer1 = setTimeout(reconcileOrphans, 3000);
+    state.safetyTimer2 = setTimeout(reconcileOrphans, 8000);
+  }
+
+  /* ---------- Client-side (SPA) navigation ---------- */
+
+  async function onHrefChange() {
+    if (!state.started) return;
+    var next = HL.url.normalizeUrl(location.href);
+    if (!next) return;
+    if (next.norm === page.norm && next.host === page.host) return; /* hash-only change — hashchange handles the jump */
+    var seq = ++navSeq;
+    var hostChanged = next.host !== page.host;
+
+    hl.setPage(next); /* page object identity preserved — every page.* reader sees the new URL */
+    hl.toolbar.dismiss();
+    hl.popover.dismiss();
+    hl.each(function (rec) { HL.dom.unwrap(rec.id); }); /* the old page's marks go with its DOM */
+    hl.resetRecords();
+    state.orphaned = new Set();
+    state.retries = 0;
+    clearTimeout(state.retryTimer);
+    if (hostChanged) state.faviconDone = false; /* one favicon attempt per host again */
+
+    state.disabled = !!((state.settings.disabledHosts || []).indexOf(page.host) !== -1);
+    if (state.disabled) { reportCount(); return; }
+    await loadPageRecords(seq);
+    if (seq !== navSeq) return;
+    reportCount();
+    checkHash();
+  }
+
   /* ---------- Jump to highlight via hash ---------- */
 
   function gotoHighlight(id, cleanHash) {
     var attempt = 0;
     var tryScroll = function () {
       var marks = HL.dom.marksOf(id);
-      if (marks.length) {
-        var m = marks[0];
+      var m = null;
+      for (var i = 0; i < marks.length; i++) { /* jump to the copy the user sees */
+        if (!HL.dom.isHidden(marks[i])) { m = marks[i]; break; }
+      }
+      if (!m) m = marks[0];
+      if (m) {
         try { m.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { /* noop */ }
         HL.dom.flash(id);
         if (hl.has(id)) setTimeout(function () { hl.openPopover(id); }, 700);
@@ -184,7 +234,9 @@
     if (!state.started || state.disabled || syncing) return;
     syncing = true;
     try {
+      var seq = navSeq;
       var fresh = await HL.store.getForUrl(page.norm, page.host);
+      if (seq !== navSeq) return; /* SPA navigation happened mid-read — that data belongs to the old key */
       /* Removed ones (e.g. from the dashboard) */
       hl.each(function (rec, id) {
         if (!fresh.has(id)) {
@@ -220,14 +272,24 @@
 
   /* ---------- MutationObserver for dynamic pages ---------- */
 
+  /* Debounced DOM reconcile: re-apply marks a framework re-render removed
+     (React swaps subtrees without any navigation) and refresh the orphan
+     queue from what is actually still missing. */
+  function reconcileOrphans() {
+    if (state.disabled || !state.started) return;
+    state.orphaned = new Set(hl.reconcile());
+    if (state.orphaned.size) {
+      state.retries = Math.min(state.retries, 5); /* a few more retries on every DOM change */
+      scheduleOrphanRetry();
+    } else {
+      clearTimeout(state.retryTimer);
+      state.retries = 0;
+    }
+  }
+
   function observeDom() {
     if (typeof MutationObserver === 'undefined') return;
-    var mo = new MutationObserver(HL.util.debounce(function () {
-      if (state.orphaned.size && !state.disabled) {
-        state.retries = Math.min(state.retries, 5); /* a few more retries on every DOM change */
-        scheduleOrphanRetry();
-      }
-    }, 800));
+    var mo = new MutationObserver(HL.util.debounce(reconcileOrphans, 800));
     try {
       mo.observe(document.documentElement, { childList: true, subtree: true });
     } catch (e) { /* noop */ }
@@ -241,14 +303,15 @@
       return;
     }
     state.settings = await HL.store.getSettings();
+    var here = HL.url.normalizeUrl(location.href);
+    if (here && (here.norm !== page.norm || here.host !== page.host)) hl.setPage(here); /* navigated while settings loaded */
     state.disabled = !!((state.settings.disabledHosts || []).indexOf(page.host) !== -1);
     HL.ui.setTheme(state.settings.theme); /* widgets render with the right theme from the very start */
     state.started = true;
+    HL.url.watchHref(window, function () { onHrefChange(); }, 300); /* SPA route changes from here on */
 
     if (!state.disabled) {
-      var fresh = await HL.store.getForUrl(page.norm, page.host);
-      fresh.forEach(function (rec) { hl.adoptRecord(rec); });
-      applyAllRecords();
+      await loadPageRecords(navSeq);
       observeDom();
       checkHash();
     }

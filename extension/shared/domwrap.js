@@ -194,6 +194,29 @@
     }, 2000);
   }
 
+  /**
+   * Is this element/text hidden from the user (display:none anywhere up the
+   * tree)? Sites duplicate content (pre-hydration fallbacks, SEO/mobile
+   * copies) and frameworks hide one copy after boot — a highlight wrapped in
+   * the hidden copy is invisible and unclickable even though the marks exist.
+   * Visibility checks must go through here so apply/reconcile/picking agree.
+   * (visibility:hidden is NOT detected — it keeps layout boxes; ponytail:
+   * add computed visibility/opacity when a real site needs it.)
+   */
+  function isHidden(el) {
+    if (!el) return true;
+    if (el.nodeType !== 1) el = el.parentElement;
+    if (!el || !el.isConnected) return true;
+    try {
+      var win = el.ownerDocument && el.ownerDocument.defaultView;
+      for (var n = el; n && n.nodeType === 1; n = n.parentElement) {
+        if (n.style && n.style.display === 'none') return true;
+        if (win && win.getComputedStyle(n).display === 'none') return true;
+      }
+    } catch (e) { return false; }
+    return false;
+  }
+
   HL.dom = {
     xpathOf: xpathOf,
     evalXPath: evalXPath,
@@ -206,6 +229,7 @@
     unwrap: unwrap,
     setColor: setColor,
     setNoted: setNoted,
-    flash: flash
+    flash: flash,
+    isHidden: isHidden
   };
 })();

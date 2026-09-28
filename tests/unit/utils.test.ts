@@ -45,6 +45,43 @@ describe("HL.url.normalizeUrl", () => {
   });
 });
 
+describe("HL.url.watchHref — ناوبری سمت کلاینت (SPA)", () => {
+  test("pushState → فراخوانی یک‌باره با href جدید", async () => {
+    setupDom();
+    const HL = loadEngine({});
+    const calls: string[] = [];
+    const unwatch = HL.url.watchHref(window, (h: string) => calls.push(h), 20);
+    (window as any).history.pushState(null, "", "/route-b");
+    await sleep(80);
+    expect(calls.length).toBe(1);
+    expect(calls[0]).toContain("/route-b");
+    unwatch();
+  });
+
+  test("unwatch → تغییر بعدی دیده نمی‌شود", async () => {
+    setupDom();
+    const HL = loadEngine({});
+    const calls: string[] = [];
+    const unwatch = HL.url.watchHref(window, (h: string) => calls.push(h), 20);
+    unwatch();
+    (window as any).history.pushState(null, "", "/route-c");
+    await sleep(80);
+    expect(calls.length).toBe(0);
+  });
+
+  test("popstate بدون تغییر href → بدون فراخوانی تکراری (dedup)", async () => {
+    setupDom();
+    const HL = loadEngine({});
+    const calls: string[] = [];
+    HL.url.watchHref(window, (h: string) => calls.push(h), 20);
+    (window as any).history.pushState(null, "", "/route-d");
+    await sleep(60);
+    (window as any).dispatchEvent(new (window as any).Event("popstate"));
+    await sleep(60);
+    expect(calls.length).toBe(1);
+  });
+});
+
 describe("HL.util (پریمیتیوهای هسته)", () => {
   test("newId: پیشوند و یکتایی", () => {
     setupDom();

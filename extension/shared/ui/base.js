@@ -68,11 +68,51 @@
     document.documentElement.appendChild(host);
     applyThemeAttr(host);
     hosts.push(host);
+    startWatchdog();
     var root = host.attachShadow({ mode: 'open' });
     var style = document.createElement('style');
     style.textContent = BASE_CSS;
     root.appendChild(style);
     return { host: host, root: root };
+  }
+
+  /* ---------- Host watchdog (v0.6.6) ---------- */
+
+  /* Some frameworks hydrate the whole document as their React root (Next.js
+     App Router) and, when hydration hits a mismatch (error #418 — e.g. our
+     early-applied <mark> vs the server HTML), their recovery pass DELETES
+     every non-framework direct child of <html>/<body> — our hosts die once,
+     silently, and every widget renders into a detached shadow root (popover
+     "click does nothing", toolbar never appears). The host node itself is
+     untouched otherwise, so re-attaching the SAME node restores everything
+     (shadow tree, popover state, theme attr). One-shot wipes are the normal
+     case; a repeating cleaner just gets re-attached each round. */
+  var watchdogInstalled = false;
+  var watchdogTimer = null;
+
+  function reviveHosts() {
+    watchdogTimer = null;
+    for (var i = 0; i < hosts.length; i++) {
+      if (hosts[i].isConnected) continue;
+      try { document.documentElement.appendChild(hosts[i]); } catch (e) { /* noop */ }
+    }
+  }
+
+  function startWatchdog() {
+    if (watchdogInstalled || typeof MutationObserver === 'undefined') return;
+    watchdogInstalled = true;
+    try {
+      var mo = new MutationObserver(function () {
+        for (var i = 0; i < hosts.length; i++) {
+          if (hosts[i].isConnected) continue;
+          clearTimeout(watchdogTimer);
+          watchdogTimer = setTimeout(reviveHosts, 300); /* coalesce one wipe batch */
+          return;
+        }
+      });
+      /* hosts are always direct children of <html> — childList only, no subtree */
+      mo.observe(document.documentElement, { childList: true });
+    } catch (e) { watchdogInstalled = false; }
   }
 
   var BASE_CSS = [

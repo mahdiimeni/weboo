@@ -219,6 +219,10 @@
       if (rec.prefix) sc += endsWithNorm(ti.text.slice(Math.max(0, start - 64), start), rec.prefix) ? 2 : 0;
       if (rec.suffix) sc += startsWithNorm(ti.text.slice(end, end + 64), rec.suffix) ? 2 : 0;
       if (typeof rec.start === 'number') sc -= Math.min(Math.abs(start - rec.start) / 500, 1.5);
+      /* +8: the occurrence the user can SEE always beats a hidden duplicate
+         (max hidden score = 1+2+2-0 = 5; worst visible = 8-1.5 = 6.5) */
+      var here = ti.locate(start);
+      if (here && !HL.dom.isHidden(here.node)) sc += 8;
       if (sc > bestScore) { bestScore = sc; best = { start: start, end: end, method: method }; }
     }
 
@@ -251,6 +255,8 @@
             if (nPre) sc += endsWithNorm(ti.text.slice(Math.max(0, os - 64), os), nPre) ? 2 : 0;
             if (nSuf) sc += startsWithNorm(ti.text.slice(oe, oe + 64), nSuf) ? 2 : 0;
             if (typeof rec.start === 'number') sc -= Math.min(Math.abs(os - rec.start) / 500, 1.5);
+            var here = ti.locate(os); /* see-what-the-user-sees: visible copy wins (see consider) */
+            if (here && !HL.dom.isHidden(here.node)) sc += 8;
             if (sc > bestScore) { bestScore = sc; best = { start: os, end: oe, method: 'norm' }; }
           }
           j = N.norm.indexOf(q.norm, j + 1);

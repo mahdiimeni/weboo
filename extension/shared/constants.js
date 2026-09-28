@@ -10,7 +10,7 @@
 
   HL.APP_NAME = 'وب هایلایتر';
   HL.APP_ID = 'web-highlighter';
-  HL.VERSION = '0.6.4';
+  HL.VERSION = '0.6.7';
   HL.BACKUP_FORMAT = 1;
 
   /** Runtime message types */

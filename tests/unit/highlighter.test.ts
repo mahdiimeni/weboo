@@ -441,3 +441,166 @@ describe("خطاهای ذخیره", () => {
     expect(after).toBe(1); /* once-flag */
   });
 });
+
+describe("setPage — کلید صفحه در ناوبری SPA (v0.6.5)", () => {
+  const spaPage = () => ({ url: "u1", norm: "n1", site: "s1", host: "a.local" });
+  const mkHl = (pageObj: any) => HL.createHighlighter({ page: pageObj, scope: art, eventRoot: art, store, hooks: {} });
+
+  test("هویت شیء page حفظ می‌شود و رکوردهای جدید با کلید جدید ساخته می‌شوند", async () => {
+    const pageObj: any = spaPage();
+    const hl = mkHl(pageObj);
+    const p1 = win.document.getElementById("p1");
+    const r1 = win.document.createRange();
+    r1.setStart(p1.firstChild, 0);
+    r1.setEnd(p1.firstChild, 9);
+    const rec1 = hl.createFromRange(r1, "مغز ما هن", "green", "");
+    expect(rec1.urlNorm).toBe("n1");
+    expect(rec1.host).toBe("a.local");
+
+    const out = hl.setPage({ url: "u2", norm: "n2", site: "s2", host: "b.local" });
+    expect(out).toBe(pageObj);
+    expect(hl.page).toBe(pageObj); /* the injected object is updated in place — content's `page` var sees it */
+    expect(pageObj.norm).toBe("n2");
+
+    const p2 = win.document.getElementById("p2");
+    const r2 = win.document.createRange();
+    r2.setStart(p2.firstChild, 0);
+    r2.setEnd(p2.firstChild, 9);
+    const rec2 = hl.createFromRange(r2, "حفظ یادداش", "pink", "");
+    expect(rec2.urlNorm).toBe("n2");
+    expect(rec2.host).toBe("b.local");
+  });
+
+  test("title فقط وقتی صریحاً داده شده باشد ست می‌شود؛ null → بدون تغییر", () => {
+    const pageObj: any = spaPage();
+    const hl = mkHl(pageObj);
+    hl.setPage({ url: "u2", norm: "n2", site: "s2", host: "b.local", title: "عنوان تازه" });
+    expect(pageObj.title).toBe("عنوان تازه");
+    hl.setPage({ url: "u3", norm: "n3", site: "s3", host: "c.local" });
+    expect(pageObj.title).toBe("عنوان تازه"); /* untouched without an explicit title */
+    hl.setPage(null);
+    expect(pageObj.norm).toBe("n3");
+  });
+});
+
+describe("reconcile — بازگرداندن markهای حذف‌شده (v0.6.5)", () => {
+  function markOnP1(hl: any) {
+    const p1 = win.document.getElementById("p1");
+    const r = win.document.createRange();
+    r.setStart(p1.firstChild, 0);
+    r.setEnd(p1.firstChild, 9);
+    return hl.createFromRange(r, "مغز ما هن", "green", "");
+  }
+
+  test("mark حذف‌شده (re-render ری‌اکت) دوباره اعمال می‌شود", () => {
+    const hl = makeController();
+    const rec = markOnP1(hl);
+    expect(HL.dom.marksOf(rec.id).length).toBe(1);
+
+    HL.dom.unwrap(rec.id); /* the framework destroyed the marks */
+    expect(HL.dom.marksOf(rec.id).length).toBe(0);
+
+    const missing = hl.reconcile();
+    expect(missing).toEqual([]);
+    expect(HL.dom.marksOf(rec.id).length).toBe(1);
+  });
+
+  test("بدون تکرار: mark موجود دست نمی‌خورد (همان المنت)", () => {
+    const hl = makeController();
+    const rec = markOnP1(hl);
+    const before = HL.dom.marksOf(rec.id)[0];
+    const missing = hl.reconcile();
+    expect(missing).toEqual([]);
+    const after = HL.dom.marksOf(rec.id);
+    expect(after.length).toBe(1);
+    expect(after[0]).toBe(before); /* the very same element — no re-wrap */
+  });
+
+  test("متنِ غایب در لیست missing برمی‌گردد و mark نمی‌سازد", () => {
+    const hl = makeController();
+    const rec = markOnP1(hl);
+    HL.dom.unwrap(rec.id);
+    hl.adoptRecord({ ...rec, id: "ghost", text: "این متن هرگز در صفحه نیست", prefix: "", suffix: "", start: 0, end: 0, anchor: null });
+    const missing = hl.reconcile();
+    expect(missing.map((x: any) => x.id)).toContain("ghost");
+    expect(HL.dom.marksOf("ghost").length).toBe(0);
+    expect(HL.dom.marksOf(rec.id).length).toBe(1); /* the real one got restored */
+  });
+});
+
+describe("visibility — کپیِ مخفیِ متن (v0.6.7)", () => {
+  const DUP_HTML =
+    `<div id="hid" style="display:none"><p id="ph">متن آزمایشی تکراری برای تست دیده‌شدن</p></div>` +
+    `<div id="vis"><p id="pv">متن آزمایشی تکراری برای تست دیده‌شدن</p></div>`;
+
+  test("isHidden: خودش، والد، و گرهٔ جداشده", () => {
+    win = setupDom({ html: DUP_HTML });
+    const d = win.document;
+    const hidP = d.getElementById("ph");
+    const visP = d.getElementById("pv");
+    expect(HL.dom.isHidden(hidP)).toBe(true);      /* inside display:none */
+    expect(HL.dom.isHidden(hidP.firstChild as any)).toBe(true); /* text node inside hidden */
+    expect(HL.dom.isHidden(visP)).toBe(false);
+    const stray = d.createElement("p");
+    expect(HL.dom.isHidden(stray)).toBe(true);     /* not connected */
+  });
+
+  test("کپیِ مخفی انتخاب نمی‌شود؛ پنهان‌شدنِ کپیِ پوشیده → reconcile به کپیِ ناپیدا می‌رود", () => {
+    win = setupDom({ html: DUP_HTML });
+    const d = win.document;
+    const hl = HL.createHighlighter({
+      page: { url: "u", norm: "n", site: "s", host: "h.test" },
+      scope: d.body, eventRoot: d, store, hooks: {},
+    });
+
+    /* 1) create on the VISIBLE copy */
+    const pv = d.getElementById("pv");
+    const r = d.createRange();
+    r.setStart(pv.firstChild!, 0);
+    r.setEnd(pv.firstChild!, 16);
+    const rec = hl.createFromRange(r, pv.textContent!.slice(0, 16), "green", "");
+    expect(d.querySelectorAll("#pv mark.hlx-marker").length).toBe(1);
+    expect(d.querySelectorAll("#ph mark.hlx-marker").length).toBe(0); /* hidden twin untouched */
+    expect(hl.reconcile()).toEqual([]); /* visible → healthy */
+
+    /* 2) the site hides the wrapped copy (framework swap) */
+    d.getElementById("vis")!.style.display = "none";
+    const missing1 = hl.reconcile();
+    expect(missing1.map((x: any) => x.id)).toContain(rec.id); /* nothing visible now */
+
+    /* 3) the twin copy becomes the shown one → re-apply must land THERE */
+    d.getElementById("hid")!.style.display = "";
+    expect(hl.reconcile()).toEqual([]);
+    expect(d.querySelectorAll("#ph mark.hlx-marker").length).toBe(1); /* visible copy wrapped */
+    expect(d.querySelectorAll("#pv mark.hlx-marker").length).toBe(1);  /* hidden copy kept, no nesting */
+    expect(d.querySelectorAll("#ph mark mark").length).toBe(0);
+    expect(HL.dom.marksOf(rec.id).length).toBe(2);
+    expect(HL.dom.isHidden(HL.dom.marksOf(rec.id)[0] as any)).toBe(false);
+  });
+
+  test("reconcile: نشانه‌ها فقط در کپیِ مخفی → missing؛ بعد از نمایان شدن → سالم", () => {
+    win = setupDom({ html: DUP_HTML });
+    const d = win.document;
+    const hl = HL.createHighlighter({
+      page: { url: "u2", norm: "n2", site: "s2", host: "h.test" },
+      scope: d.body, eventRoot: d, store, hooks: {},
+    });
+    const pv = d.getElementById("pv");
+    const r = d.createRange();
+    r.setStart(pv.firstChild!, 0);
+    r.setEnd(pv.firstChild!, 16);
+    const rec = hl.createFromRange(r, pv.textContent!.slice(0, 16), "pink", "");
+
+    /* wrap ONLY into a hidden copy: hide both first, force textual apply via reconcile */
+    d.getElementById("vis")!.style.display = "none";
+    d.getElementById("hid")!.style.display = "none";
+    hl.reconcile(); /* may wrap the twin while hidden — either way nothing visible */
+    expect(hl.reconcile().map((x: any) => x.id)).toContain(rec.id);
+
+    /* twin shows up → immediately healthy without double-wrapping */
+    d.getElementById("hid")!.style.display = "";
+    expect(hl.reconcile()).toEqual([]);
+    expect(d.querySelectorAll("#ph mark.hlx-marker").length).toBe(1);
+    expect(HL.dom.marksOf(rec.id).length).toBeLessThanOrEqual(2);
+  });
+});
