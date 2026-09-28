@@ -11,6 +11,21 @@
  * loaded before this file everywhere) — the same integrity-gate pattern as
  * sanitizeFaviconMeta.
  *
+ * Schema versioning (Phase 4): hlx:schemaVersion (number) marks the shape a
+ * build reads/writes; absence = legacy v0 (the pre-versioning shape IS v1).
+ * Forward-only migrations live in MIGRATIONS below; the first store operation
+ * awaits migrated() (one memoized gate for reads and writes) — nothing can
+ * overtake it, a backend error surfaces at that first op and is retried on the
+ * next one (the memo resets), never stamped over.
+ * Data-safety rules: stamp each step only after its run() succeeded; a gap in
+ * the chain stamps nothing (data beats cosmetics); a stored version newer than
+ * ours (user downgraded) is never touched. clearAll wipes user keys but keeps
+ * the version (empty storage = current shape). The backup format has its own
+ * contract (BACKUP_FORMAT + sanitize gates on import) and stays unchanged.
+ * createContext note: createStoreReader never migrates (read-only ISP role) —
+ * settings reads are default-merged, so new keys default in; a future migration
+ * that REWRITES settings must run from a writer context first.
+ *
  * DIP: this module is a factory — HL.createStore(backend) — and instead of a
  * direct chrome.storage dependency it accepts any backend implementing the
  * port contract (chrome-storage / in-memory). Wiring HL.store happens in the
@@ -33,6 +48,11 @@
   var P_DATA = 'hlx:d:';
   var P_FAVICON = 'hlx:f:';
   var K_TAGS = 'hlx:tags';
+  var K_SCHEMA = 'hlx:schemaVersion';
+
+  /* The shape this build reads/writes (v1 = the explicit name for the
+     pre-versioning shape — no data rewritten when versioning landed). */
+  var SCHEMA_VERSION = 1;
 
   function dataKey(host) { return P_DATA + host; }
   function faviconKey(host) { return P_FAVICON + host; }
@@ -57,10 +77,50 @@
   }
 
   /**
+   * Ordered, forward-only schema migrations: { from, to, run(backend) }.
+   * Rules (data safety — do not relax):
+   *  - run() must be IDEMPOTENT: contexts boot concurrently (content + popup
+   *    can both start the same step) and a crash after run() but before the
+   *    stamp makes the next boot re-run it;
+   *  - run() writes only what it transforms; the version key is stamped by the
+   *    runner AFTER success, once per step (crash mid-chain resumes at step);
+   *  - a missing/invalid step → stamp NOTHING for the remaining gap;
+   *  - stored > target (downgrade) → hands off, no backward migration.
+   * ponytail: when the record schema first changes (TS-era fields), the first
+   * real step lands here — target stays at SCHEMA_VERSION and bump it.
+   */
+  var MIGRATIONS = [
+    { from: 0, to: 1, run: async function () { /* pre-versioning shape IS v1 — nothing to rewrite */ } }
+  ];
+
+  async function migrateSchema(backend, opts) {
+    var target = (opts && opts.schemaVersion) || SCHEMA_VERSION;
+    var steps = (opts && opts.migrations) || MIGRATIONS;
+    var o = await backend.get(K_SCHEMA);
+    var stored = Number(o ? o[K_SCHEMA] : undefined);
+    if (!(stored >= 0)) stored = 0; /* absent / garbage → legacy v0 */
+    if (stored >= target) return stored; /* current or newer: forward-only */
+    var v = stored;
+    while (v < target) {
+      var step = null;
+      for (var i = 0; i < steps.length; i++) if (steps[i] && steps[i].from === v) step = steps[i];
+      if (!step || typeof step.run !== 'function' || !(step.to > v) || step.to > target) return v; /* gap: no stamp */
+      await step.run(backend);
+      var stamp = {};
+      stamp[K_SCHEMA] = step.to;
+      await backend.set(stamp);
+      v = step.to;
+    }
+    return v;
+  }
+
+  /**
    * Builds a store on top of a backend.
    * The output is the same facade as previous versions so consumers work unchanged.
+   * opts (optional, injected like the backend): { schemaVersion, migrations } —
+   * the migration chain's collaborators; production callers pass nothing.
    */
-  function createStore(backend) {
+  function createStore(backend, opts) {
     if (!backend ||
       typeof backend.get !== 'function' ||
       typeof backend.set !== 'function' ||
@@ -74,17 +134,34 @@
 
     var writeTail = Promise.resolve();
 
+    /* Schema migration gate: memoized until it settles; a failure resets the
+       memo so the NEXT operation retries (transient storage errors heal) and
+       surfaces at THIS operation — data is left untouched/unstamped. */
+    var migrationP = null;
+    function migrated() {
+      if (!migrationP) {
+        migrationP = migrateSchema(backend, opts).catch(function (e) {
+          migrationP = null;
+          throw e;
+        });
+      }
+      return migrationP;
+    }
+
     /** Runs the job at the tail of the write queue; a previous error doesn't break the chain */
     function enqueueWrite(job) {
-      var run = writeTail.then(job, job);
+      /* every write first passes the migration gate — ordering without touching call sites */
+      var run = writeTail.then(migrated, migrated).then(job);
       writeTail = run.then(function () { /* noop */ }, function () { /* noop */ });
       return run;
     }
 
-    /** Public read: first waits for previous writes to finish */
-    function drained() {
-      return writeTail.then(function () { return true; }, function () { return false; });
+    /** Public read: migration first, then waits for previous writes */
+    async function drained() {
+      await migrated();
+      await writeTail.then(function () { return true; }, function () { return false; });
     }
+
 
     /* ---------- Raw reads (for inside queue jobs) ---------- */
 
@@ -263,7 +340,9 @@
 
     async function clearAllRaw() {
       var all = await getAllRaw();
-      var keys = Object.keys(all).filter(function (k) { return k.indexOf('hlx:') === 0; });
+      /* hlx:schemaVersion is schema metadata, not user data: an empty store IS
+         the current shape — wiping the stamp would re-run legacy steps for nothing */
+      var keys = Object.keys(all).filter(function (k) { return k.indexOf('hlx:') === 0 && k !== K_SCHEMA; });
       if (keys.length) await backend.remove(keys);
     }
 

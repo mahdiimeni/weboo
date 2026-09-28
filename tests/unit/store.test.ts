@@ -570,3 +570,93 @@ describe("createStoreReader — برش فقط-خواندنی (ISP)", () => {
     expect(s.showToolbar).toBe(true); /* merged with defaults */
   });
 });
+
+
+/* ---------- hlx:schemaVersion — Phase 4 data-safety contract ---------- */
+
+describe("hlx:schemaVersion — قرارداد نسخه‌ی اسکیما (forward-only migration)", () => {
+  const K_SCHEMA = "hlx:schemaVersion";
+
+  async function rawVersion(HL: any): Promise<any> {
+    const o = await HL.backends.chromeStorage().get(K_SCHEMA);
+    return o && K_SCHEMA in o ? o[K_SCHEMA] : undefined;
+  }
+
+  test("داده‌ی قدیمی (بدون نسخه) → ثبت نسخه ۱، داده بایت‌به‌بایت دست‌نخورده", async () => {
+    setupDom();
+    const rec = makeRecord("a1", "site1.com", "https://site1.com/p");
+    const chrome = makeChromeMock({
+      "hlx:d:site1.com": { a1: rec },
+      "hlx:settings": { defaultColor: "teal" },
+      "hlx:tags": { "https://site1.com/p": ["تگ‌ها"] },
+    });
+    const HL = loadEngine({ chrome });
+    const store = HL.createStore(HL.backends.chromeStorage());
+
+    const recs = await store.getAllRecords(); /* first op → migration rides the queue */
+    expect(recs.size).toBe(1);
+    expect(recs.get("a1")).toEqual(rec); /* byte-identical record */
+    expect((await store.getSettings()).defaultColor).toBe("teal"); /* merged, not reset */
+    expect(await store.getTags()).toEqual({ "https://site1.com/p": ["تگ‌ها"] });
+    expect(await rawVersion(HL)).toBe(1); /* stamped after success */
+  });
+
+  test("نسخه‌ی جدیدتر (کاربر downgrade کرده) هرگز دست نمی‌خورد", async () => {
+    setupDom();
+    const rec = makeRecord("a1", "site1.com", "https://site1.com/p");
+    const chrome = makeChromeMock({ [K_SCHEMA]: 99, "hlx:d:site1.com": { a1: rec } });
+    const HL = loadEngine({ chrome });
+    const store = HL.createStore(HL.backends.chromeStorage());
+
+    expect((await store.getAllRecords()).size).toBe(1);
+    expect(await rawVersion(HL)).toBe(99); /* never downgraded, never rewritten */
+  });
+
+  test("گپ مهاجرت → هیچ نسخه‌ای ثبت نمی‌شود (داده مهم‌تر از آرایش)", async () => {
+    setupDom();
+    const chrome = makeChromeMock({ "hlx:d:site1.com": { a1: makeRecord("a1", "site1.com", "https://site1.com/p") } });
+    const HL = loadEngine({ chrome });
+    /* injected empty chain: v0 has no step → the runner must stamp NOTHING */
+    const store = HL.createStore(HL.backends.chromeStorage(), { migrations: [] });
+
+    expect((await store.getAllRecords()).size).toBe(1); /* reads still work */
+    expect(await rawVersion(HL)).toBeUndefined(); /* no stamp over unknown ground */
+  });
+
+  test("زنجیره‌ی ناقص → تا جایی که پله دارد بالا می‌رود، نه بیشتر", async () => {
+    setupDom();
+    const chrome = makeChromeMock();
+    const HL = loadEngine({ chrome });
+    const store = HL.createStore(HL.backends.chromeStorage(), {
+      schemaVersion: 3,
+      migrations: [
+        { from: 0, to: 1, run: async () => {} },
+        { from: 1, to: 2, run: async () => {} } /* 2→3 missing = the gap */
+      ]
+    });
+    await store.getSettings(); /* first op */
+    expect(await rawVersion(HL)).toBe(2); /* stamped per completed step — never 3 */
+  });
+
+  test("migration سریِ نوشتن است: هیچ ذخیره‌ای از کنارش رد نمی‌شود", async () => {
+    setupDom();
+    const chrome = makeChromeMock();
+    const HL = loadEngine({ chrome });
+    const store = HL.createStore(HL.backends.chromeStorage());
+    const p = store.save(makeRecord("a1", "site1.com", "https://site1.com/p")); /* issued immediately */
+    await p;
+    expect(await rawVersion(HL)).toBe(1); /* stamp completed before the queued write landed */
+    expect((await store.getAllRecords()).size).toBe(1);
+  });
+
+  test("clearAll کلیدهای کاربری را پاک می‌کند، نسخه‌ی اسکیما را نگه می‌دارد", async () => {
+    setupDom();
+    const chrome = makeChromeMock();
+    const HL = loadEngine({ chrome });
+    const store = HL.createStore(HL.backends.chromeStorage());
+    await store.save(makeRecord("a1", "site1.com", "https://site1.com/p"));
+    await store.clearAll();
+    expect((await store.getAllRecords()).size).toBe(0);
+    expect(await rawVersion(HL)).toBe(1); /* schema metadata survives a user wipe */
+  });
+});
