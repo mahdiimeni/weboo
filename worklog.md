@@ -1784,3 +1784,19 @@ Stage Summary:
 - Delivered: repository is extension-only — landing page, Prisma scaffold, deploy config and stray example/upload/db projects removed; root dependencies cut from 15 runtime packages to zero (tooling devDeps only), node_modules 756M → 106M
 - The Next.js compatibility suite survives as a self-contained fixture under tests/ (its own package.json; the E2E installs and builds it on demand) — extension test capability unchanged: 16/16
 - Test contract: 628 unit / lint 0 / next-compat 16/16 / real-theme exit 0
+---
+Task ID: 64
+Agent: main (Hermes)
+Task: Modernization program kickoff — Phase 0 (complete repository audit + baseline) on dedicated migration branch, per the owner's TypeScript/WXT/React/SOLID modernization plan
+
+Work Log:
+- Branch: migration/arch-modernization created from main @ 763ecc9 (owner had committed Task 63). All migration work stays off main (prompt §46).
+- Baseline gates (recorded verbatim in docs/migration-baseline.md): bun run test 628/0/2423 · lint exit 0 · zip 49 entries/143,770 B · harness 2 written · browser E2E last green at Task 63 (next-compat 16/16, real-theme exit 0). Known failures: none. Toolchain: bun 1.4.2, Node v26.7.0.
+- §4 risk audit executed against source: globalThis.HL 38 hits/31 files (the migration target); chrome.storage confined to 1 file (backend already adapterized); chrome.runtime/tabs only in SW/popup/chrome-storage/runtime-bridge; MutationObserver only 2 (content + ui watchdog); eval/new Function 0; innerHTML 25 hits but constant-ICONS-only (no user-data interpolation); no import graph exists yet (classic scripts) so circular imports are impossible today — the real implicit coupling is manifest load order; 293 `any` annotations in tests only.
+- Key structural finding (R1): MV3 content_scripts are injected as CLASSIC scripts — import/export illegal there — so removing globalThis.HL from the content path REQUIRES a bundler; background SW is already type:module and extension pages can use native ESM. This pins global removal to after WXT (prompt's own ordering holds).
+- Data contract snapshotted exactly: record literal {id,host,site,url,urlNorm,title,text,prefix,suffix,start,end,anchor,color,note,createdAt,updatedAt}; keys hlx:settings|d:|f:|tags; BACKUP_FORMAT=1 — and documented that NO storage schema version exists yet (risk R6).
+- Toolchain decision documented (§7): incremental tsc emit for Phases 2-5, WXT at Phase 6 as planned; Phase 1 types are toolchain-neutral. Risks R1-R9, compatibility constraints, and the 12-phase mapping written to docs/migration-baseline.md (the prompt's Phase 0 deliverable).
+- Nothing in product code changed this task. Zip byte-churn from the baseline rebuild discarded (risk R8: commit zips only on releases).
+
+Stage Summary:
+- Phase 0 complete: audit findings, measured baseline, migration risks, compatibility invariants, phase plan — all in docs/migration-baseline.md; branch ready for Phase 1 (domain types + storage/messaging contracts + typecheck gate)
