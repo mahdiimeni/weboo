@@ -102,7 +102,7 @@ describe("emit کلاسیک (TypeScript → اسکریپت قابل تزریق)"
        `import`/`export` in a TS source flips tsc to module output and appends
        `export {};` — a SyntaxError when the manifest injects the file as a
        classic script. This is the tripwire for that whole class of bug. */
-    const emitted = ["format", "detect-dir", "url", "utils", "tags", "textindex", "anchor"];
+    const emitted = ["format", "detect-dir", "url", "utils", "tags", "textindex", "anchor", "store"];
     for (const name of emitted) {
       /* source of truth lives in src/shared (ext() is extension/-rooted — ".." climbs out) */
       expect(exists(ext("..", "src", "shared", name + ".ts"))).toBe(true);
