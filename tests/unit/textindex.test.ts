@@ -109,51 +109,6 @@ describe("normalizeRange — رگرسیون v1.0.4", () => {
   });
 });
 
-describe("HL.text.findRange", () => {
-  test("مسیر دقیق (exact) با متن یکتا", () => {
-    const ti = HL.text.build(art);
-    const f = HL.text.findRange(ti, { text: "پاراگراف دوم" });
-    expect(f).not.toBeNull();
-    expect(f.method).toBe("exact"); /* no stored offset → exact search */
-    expect(f.range.toString()).toBe("پاراگراف دوم");
-  });
 
-  test("prefix/suffix رفع ابهام تکرار می‌کند", () => {
-    const ti = HL.text.build(art);
-    const quote = "متن"; /* repeated in «متن …» and «… ادامه متن» */
-    const f = HL.text.findRange(ti, {
-      text: quote,
-      prefix: "ادامه",   /* must pick «و ادامه متن» */
-    });
-    expect(f).not.toBeNull();
-    expect(f.range.toString()).toBe("متن");
-    const idx = ti.text.indexOf("ادامه متن");
-    expect(f.start).toBeGreaterThanOrEqual(idx);
-  });
-
-  test("مسیر نرمال‌شده وقتی whitespace صفحه عوض شده", () => {
-    /* a "fresh" page with different whitespace (inter-tag space needed for the word boundary) */
-    win.document.body.innerHTML = `<article id="art"><p id="p1">متنی که برای تست انکُرینگ نوشته شده است</p> <p id="p2">پاراگراف  دوم\tبرای  پوشش چند  chunk جدا</p><div id="mix"><span>بلاک</span> میانی <b>پررنگ</b> و ادامه متن</div><script>var ignored = 1;</script></article>`;
-    const art2 = win.document.getElementById("art");
-    const ti = HL.text.build(art2);
-    const f = HL.text.findRange(ti, { text: "پاراگراف دوم برای پوشش چند chunk جدا" });
-    expect(f).not.toBeNull();
-    expect(HL.text.squash(f.range.toString())).toBe(HL.text.squash("پاراگراف دوم برای پوشش چند chunk جدا"));
-    win.document.body.innerHTML = HTML; /* restore */
-    art = win.document.getElementById("art");
-  });
-
-  test("نبود متن → null؛ نقل‌قول خالی → null", () => {
-    const ti = HL.text.build(art);
-    expect(HL.text.findRange(ti, { text: "این متن در صفحه نیست" })).toBeNull();
-    expect(HL.text.findRange(ti, { text: "   " })).toBeNull();
-    expect(HL.text.findRange(null, { text: "x" })).toBeNull();
-  });
-
-  test("آفست ذخیره‌شده کهنه — بازیابی با جست‌وجو", () => {
-    const ti = HL.text.build(art);
-    const f = HL.text.findRange(ti, { text: "پررنگ", start: 0 });
-    expect(f).not.toBeNull();
-    expect(f.range.toString()).toBe("پررنگ");
-  });
-});
+/* HL.text.findRange moved to anchor.test.ts (Phase 3 extraction) — the
+   resolution algorithm now lives in HL.anchor, tested there verbatim. */

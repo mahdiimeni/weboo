@@ -101,14 +101,13 @@
       if (hasVisibleMarks(rec.id)) return true; /* already applied where the user can see it */
 
       /* Fast path: XPath — but skip it when it lands in a hidden duplicate */
-      var range = HL.dom.resolveAnchor(rec.anchor, rec.text);
-      if (range && HL.dom.isHidden(range.commonAncestorContainer)) range = null;
+      var range = HL.anchor.resolveStructural(rec);
       var located = null;
 
       /* Textual path (fallback) — the index must be fresh because the previous wrap split nodes */
       if (!range) {
         if (!state.ti) freshIndex();
-        located = HL.text.findRange(state.ti, rec);
+        located = HL.anchor.resolve(state.ti, rec);
         range = located && located.range;
       }
       if (!range) return false;

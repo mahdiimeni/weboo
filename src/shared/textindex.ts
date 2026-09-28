@@ -6,8 +6,10 @@
  * The engine is independent of DOM structure; even if the page is rewritten,
  * as long as the text is still there the highlight comes back.
  *
- * Phase 2 migration (TypeScript): compiled by `bun run build:ext` into
- * extension/shared/textindex.js — never edit the .js directly.
+ * Phase 2/3: resolution strategies (findRange + scoring) moved to
+ * shared/anchor.js — this module is now the index PRIMITIVE only (build,
+ * locate, offsets, range normalization). Compiled by `bun run build:ext`
+ * into extension/shared/textindex.js — never edit the .js directly.
  *
  * NOTE (classic-script invariant): this file must contain NO import/export
  * statements — a single import flips tsc to module output and appends
@@ -29,17 +31,6 @@
     locate(index: number): Located | null;
     offsetOf(node: Node, offset: number): number;
     offsetsOfRange(range: Range): TextOffsets | null;
-  }
-  /** Focused view of a highlight record as findRange consumes it (ISP:
-   *  the engine reads only these fields; the full model lives in
-   *  src/types/highlight.ts HighlightRecord). */
-  interface FindRec { text?: string; prefix?: string; suffix?: string; start?: number; end?: number }
-  interface FoundRange {
-    range: Range;
-    start: number;
-    end: number;
-    method: 'offsets' | 'exact' | 'norm';
-    score: number;
   }
   interface HlSlice {
     dom?: { isHidden(el: Node): boolean };
@@ -158,9 +149,6 @@
     return { norm: norm, map: map };
   }
 
-  function endsWithNorm(a: unknown, b: unknown) { return squash(a).endsWith(squash(b)); }
-  function startsWithNorm(a: unknown, b: unknown) { return squash(a).startsWith(squash(b)); }
-
   /* ---------- Range boundary normalization ---------- */
 
   /**
@@ -248,89 +236,8 @@
     return range;
   }
 
-  /**
-   * Finds the equivalent Range for a highlight record on this index.
-   * Strategy: 1) saved offsets 2) exact search 3) normalized search
-   * + scoring by prefix/suffix and proximity to the previous offset for disambiguation.
-   * Returns: { range, start, end, method, score } or null
-   */
-  function findRange(ti: TextIndex | null, rec: FindRec | null): FoundRange | null {
-    if (!ti || !ti.text) return null;
-    const tix = ti; /* const: narrowing survives the consider() closure */
-    var quote = String(rec && rec.text || '');
-    if (!quote.trim()) return null;
-
-    var best: { start: number; end: number; method: 'offsets' | 'exact' | 'norm' } | null = null;
-    var bestScore = -Infinity;
-
-    function consider(start: number, end: number, method: 'offsets' | 'exact' | 'norm', bonus?: number): void {
-      var sc = bonus || 0;
-      if (rec && rec.prefix) sc += endsWithNorm(tix.text.slice(Math.max(0, start - 64), start), rec.prefix) ? 2 : 0;
-      if (rec && rec.suffix) sc += startsWithNorm(tix.text.slice(end, end + 64), rec.suffix) ? 2 : 0;
-      if (rec && typeof rec.start === 'number') sc -= Math.min(Math.abs(start - rec.start) / 500, 1.5);
-      /* +8: the occurrence the user can SEE always beats a hidden duplicate
-         (max hidden score = 1+2+2-0 = 5; worst visible = 8-1.5 = 6.5) */
-      var here = tix.locate(start);
-      if (here && !HL.dom?.isHidden(here.node)) sc += 8;
-      if (sc > bestScore) { bestScore = sc; best = { start: start, end: end, method: method }; }
-    }
-
-    // 1) Fast path: the saved offsets are still exact
-    if (rec && typeof rec.start === 'number' && rec.start >= 0 && rec.start + quote.length <= tix.text.length && tix.text.substr(rec.start, quote.length) === quote) {
-      consider(rec.start, rec.start + quote.length, 'offsets', 1);
-    }
-
-    // 2) Exact text search
-    var idx = tix.text.indexOf(quote);
-    var guard = 0;
-    while (idx !== -1 && guard++ < 200) {
-      consider(idx, idx + quote.length, 'exact', 0);
-      idx = tix.text.indexOf(quote, idx + 1);
-    }
-
-    // 3) Normalized search (whitespace changes in the newer page version)
-    if (!best || bestScore < 4) {
-      var N = normInfo(tix.text);
-      var q = normInfo(quote);
-      if (q.norm) {
-        var nPre = squash(rec && rec.prefix), nSuf = squash(rec && rec.suffix);
-        var j = N.norm.indexOf(q.norm);
-        var g2 = 0;
-        while (j !== -1 && g2++ < 200) {
-          if (j === 0 || N.norm.charAt(j - 1) === ' ') { // word boundary — full token match
-            var os = N.map[j];
-            var oe = N.map[j + q.norm.length - 1] + 1;
-            var sc = 0;
-            if (nPre) sc += endsWithNorm(tix.text.slice(Math.max(0, os - 64), os), nPre) ? 2 : 0;
-            if (nSuf) sc += startsWithNorm(tix.text.slice(oe, oe + 64), nSuf) ? 2 : 0;
-            if (rec && typeof rec.start === 'number') sc -= Math.min(Math.abs(os - rec.start) / 500, 1.5);
-            var here = tix.locate(os); /* see-what-the-user-sees: visible copy wins (see consider) */
-            if (here && !HL.dom?.isHidden(here.node)) sc += 8;
-            if (sc > bestScore) { bestScore = sc; best = { start: os, end: oe, method: 'norm' }; }
-          }
-          j = N.norm.indexOf(q.norm, j + 1);
-        }
-      }
-    }
-
-    if (!best) return null;
-
-    var a = tix.locate(best.start);
-    var b = tix.locate(best.end - 1);
-    if (!a || !b) return null;
-    try {
-      var range = document.createRange();
-      range.setStart(a.node, a.offset);
-      range.setEnd(b.node, b.offset + 1);
-      return { range: range, start: best.start, end: best.end, method: best.method, score: bestScore };
-    } catch (e) {
-      return null;
-    }
-  }
-
   HL.text = {
     build: buildTextIndex,
-    findRange: findRange,
     normInfo: normInfo,
     squash: squash,
     acceptTextNode: acceptTextNode,

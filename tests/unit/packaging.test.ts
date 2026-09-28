@@ -39,6 +39,7 @@ describe("یکپارچگی بسته (packaging)", () => {
     expect(js.indexOf("shared/url.js")).toBeLessThan(js.indexOf("content/content.js"));
     expect(js.indexOf("shared/store.js")).toBeLessThan(js.indexOf("shared/highlighter.js"));
     expect(js.indexOf("shared/highlighter.js")).toBeLessThan(js.indexOf("content/content.js"));
+  expect(js.indexOf("shared/anchor.js")).toBeLessThan(js.indexOf("shared/highlighter.js")); /* Phase 3: resolver before its only consumer */
     /* smart direction (v1.2.10): the direction decision loads before the popover view */
     expect(js.indexOf("shared/detect-dir.js")).toBeLessThan(js.indexOf("shared/ui/popover.js"));
     /* article tags (v1.2.15): the tag domain loads before the store (integrity gate) */
@@ -101,7 +102,7 @@ describe("emit کلاسیک (TypeScript → اسکریپت قابل تزریق)"
        `import`/`export` in a TS source flips tsc to module output and appends
        `export {};` — a SyntaxError when the manifest injects the file as a
        classic script. This is the tripwire for that whole class of bug. */
-    const emitted = ["format", "detect-dir", "url", "utils", "tags", "textindex"];
+    const emitted = ["format", "detect-dir", "url", "utils", "tags", "textindex", "anchor"];
     for (const name of emitted) {
       /* source of truth lives in src/shared (ext() is extension/-rooted — ".." climbs out) */
       expect(exists(ext("..", "src", "shared", name + ".ts"))).toBe(true);
