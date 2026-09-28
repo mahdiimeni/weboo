@@ -7,3 +7,5 @@ out/
 
 # TypeScript incremental cache
 tsconfig.tsbuildinfo
+# stray per-file tsc emits (build:ext only ever writes extension/shared/)
+src/**/*.js
