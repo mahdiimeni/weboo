@@ -4,3 +4,6 @@ node_modules/
 # Build Outputs (Next.js)
 .next/
 out/
+
+# TypeScript incremental cache
+tsconfig.tsbuildinfo
