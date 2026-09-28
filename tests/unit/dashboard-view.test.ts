@@ -1377,14 +1377,14 @@ describe("fillHighlightPreview — بدنه‌ی پنجره‌ی متن کامل
     HL.dashView.fillHighlightPreview(box, { text: long, note: "", color: "teal", createdAt: 1700000000000, updatedAt: 1700000000000 });
     const q = box.querySelector(".hl-quote");
     expect(q).not.toBeNull();
-    expect(q.querySelector(".hl-quote-t").textContent).toBe(long); /* واژه‌به‌واژه، بدون «…» */
-    expect(q.querySelector(".cbar").style.background).toBe("#35b3ae"); /* نوار رنگ همان dot رنگ */
+    expect(q!.querySelector(".hl-quote-t")!.textContent).toBe(long); /* واژه‌به‌واژه، بدون «…» */
+    expect((q!.querySelector(".cbar") as HTMLElement).style.background).toBe("#35b3ae"); /* نوار رنگ همان dot رنگ */
   });
 
   test("یادداشت کامل وقتی هست؛ بدون یادداشت → بدون عنصر .note", () => {
     const withNote = document.createElement("div");
     HL.dashView.fillHighlightPreview(withNote, { text: "متن", note: "یادداشت کامل", color: "green", createdAt: 1, updatedAt: 2 });
-    expect(withNote.querySelector(".note .note-text").textContent).toBe("یادداشت کامل");
+    expect(withNote.querySelector(".note .note-text")!.textContent).toBe("یادداشت کامل");
     expect(withNote.querySelector(".note .note-ic")).not.toBeNull(); /* همان ردیف آیکون‌دار کارت */
 
     const noNote = document.createElement("div");
@@ -1395,25 +1395,25 @@ describe("fillHighlightPreview — بدنه‌ی پنجره‌ی متن کامل
   test("جهت‌ها همان قرارداد کارت: نقل‌قول فارسی rtl / انگلیسی ltr؛ ردیف یادداشت از خودش", () => {
     const fa = document.createElement("div");
     HL.dashView.fillHighlightPreview(fa, { text: "متن فارسی", note: "یادداشت فارسی", color: "yellow", createdAt: 1, updatedAt: 2 });
-    expect(fa.querySelector(".hl-quote").getAttribute("dir")).toBe("rtl");
-    expect(fa.querySelector(".note").getAttribute("dir")).toBe("rtl");
+    expect(fa.querySelector(".hl-quote")!.getAttribute("dir")).toBe("rtl");
+    expect(fa.querySelector(".note")!.getAttribute("dir")).toBe("rtl");
 
     const mirror = document.createElement("div"); /* آینه: انگلیسی + یادداشت فارسی */
     HL.dashView.fillHighlightPreview(mirror, { text: "An English highlight quoted verbatim", note: "یادداشت فارسی روی هایلایت انگلیسی", color: "green", createdAt: 1, updatedAt: 2 });
-    expect(mirror.querySelector(".hl-quote").getAttribute("dir")).toBe("ltr");
-    expect(mirror.querySelector(".note").getAttribute("dir")).toBe("rtl");
+    expect(mirror.querySelector(".hl-quote")!.getAttribute("dir")).toBe("ltr");
+    expect(mirror.querySelector(".note")!.getAttribute("dir")).toBe("rtl");
 
     const neutral = document.createElement("div");
     HL.dashView.fillHighlightPreview(neutral, { text: "12345", note: "", color: "yellow", createdAt: 1, updatedAt: 2 });
-    expect(neutral.querySelector(".hl-quote").getAttribute("dir")).toBe(null);
+    expect(neutral.querySelector(".hl-quote")!.getAttribute("dir")).toBe(null);
   });
 
   test("خط متا (v0.6.4): ردیف بی‌dir + جزیره‌ی inline RTL (.hl-meta-t) — چینش از قاب، ترتیب از زبان", () => {
     const box = document.createElement("div");
     HL.dashView.fillHighlightPreview(box, { text: "An English highlight", note: "", color: "pink", createdAt: 1700000000000, updatedAt: 1700000000000 });
-    const meta = box.querySelector(".hl-meta");
+    const meta = box.querySelector(".hl-meta")!;
     expect(meta.getAttribute("dir")).toBe(null); /* ردیف جریان قاب است — نه جزیره‌ی dir دار */
-    const island = meta.querySelector(".hl-meta-t");
+    const island = meta.querySelector(".hl-meta-t")!;
     expect(island).not.toBeNull();
     expect(island.getAttribute("dir")).toBe("rtl"); /* تاریخ fa-IR در جزیره‌ی inline RTL خودش — همان idiom تاریخ آیتم کارت */
     expect(meta.textContent).not.toContain("صورتی"); /* نام رنگ دیگر نیست — در هر رجیستری */
@@ -1430,8 +1430,8 @@ describe("fillHighlightPreview — بدنه‌ی پنجره‌ی متن کامل
     HL.dashView.fillHighlightPreview(box, { text: "<img src=x onerror=alert(1)>", note: "<script>alert(2)</script>", color: "yellow", createdAt: 1, updatedAt: 2 });
     expect(box.querySelector("img")).toBeNull();
     expect(box.querySelector("script")).toBeNull();
-    expect(box.querySelector(".hl-quote-t").textContent).toBe("<img src=x onerror=alert(1)>");
-    expect(box.querySelector(".note-text").textContent).toBe("<script>alert(2)</script>");
+    expect(box.querySelector(".hl-quote-t")!.textContent).toBe("<img src=x onerror=alert(1)>");
+    expect(box.querySelector(".note-text")!.textContent).toBe("<script>alert(2)</script>");
   });
 
   test("خالص و idempotent: پرکردن دوباره محتوای قبلی را کامل می‌پاکد", () => {
@@ -1439,7 +1439,7 @@ describe("fillHighlightPreview — بدنه‌ی پنجره‌ی متن کامل
     HL.dashView.fillHighlightPreview(box, { text: "اول", note: "یادداشت اول", color: "yellow", createdAt: 1, updatedAt: 2 });
     HL.dashView.fillHighlightPreview(box, { text: "دوم", note: "", color: "green", createdAt: 3, updatedAt: 4 });
     expect(box.querySelectorAll(".hl-quote").length).toBe(1);
-    expect(box.querySelector(".hl-quote-t").textContent).toBe("دوم");
+    expect(box.querySelector(".hl-quote-t")!.textContent).toBe("دوم");
     expect(box.querySelector(".note")).toBeNull(); /* یادداشت رکورد اول نمانده */
     expect(box.textContent).not.toContain("اول");
   });
