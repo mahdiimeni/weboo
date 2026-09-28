@@ -1864,3 +1864,26 @@ Stage Summary:
 - Phase 3 complete: anchor resolution is now an ordered, data-driven resolver composite with a single scorer; the v0.6.7 duplicate-text behavior is proven unchanged by unit port + 3 browser rigs
 - OCP demonstrated by test (appending a resolver needs no orchestration change); textindex is a pure primitive; applyRecord lost its resolution logic (highlighter.step: content step closer to the v0.6.9 target)
 - Next: Phase 4/5 — storage/schema boundary (hlx:* key consolidation behind explicit version + migration) and highlighter's remaining content extraction; WXT stays Phase 6 (R1: globalThis.HL can only leave the content path with a bundler)
+---
+Task ID: 68
+Agent: main (Hermes)
+Task: Modernization Phase 4 — storage schema boundary: explicit version key + forward-only migration gate (data safety, zero behavior change)
+
+Work Log:
+- Audit (before touching the data layer): chrome.storage keys = hlx:settings, hlx:d:<host>, hlx:f:<host>, hlx:tags (+ messages hlx:*-report/goto which are not storage); hlx:theme is a localStorage MIRROR of settings.theme (theme-boot pre-paint contract — different mechanism by design, inventoried, NOT consolidated this phase); backup has its own versioned contract (BACKUP_FORMAT + app check + sanitizeRecord/normalizeTagMap/sanitizeFaviconMeta gates on import) and stays byte-unchanged; no schema version existed anywhere; clearAll wiped every hlx:* key.
+- Implemented in extension/shared/store.js (single choke point — zero new files, zero call-site changes):
+  · K_SCHEMA='hlx:schemaVersion', SCHEMA_VERSION=1 (v1 = the explicit name for the pre-versioning shape; absence = legacy v0 — no user data rewritten when versioning landed).
+  · MIGRATIONS = ordered [{from,to,run}] + migrateSchema(backend, opts): forward-only (stored >= target → hands off, downgrade never rewritten); stamps EACH step after its run() succeeded (crash mid-chain resumes at stamped step); a gap/invalid step stamps NOTHING for the remainder (data beats cosmetics). Rules documented at the declaration: run() must be IDEMPOTENT (concurrent contexts; stamp-after-crash re-run) and a future step that rewrites USER keys must join the write queue (stamp-only steps are key-disjoint).
+  · Lazy memoized gate migrated(): awaited by drained() (every public read) and by enqueueWrite (every public write) — nothing overtakes migration; failure PROPAGATES to that operation (same error surface as a backend failure — keeps backends.test's lastError→rejection contract true) and resets the memo so the next op retries (transient errors heal, never stamped over).
+  · opts { schemaVersion, migrations } injected like the backend (test seam for gap/chain mechanics; production callers pass nothing).
+  · clearAll keeps hlx:schemaVersion: schema metadata ≠ user data; an empty store IS the current shape (existing clearAll tests assert behavior, not raw keys — green unchanged).
+  · createStoreReader (read-only ISP role) never migrates — documented ceiling: settings reads are default-merged; a future migration that rewrites settings must run from a writer context first.
+- Design lesson caught by tests: the first version ran migration EAGERLY at createStore construction — it consumed backends.test's one-shot failure injection (arm-after-construct tests saw the failure consumed by migration's own get/set, ops resolved instead of rejecting). Fix = lazy gate + error propagation (above); both backends' error contracts pass WITHOUT editing those tests.
+- Tests: new describe in store.test.ts (6): legacy seed → stamped 1 with records/settings/tags byte-identical; stored=99 downgrade → untouched; injected empty chain → NO stamp (gap rule); partial chain to target 3 → stops at stamped 2; save() issued at once → stamp completes before the queued write lands (ordering); clearAll wipes user keys, keeps version. All run against chrome-storage mock; both backends exercise migration implicitly through the whole contract suite.
+- Gates (all green): bun run test 643/0/2474 (637→643) · lint 0 · typecheck 0 · zip 50 entries · next-compat E2E 16/16 · real-theme E2E exit 0 · LIVE 16personalities with the new gate in real Chrome: CF pass ×2, create → 10 marks, restored after reload → 20 marks, popover after reload, pageErrorsTotal 0.
+- Commit series (§45): store schema gate + tests → this journal entry → E2E evidence.
+
+Stage Summary:
+- Phase 4 complete: every read/write passes a forward-only, stamp-after-success migration gate; the data-safety invariants (no silent discard, no downgrade rewrite, no stamping over unknown ground, idempotent steps) are pinned by 6 contract tests
+- Backup format untouched (its sanitize gates remain the import protection); hlx:theme mirror inventoried for a later, explicit migration
+- Next: Phase 5 — storage layer to TypeScript (store.js behind the typed StorageBackend port) or the remaining content extraction; WXT stays Phase 6 (R1)
