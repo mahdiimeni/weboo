@@ -1844,3 +1844,23 @@ Stage Summary:
 - Phase 2 complete: 6 modules (872 source lines) are now TypeScript with a compiling emit step wired into test/zip; behavior proven by 634 unit tests + both real-browser rigs
 - Architectural boundary honored: emit output is classic-script-clean and tripwire-tested; ESM conversion waits for the bundler (Phase 6) per baseline R1
 - Next: Phase 3 — anchor engine extraction behind a CompositeAnchorResolver (textindex/domwrap/highlighter), the highest-risk refactor so far
+---
+Task ID: 67
+Agent: main (Hermes)
+Task: Modernization Phase 3 — anchor engine extraction behind an ordered resolver composite (audit-first port, zero behavior change)
+
+Work Log:
+- Audit first (baseline §8 gate): traced the resolution algorithm across highlighter.applyRecord (structural XPath + hidden-copy rejection + inScope/re-entry guards) and textindex.findRange (offsets → exact → normalized with shared scoring). Conclusion: the old algorithm is NOT a first-wins strategy chain — it is candidate generation + ONE scorer + a confidence gate. The extraction preserves THAT shape (§16: do not blindly replace a working strategy): a naive ordered-resolver "first wins" would have changed duplicate-text resolution — the v0.6.7 core.
+- New module src/shared/anchor.ts → extension/shared/anchor.js (classic, zero imports — Phase-2 invariant; loaded after domwrap, before highlighter; inserted in manifest content_scripts + engine DEFAULT_FILES; popup/dashboard untouched — they never load the engine):
+  · resolveStructural(rec) — verbatim port of applyRecord's fast path (resolveAnchor + isHidden(commonAncestorContainer) rejection).
+  · resolve(ti, rec) — composite over HL.anchor.resolvers: sources [offsets, exact, norm] are DATA (append-only; read at call time) with one scoreOf(): bonus + prefix(+2) + suffix(+2) − proximity(≤1.5) + visible-copy(+8). The norm source carries its perf gate as metadata (maxBestBefore: 4 ≙ the old `if (!best || bestScore < 4)`). Strict `>` max keeps the old first-wins tie order; iteration order matches the old evaluation order exactly (offsets, exact ascending, norm word-boundary ascending).
+  · Score-equivalence proof during design: the old norm path inlined scoring with pre-squashed prefix/suffix; scoreOf() passes them raw through endsWithNorm which squashes internally — identical numbers.
+- highlighter.applyRecord now calls the two strategies; textindex.ts lost findRange + the scoring-only comparison helpers + FindRec/FoundRange (−4,184 chars) and is now the pure index primitive (build/locate/offsets/range normalization). HL.text exports: build, normInfo, squash, acceptTextNode, normalizeRange, boundaryToText.
+- Tests: textindex.test's findRange suite moved VERBATIM to tests/unit/anchor.test.ts (5 assertions unchanged, HL.text.findRange → HL.anchor.resolve); +2 structural tests (serialize round-trip; hidden copy → null → falls back) + 1 OCP acceptance test (appending a resolver with bonus 9999 resolves a quote no built-in source can — proves the composite reads the extended list; popped in finally). packaging.test: order pair anchor.js < highlighter.js + classic-tripwire list extended with anchor.
+- Gates (all green): bun run test 637/0/2460 (634→637) · lint 0 · typecheck 0 · zip 50 entries (anchor.js added) · next-compat E2E 16/16 · real-theme E2E exit 0 · LIVE duplicate-text rig on 16personalities: Cloudflare pass (load+reload), create→10 marks, restored after reload→20 marks, popover opens after reload, pageErrorsTotal 0 — the Phase-3 exit criterion (duplicate-text/orphan E2E green).
+- Commit series (§45): anchor module+wire-in → switch (highlighter/textindex/tests) → this journal entry → E2E evidence.
+
+Stage Summary:
+- Phase 3 complete: anchor resolution is now an ordered, data-driven resolver composite with a single scorer; the v0.6.7 duplicate-text behavior is proven unchanged by unit port + 3 browser rigs
+- OCP demonstrated by test (appending a resolver needs no orchestration change); textindex is a pure primitive; applyRecord lost its resolution logic (highlighter.step: content step closer to the v0.6.9 target)
+- Next: Phase 4/5 — storage/schema boundary (hlx:* key consolidation behind explicit version + migration) and highlighter's remaining content extraction; WXT stays Phase 6 (R1: globalThis.HL can only leave the content path with a bundler)
