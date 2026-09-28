@@ -13,17 +13,11 @@ export default tseslint.config(
       "**/node_modules/**",
       // platform / template infrastructure — not project code
       "skills/**",
-      "examples/**",
-      "mini-services/**",
-      "download/**",
-      "upload/**",
-      "db/**",
       "tool-results/**",
       // build output (release zips)
       "dist/**",
-      // next.js dev/build cache + generated env types (any depth)
+      // Next.js build cache of the test fixture (any depth)
       "**/.next/**",
-      "next-env.d.ts",
       // Next.js test-fixture app (tests/e2e/fixtures) — framework app code with
       // JSX, exercised by tests/e2e/next-compat-e2e.mjs, not project sources
       "tests/e2e/fixtures/**",

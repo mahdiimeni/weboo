@@ -45,7 +45,15 @@ async function healthy() {
   try { const r = await fetch(SITE + '/'); return r.ok; } catch { return false; }
 }
 if (!(await healthy())) {
-  const nextBin = join(ROOT, 'node_modules', 'next', 'dist', 'bin', 'next');
+  /* self-contained fixture: its own package.json + node_modules (the repo root
+     carries no Next.js — the landing page was removed in Task 63) */
+  const nextBin = join(FIXTURE, 'node_modules', 'next', 'dist', 'bin', 'next');
+  if (!existsSync(nextBin)) {
+    log('fixture deps missing — bun install in', FIXTURE);
+    const inst = spawn(process.execPath, ['install'], { cwd: FIXTURE, stdio: 'inherit' });
+    await new Promise((res) => inst.on('exit', res));
+    if (!existsSync(nextBin)) { fail('fixture bun install did not produce next'); process.exit(1); }
+  }
   /* production mode — what real Next.js sites run (dev-mode HMR does not
      hydrate in this sandbox, with or without the extension) */
   if (!existsSync(join(FIXTURE, '.next'))) {

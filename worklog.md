@@ -1766,3 +1766,21 @@ Stage Summary:
 - Design rule added: "applied" == at least one VISIBLE mark; hidden marks are preserved, never destroyed — visibility checks all flow through one helper (HL.dom.isHidden)
 - Test contract: 628 unit (was 625) + live-site rig (Cloudflare pass) + 16-scenario Next-compat + real-theme, lint 0
 - Versioning state: v0.6.7 across all 5 touchpoints; dist zip 49 entries/143,770 bytes; uncommitted working tree spans Tasks 60+62 (owner commits)
+---
+Task ID: 63
+Agent: main (Hermes)
+Task: Owner request — review the codebase, eliminate the landing page and all its dependencies; the repo must contain ONLY the extension (no extra projects)
+
+Work Log:
+- Review first: mapped the root — landing page was src/ (Next.js App Router: page/layout/globals + api/extension/download counter route + shadcn components kit), its configs (next.config.ts, next-env.d.ts, postcss.config.mjs, components.json), its backend scaffold (prisma/ User+Post demo schema, db/custom.db), its deploy helper (Caddyfile :81 → :3000), plus stray non-extension projects: examples/websocket/, mini-services/ (.gitkeep scaffold), upload/ (1.5MB workspace tar). Verified BEFORE deleting: extension code makes zero backend calls (only favicon fetch), no extension/test file imports from src/, no test imports any landing dep (clsx/radix/lucide/tailwind/react), no external hrefs in popup/dashboard/manifest.
+- Deleted (70 tracked files): src/, prisma/, db/, examples/, mini-services/, upload/, Caddyfile, next.config.ts, next-env.d.ts, postcss.config.mjs, components.json. KEPT as extension territory: extension/, tests/, scripts/, assets/ (logo.svg = icon source for scripts/make-icons.mjs), download/ (release-artifact docs), dist/, worklog.md, LICENSE.
+- package.json: removed dev/build/start + db:* scripts and the whole dependencies block (next, react, react-dom, prisma, @prisma/client, @radix-ui/react-toast, tailwind stack, lucide-react, next-themes, clsx, class-variance-authority, tailwind-merge, tw-animate-css); @types/react(-dom) dropped; added sharp ^0.35.4 as an explicit devDependency (previously a transitive dep of next that scripts/make-icons.mjs secretly relied on). Remaining: lint/test/zip/icons/harness + eslint/happy-dom/typescript tooling only.
+- Fixture stays, self-contained: tests/e2e/fixtures/next-app got its own package.json (next 16 + react 19 — it is the test target proving extension↔Next.js compatibility, not a product). next-compat-e2e.mjs now resolves nextBin from the FIXTURE's node_modules and auto-runs `bun install` there when missing. tsconfig.json stripped of next plugin/paths(@/*→src)/.next includes (keeps tests/**/*.ts + bun-types); eslint.config.mjs ignore list trimmed to the dirs that still exist.
+- bun install at root: lockfile saved, 123 packages / 106M (was 756M); node_modules/{next,react,react-dom,prisma,@prisma} all gone; sharp present. (Note: first `bun install` pruned the lockfile but left stale package trees on disk — a clean `rm -rf node_modules && bun install` was required.)
+- Verification (all green): bun run lint 0; bun test tests/unit 628/0/2423; node -e require('sharp') OK; bun run zip → 49 entries/143,770 bytes; next-compat 16/16 from a COLD fixture (stale .next deleted → auto bun install 25 packages → fresh production build → S1-S16 pass); real-theme-e2e exit 0.
+- Not committed (owner commits): 70 deletions + package.json/bun.lock/tsconfig/eslint/e2e-script edits + fixture package.json/bun.lock (new)
+
+Stage Summary:
+- Delivered: repository is extension-only — landing page, Prisma scaffold, deploy config and stray example/upload/db projects removed; root dependencies cut from 15 runtime packages to zero (tooling devDeps only), node_modules 756M → 106M
+- The Next.js compatibility suite survives as a self-contained fixture under tests/ (its own package.json; the E2E installs and builds it on demand) — extension test capability unchanged: 16/16
+- Test contract: 628 unit / lint 0 / next-compat 16/16 / real-theme exit 0

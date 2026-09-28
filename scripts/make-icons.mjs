@@ -1,6 +1,6 @@
-// Build the extension PNG icons + the app icon from the SVG logo (assets/logo.svg).
+// Build the extension PNG icons from the SVG logo (assets/logo.svg).
 // Optional tool — the generated icons are committed, so running this is only
-// needed when the logo changes. Requires sharp:  bun add -d sharp
+// needed when the logo changed. Requires sharp (already a devDependency).
 import sharp from 'sharp';
 import { mkdirSync, readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
@@ -14,7 +14,6 @@ const targets = [
   ['extension/icons/icon32.png', 32],
   ['extension/icons/icon48.png', 48],
   ['extension/icons/icon128.png', 128],
-  ['src/app/icon.png', 256],
 ];
 
 mkdirSync(join(ROOT, 'extension', 'icons'), { recursive: true });
