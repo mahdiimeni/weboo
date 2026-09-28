@@ -198,6 +198,7 @@ const DEFAULT_FILES = [
   "shared/tags.js",
   "shared/textindex.js",
   "shared/domwrap.js",
+  "shared/anchor.js",
   "shared/ui/base.js",
   "shared/ui/toast.js",
   "shared/ui/toolbar.js",
