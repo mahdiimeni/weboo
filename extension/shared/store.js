@@ -61,7 +61,7 @@
   */
 (function () {
     'use strict';
-    const HL = (globalThis.HL = globalThis.HL || {});
+    const HL = (globalThis.HL = globalThis.HL || {}); /* unknown hop: entrypoints/background.ts pulls the classic JS into the program and infers globalThis.HL */
     var K_SETTINGS = 'hlx:settings';
     var P_DATA = 'hlx:d:';
     var P_FAVICON = 'hlx:f:';

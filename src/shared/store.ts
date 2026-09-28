@@ -79,7 +79,7 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
   */
 (function () {
   'use strict';
-  const HL = (globalThis.HL = globalThis.HL || ({} as HlSlice)) as HlSlice;
+  const HL = (globalThis.HL = globalThis.HL || ({} as HlSlice)) as unknown as HlSlice; /* unknown hop: entrypoints/background.ts pulls the classic JS into the program and infers globalThis.HL */
 
   var K_SETTINGS = 'hlx:settings';
   var P_DATA = 'hlx:d:';
