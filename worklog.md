@@ -1800,3 +1800,22 @@ Work Log:
 
 Stage Summary:
 - Phase 0 complete: audit findings, measured baseline, migration risks, compatibility invariants, phase plan — all in docs/migration-baseline.md; branch ready for Phase 1 (domain types + storage/messaging contracts + typecheck gate)
+---
+Task ID: 65
+Agent: main (Hermes)
+Task: Modernization Phase 1 — domain types, storage port contract, typed messaging contracts, and the project's first typecheck gate (zero behavior change)
+
+Work Log:
+- src/types/highlight.ts: HighlightRecord (persisted core {id,host,url,urlNorm,text,createdAt,updatedAt} required — exactly what store.test.ts proves save accepts; engine-written fields optional and read-defensively: site/title/prefix/suffix/start/end/anchor/color/note), HighlightAnchor (serializeRange shape: XPath pair + offsets, nullable = textual re-resolve path), HighlightColor union pinned to HL.COLOR_KEYS.
+- src/types/settings.ts + src/types/tags.ts: Settings {defaultColor,showToolbar,showBadge,disabledHosts,theme} typed from HL.DEFAULT_SETTINGS; ThemeKey from HL.THEMES; ArticleTags = {urlNorm: string[]} per store key hlx:tags. Registry sync enforced by the parity test (adding a color/theme without updating the types fails typecheck).
+- src/types/storage.ts: StorageBackend — the 5-member port (get/set/remove/bytes/onChange) extracted verbatim from chrome-storage.js's port doc + createStore()'s runtime validation; StorageChanges mirrors the chrome.storage-style change event. LSP already proven by store.test.ts's dual-backend contract suite; the parity test additionally pins the exact 5-member ISP (memoryArea key list).
+- src/types/messaging.ts: MessagePayloads map + discriminated ExtensionMessage union + per-type MessageResponse mapped type — payload/response shapes taken from the real send/handle sites (content.js:82/195-204, service-worker.js:108/148/172, popup.js:191). EXTENSION_MESSAGE_TYPES is the exhaustiveness list; never rename one side alone.
+- Typecheck gate: package.json "typecheck": "tsc --noEmit" + tsconfig include src/**/*.ts. First-ever run surfaced 22 PRE-EXISTING strict errors, all in tests/unit/dashboard-view.test.ts (null-strictness in querySelector derefs the suite already proves non-null at runtime). Understood, then annotated type-level only (! and one HTMLElement cast) — no assertion or behavior touched. New files: 0 errors.
+- tests/unit/types-contract.test.ts (5 tests): HL.MSG ≡ typed union (exact set), illegal payload via @ts-expect-error, DEFAULT_SETTINGS ↔ Settings/registries, full+minimal+null-anchor record literals, port member-list pin.
+- Gates (all green): bun run typecheck 0 · bun run test 633/0/2435 (628→633, 24→25 files) · bun run lint 0. Zip/packaging untouched (no extension/ change — packaging contract still green inside the unit run).
+- Commit series (§45): types → storage → messaging → parity test → typecheck gate → this journal entry.
+
+Stage Summary:
+- Phase 1 complete: typed domain/storage/messaging contracts exist, are enforced by a typecheck gate, and are pinned to the runtime by parity tests — the substrate every later TS migration (Phases 2-3) will compile against
+- Zero behavior change: extension/ byte-identical this task; all 633 tests green
+- Next: Phase 2 — low-risk pure modules JS→TS (format, utils, tags, detect-dir, url, textindex) under the new gate
