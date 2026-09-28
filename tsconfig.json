@@ -23,6 +23,7 @@
   },
   "include": [
     "tests/**/*.ts",
+    "entrypoints/**/*.ts",
     "src/**/*.ts"
   ],
   "exclude": [
