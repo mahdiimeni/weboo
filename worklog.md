@@ -1819,3 +1819,28 @@ Stage Summary:
 - Phase 1 complete: typed domain/storage/messaging contracts exist, are enforced by a typecheck gate, and are pinned to the runtime by parity tests — the substrate every later TS migration (Phases 2-3) will compile against
 - Zero behavior change: extension/ byte-identical this task; all 633 tests green
 - Next: Phase 2 — low-risk pure modules JS→TS (format, utils, tags, detect-dir, url, textindex) under the new gate
+---
+Task ID: 66
+Agent: main (Hermes)
+Task: Modernization Phase 2 — low-risk pure modules JavaScript → TypeScript with a real emit pipeline (classic-script output preserved, zero behavior change)
+
+Work Log:
+- Pipeline: tsconfig.extension.json — src/shared/*.ts → tsc emits extension/shared/*.js (rootDir/outDir mirror; ES2022+DOM, strict, noImplicitAny:false to match the gate). Scripts: "build:ext"; `test` and `zip` now run build:ext first, so the emitted JS the tests/zip ship can never go stale. Zip still packs exactly extension/ (49-entry contract — packaging.test green).
+- Classic-script invariant discovered at emit: a single `import type` made textindex a MODULE and tsc appended `export {};` — a SyntaxError under manifest injection. Fixed structurally: no imports in emit-land sources; textindex now declares its own focused `FindRec` view (ISP — the engine reads only text/prefix/suffix/start/end) instead of importing HighlightRecord; documented in the file header as a Phase-6 boundary. Tripwire test added (see below).
+- Migrations (6 modules, sources at src/shared/, emitted at extension/shared/):
+  · format.ts — typed display formats; HL.COLORS typed optional to match the function's own defensive fallback (dotColorOf).
+  · detect-dir.ts — pure; detectTextDir/contentDir return the exact 'ltr'|'rtl'|'' unions.
+  · url.ts — normalizeUrl typed {url,norm,site,host}|null; watchHref takes a structural WatchableWindow (DIP — tests inject fakes).
+  · utils.ts — debounce generic over arity (Parameters<F>), escapeHtml map as Record<string,string>.
+  · tags.ts — sanitize/normalize gate typed against unknown input (crafted-backup defense visible in the types); HlSlice documents the constants dependency (constants-first is packaging-tested).
+  · textindex.ts — full index engine typed: TextIndex/Located/FoundRange interfaces, acceptTextNode returns 1|2, consider() scoring keeps the +8 visibility rule; `const tix = ti` keeps narrowing inside the consider closure.
+- Load-order/global pattern kept: each file keeps the `(g.HL = g.HL || {})` IIFE with a narrow local HlSlice interface (casts erase at emit — runtime byte-equivalent semantics). No runtime imports → manifest order unchanged → no manifest/test churn.
+- Lint: `no-var` added to the off-list (classic-script style — same rationale block as prefer-const):81 no-var hits on TS sources that faithfully preserve the originals' var style.
+- Tripwire (packaging.test, new describe): every emitted JS must exist, its src .ts source-of-truth must exist, and NO emitted file may match /^\s*(import|export)\s/m — the whole export{} class of bug is now test-guarded.
+- Gates (all green): bun run test 634/0/2447 (633→634) · lint 0 · typecheck 0 · zip 49 entries (size144,920 — emitted formatting; zip churn of a non-release commit discarded per baseline R8) · next-compat E2E 16/16 · real-theme E2E exit 0 — browser verification against the EMITTED JS.
+- Commit series (§45): pipeline+format → lint no-var → detect-dir → url → utils → tags → textindex → tripwire → this journal entry.
+
+Stage Summary:
+- Phase 2 complete:6 modules (745 source lines) are now TypeScript with a compiling emit step wired into test/zip; behavior proven by 634 unit tests + both real-browser rigs
+- Architectural boundary honored: emit output is classic-script-clean and tripwire-tested; ESM conversion waits for the bundler (Phase 6) per baseline R1
+- Next: Phase 3 — anchor engine extraction behind a CompositeAnchorResolver (textindex/domwrap/highlighter), the highest-risk refactor so far
