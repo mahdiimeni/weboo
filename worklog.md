@@ -1944,3 +1944,21 @@ Stage Summary:
 - Phase 6b complete: the content path now builds as ONE WXT bundle proven green in real Chrome (both rigs), with the import-order hand-off guard making manifest↔entrypoint drift a build failure
 - R1 milestone: globalThis.HL can now start leaving the content path — the bundler owns ordering, the classic files are just modules-by-side-effect
 - Next: Phase 6c — popup/dashboard entrypoints (html+js), then manifest fully WXT-owned; afterwards begin converting shared files to real exports (the HL-global shrink)
+---
+Task ID: 72
+Agent: main (Hermes)
+Task: Modernization Phase 6c — popup/dashboard entrypoints evaluated (empirical) and DEFERRED with rationale; Phase 6 closed
+
+Work Log:
+- Goal was "popup + dashboard as WXT entrypoints". Empirical probing of WXT 0.21's html entrypoint types (find-entrypoints map: popup.html/popup/index.html/options.html/options/index.html special, ANY other *.html = unlisted-page) settled it:
+  1. entrypoints/popup.html (root copy): vite leaves classic scripts verbatim → output popup.html at ROOT breaks every relative ref (../shared/* escapes the extension root, popup.css/popup*.js land only under popup/) + WXT emitted default_popup "popup.html" pointing at that broken page. Fatal outputDir error on the symlink variant (WXT chokes on entrypoints whose realpath leaves entrypointsDir — symlinks are out).
+  2. entrypoints/popup/popup.html (depth-preserving copy): builds and output popup/popup.html is byte-identical (7743 B, 0 diff) — but the path matches only "*.html" → unlisted-page type → NO manifest wiring; deleting config's action.default_popup proved the popup key was still config-sourced (earlier default_popup sighting was the config value surviving, not entrypoint generation).
+  3. options/dashboard: WXT has only options.html / options/index.html — neither preserves the shipped dashboard/dashboard.html path; dashboard.html itself would be an unlisted page.
+- Decision (priority: correctness → data safety → behavior preservation): action + options_ui stay CONFIG-owned. The publicDir byte-copies + identical config pointers make the output behavior-identical by construction, and wxt-parity proves file bytes + all 13 manifest keys on every build. Manifest churn (renaming popup/popup.html → index.html, dashboard → options.html) buys tooling aesthetics and risks product paths for zero user value — rejected under §10/YAGNI. Documented in wxt.config.ts: revisit when popup/dashboard migrate to React (fresh entrypoints are written WITH that rewrite, WXT owns those keys then).
+- Phase 6 final shape: WXT owns background.ts + content.ts bundles (real ordering ownership, entrypoint-driven manifest keys with modeled drift); config manifest (parsed from extension/manifest.json = single version source) owns name/version/permissions/commands/icons/action/options_ui; parity gate compares all non-modeled keys deep-equal and models background/content explicitly (+ import-order hand-off guard).
+- Cleanup: experiment entrypoint removed, parity mirror rule added-then-removed (net zero), config comment replaced with the accurate ownership rationale.
+- Verification: build:wxt parity OK (44 files byte-identical, manifest equal 13 keys) · bun run test 644/0/2478 · lint 0 · typecheck 0 · zip 50 · real-theme(default) 0 · next-compat(default) 16/16 · next-compat(.output) 16/16.
+
+Stage Summary:
+- Phase 6 COMPLETE (6a background → 6b content → 6c popup/options closure): every manifest key has an explicit owner, every bundle byte-proven in real Chrome
+- Next: Phase 7 — real ES-module exports in src/shared (the globalThis.HL shrink), starting from the content bundle which the bundler already owns
