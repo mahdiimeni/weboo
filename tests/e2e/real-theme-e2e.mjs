@@ -27,7 +27,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
-const EXT_DIR = join(ROOT, 'extension');
+const EXT_DIR = process.env.HLX_EXT_DIR || join(ROOT, 'extension'); /* HLX_EXT_DIR=.output/chrome-mv3 runs the WXT-bundled build */
 const CHROME = process.env.HLX_CHROME || '/root/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome';
 const CDP_PORT = 9340 + Math.floor(Math.random() * 40); /* random port — zombies from a previous run must not hold us hostage */
 const SITE_PORT = 8079;
@@ -130,11 +130,21 @@ async function shot(sessionId, file) {
    sandbox also ships other preinstalled extensions (thunk.js / background.js)
    with foreign IDs that yield ERR_FILE_NOT_FOUND. */
 let extId = null;
+/* candidate SWs: dev-tree layout (background/service-worker.js) and the
+   WXT-bundled layout (background.js — collides with sandbox's foreign
+   extensions, so each candidate is CONFIRMED by evaluating an HL sentinel). */
 for (let i = 0; i < 40 && !extId; i++) {
   const { targetInfos } = await browser.send('Target.getTargets');
-  const sw = targetInfos.find((t) => t.url.startsWith('chrome-extension://') && t.url.includes('background/service-worker.js'));
-  if (sw) extId = sw.url.split('/')[2];
-  else await sleep(600);
+  const cands = targetInfos.filter((t) => t.url.startsWith('chrome-extension://') &&
+    (t.url.includes('background/service-worker.js') || t.url.endsWith('/background.js')));
+  for (const c of cands) {
+    try {
+      const { sessionId } = await browser.send('Target.attachToTarget', { targetId: c.targetId, flatten: true });
+      const ours = await evalIn(sessionId, 'typeof HL !== "undefined" && typeof HL.createStore === "function"');
+      if (ours === true) { extId = c.url.split('/')[2]; break; }
+    } catch (e) { /* foreign extension — ignore */ }
+  }
+  if (!extId) await sleep(600);
 }
 if (!extId) { fail('extension did not load'); chrome.kill(); process.exit(1); }
 log('extension loaded, id =', extId);

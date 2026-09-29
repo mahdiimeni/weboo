@@ -28,7 +28,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
-const EXT_DIR = join(ROOT, 'extension');
+const EXT_DIR = process.env.HLX_EXT_DIR || join(ROOT, 'extension'); /* HLX_EXT_DIR=.output/chrome-mv3 runs the WXT-bundled build */
 const FIXTURE = join(HERE, 'fixtures', 'next-app');
 const CHROME = process.env.HLX_CHROME || join(process.env.HOME, '.hermes/tools/chromium-1208/chrome-linux64/chrome');
 const CDP_PORT = 9340 + Math.floor(Math.random() * 40);
@@ -136,10 +136,20 @@ async function shot(sessionId, file) {
 
 /* ---------- find the extension id (from its own SW target) ---------- */
 let extId = null;
+/* dev-tree layout (background/service-worker.js) AND WXT layout (background.js
+   — collides with the sandbox's foreign extensions, so CONFIRM via HL sentinel) */
 for (let i = 0; i < 40 && !extId; i++) {
   const { targetInfos } = await browser.send('Target.getTargets');
-  const sw = targetInfos.find((t) => t.url.startsWith('chrome-extension://') && t.url.includes('background/service-worker.js'));
-  if (sw) extId = sw.url.split('/')[2]; else await sleep(600);
+  const cands = targetInfos.filter((t) => t.url.startsWith('chrome-extension://') &&
+    (t.url.includes('background/service-worker.js') || t.url.endsWith('/background.js')));
+  for (const c of cands) {
+    try {
+      const { sessionId } = await browser.send('Target.attachToTarget', { targetId: c.targetId, flatten: true });
+      const r = await browser.send('Runtime.evaluate', { expression: 'typeof HL !== "undefined" && typeof HL.createStore === "function"', returnByValue: true }, sessionId);
+      if (r.result && r.result.value === true) { extId = c.url.split('/')[2]; break; }
+    } catch (e) { /* foreign */ }
+  }
+  if (!extId) await sleep(600);
 }
 if (!extId) { fail('extension did not load'); chrome.kill(); process.exit(1); }
 log('extension loaded, id =', extId);
