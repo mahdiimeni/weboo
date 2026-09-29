@@ -1979,3 +1979,19 @@ Work Log:
 Stage Summary:
 - Phase 7a complete: release artifact = WXT build end-to-end; both rigs default to it with freshness guaranteed
 - Phase 7b next: content-only files → real ES modules (their only remaining classic loaders are the source manifest list — now order-data, not a load path — and the unit-test engine, which switches to imports)
+---
+Task ID: 74
+Agent: main (Hermes)
+Task: Modernization Phase 7b-1 — first real ES modules (textindex, anchor) + dual-mode test engine
+
+Work Log:
+- Design before code (consumer audit): content-only files = {textindex, domwrap, anchor, ui/*, highlighter, favicon, content}; shared classic-loaded files = {constants, chrome-storage, url, utils, format, detect-dir, clipboard, tags, store, runtime-bridge} (popup.html 14 tags, dashboard.html 17, SW 4 imports). vm.SourceTextModule probes as sync — no win (link/evaluate are async).
+- Conversion shape chosen (smallest real diff): IIFE KEEPS running and assigning the HL namespace; a top-level tail `export const text/anchor = (globalThis…).HL…` exports the SAME object by identity. Bundle consumers and HL.* consumers share one instance (the resolvers array stays the single mutable OCP seam). `HL` is IIFE-local in both files — the export line reads it off globalThis after the IIFE (first attempt referenced bare HL → TS2304 at the tail, caught by tsc).
+- tests/unit/helpers/engine.ts dual-mode: top-level /^import|^export/ detection over a file cache; export-only files = strip `export ` prefixes (+ export{} lines), wrap in `(function(){…})()`, indirect eval → synchronous, per-world isolation identical to classic (tests read HL, never the bindings). Files WITH top-level import → async path: dynamic import with ?world=N bust (re-executes the graph per world; ceiling documented: relative deps resolve canonically, safe only while files stay stateless). loadEngine returns a Promise ONLY in the import case — none exist yet, so all 73 call sites stay sync; zero test churn (textindex/anchor suites run unedited).
+- packaging.test tripwire SCOPED, both directions: classic-required set asserts no module statements; allowlist {textindex, anchor} asserts they ARE modules (drift-proof: removing the export fails; adding one without removing classic loaders fails too). File-head invariant notes in both TS sources rewritten to the 7b reality.
+- Verification: build:ext emits 1 export const in each converted file, 0 in the rest · targeted 23/0 · full bun run test 644/0/2478 · lint 0 · typecheck 0 · zip 54 · real-theme 0 · next-compat 16/16 (both modules ship inside the WXT content bundle).
+- Not yet done (the actual shrink, next steps): content.ts imports of the converted files become NAMED imports; engine takes the async path when highlighter.js converts (the 73-site await sweep); popup/dashboard html to a single module entry when shared files convert.
+
+Stage Summary:
+- First files are real ES modules end-to-end (tsc emit → WXT bundle in real Chrome → engine world isolation), tripwire keeps every non-converted file classic
+- The gate that matters next: highlighter conversion flips loadEngine to async for default-file worlds — the await sweep is designed (fails loudly on missed awaits) but not started
