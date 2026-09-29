@@ -16,6 +16,15 @@ import { defineConfig } from "wxt";
 const manifest = JSON.parse(readFileSync("extension/manifest.json", "utf-8"));
 delete manifest.background; /* owned by entrypoints/background.ts (entry #1) */
 delete manifest.content_scripts; /* owned by entrypoints/content.ts (entry #2, 6b) — the file's js list stays the CANONICAL ORDER, pinned to the entrypoint imports by wxt-parity */
+/* action + options_ui: CONFIG-owned by design (6c). WXT's html entrypoint types
+   cannot preserve the shipped paths: entrypoints/popup.html would emit
+   default_popup "popup.html" at the root, where the page's relative
+   ../shared/* refs break; options.html/options/index.html would emit an
+   options page path that is not dashboard/dashboard.html. Both pages stay
+   byte-copied (publicDir) behind the config pointers — the output is
+   behavior-identical (parity proves file bytes + manifest values). Revisit
+   when popup/dashboard migrate to React: fresh entrypoints are written WITH
+   that rewrite, and WXT owns the manifest keys then. */
 
 export default defineConfig({
   publicDir: "extension",
