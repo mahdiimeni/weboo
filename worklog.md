@@ -1925,3 +1925,22 @@ Stage Summary:
 - Phase 6a complete: WXT builds the extension with a real entrypoint and a gate that fails on ANY output drift from the hand-maintained tree — the bundler now provably reproduces the product byte-for-byte before it starts owning it
 - R1 path opened: the content script moves to a bundled entrypoint next (6b), after which globalThis.HL can start leaving the content path
 - Next: Phase 6b — content entrypoint (side-effect imports in manifest order → single bundle), packaging tests updated to the bundled model, all rigs (next-compat/real-theme/live) re-run against .output; then popup/dashboard entrypoints (6c)
+---
+Task ID: 71
+Agent: main (Hermes)
+Task: Modernization Phase 6b — content entrypoint: 20 classic content scripts → ONE WXT bundle (R1 critical path)
+
+Work Log:
+- entrypoints/content.ts: side-effect imports of all 20 files in EXACT extension/manifest.json content_scripts[0].js order + mark-style.css, wrapped in defineContentScript({matches http/https/file, runAt document_idle, allFrames false, cssInjectionMode manifest, noScriptStartedPostMessage: true, main noop}). Bundle-safety audit first: ZERO column-0 declarations across the 20 files (all IIFE, communicate only via globalThis.HL) — module scope changes nothing at runtime.
+- Behavior preservation details: noScriptStartedPostMessage:true — WXT's dev-handshake postMessage must NOT reach real pages (original had none). WXT's runAt type wants snake_case ('document_idle') despite the doc comment saying 'documentIdle' — tsc as oracle. cssInjectionMode manifest → output css lands at content-scripts/content.css (modeled drift; the source file stays byte-copied by publicDir).
+- wxt.config: content_scripts key deleted from the user manifest (entrypoint-owned, same as background); the SOURCE manifest file keeps the js list as the canonical ORDER.
+- Parity gate extended: content modeled as entrypoint-owned — contract: matches SET-equal (WXT sorts the array; Chrome treats matches as a set), run_at/all_frames identical, EXACTLY ONE js bundle that exists, has zero module statements, and contains code probes (hlx:schemaVersion/mark/hlx:count-report), css files exist, + THE hand-off guard: entrypoint import sequence == manifest js sequence (drift in either file fails the build). Extras allowlist generalized to manifest-referenced files + assets/*.
+- Output: content-scripts/content.js = 65,201 B single bundle, 0 import/export, load order preserved (background.js + content.js both self-contained); parity OK (44 files byte-identical, manifest equal).
+- Rig upgrades (repo files): HLX_EXT_DIR env override on real-theme-e2e + next-compat-e2e (HLX_EXT_DIR=.output/chrome-mv3 runs the bundled build); extension detection upgraded from URL-path match (background/service-worker.js) to an HL-sentinel probe (attach + evaluate 'typeof HL !== undefined && typeof HL.createStore === function') — required because the sandbox ships foreign extensions with background.js SWs. /tmp/site-repro.mjs was lost to tmp cleanup (rebuild on demand from session history if the live rig is wanted again).
+- Verification (bundled .output in real Chrome): real-theme exit 0 (extension loaded id ljfppidaoggceodlhiekmedglcopjdjh) · next-compat 16/16. Default path (extension/) after rig edits: real-theme 0 · next-compat 16/16. Gates: bun run test 644/0/2478 · lint 0 · typecheck 0 · zip 50 · build:wxt parity OK.
+- Commit series (§45): content entrypoint + parity rules → rig env override + sentinel detection → this journal entry → E2E evidence.
+
+Stage Summary:
+- Phase 6b complete: the content path now builds as ONE WXT bundle proven green in real Chrome (both rigs), with the import-order hand-off guard making manifest↔entrypoint drift a build failure
+- R1 milestone: globalThis.HL can now start leaving the content path — the bundler owns ordering, the classic files are just modules-by-side-effect
+- Next: Phase 6c — popup/dashboard entrypoints (html+js), then manifest fully WXT-owned; afterwards begin converting shared files to real exports (the HL-global shrink)
