@@ -21,14 +21,20 @@
  * Usage: bun tests/e2e/next-compat-e2e.mjs
  * Env:   HLX_CHROME (chrome binary), HLX_FIXTURE_PORT (default 8090)
  */
-import { spawn } from 'node:child_process';
+import { spawn, execSync } from "node:child_process";
 import { writeFileSync, existsSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
-const EXT_DIR = process.env.HLX_EXT_DIR || join(ROOT, 'extension'); /* HLX_EXT_DIR=.output/chrome-mv3 runs the WXT-bundled build */
+/* Default: the SHIPPED artifact (.output/chrome-mv3 — WXT build, parity-gated).
+   Rebuild it fresh here so the rig never tests a stale output; point
+   HLX_EXT_DIR at extension/ to test the source tree instead. */
+const EXT_DIR = process.env.HLX_EXT_DIR || join(ROOT, '.output', 'chrome-mv3');
+if (!process.env.HLX_EXT_DIR) {
+  execSync('bun run build:ext && bun run build:wxt', { cwd: ROOT, stdio: 'inherit' });
+}
 const FIXTURE = join(HERE, 'fixtures', 'next-app');
 const CHROME = process.env.HLX_CHROME || join(process.env.HOME, '.hermes/tools/chromium-1208/chrome-linux64/chrome');
 const CDP_PORT = 9340 + Math.floor(Math.random() * 40);

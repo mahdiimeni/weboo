@@ -7,7 +7,7 @@
     "typecheck": "tsc --noEmit",
     "build:ext": "tsc -p tsconfig.extension.json",
     "test": "bun run build:ext && bun test tests/unit",
-    "zip": "bun run build:ext && node scripts/build-zip.mjs",
+    "zip": "bun run build:ext && bun run build:wxt && node scripts/build-zip.mjs",
     "icons": "node scripts/make-icons.mjs",
     "build:wxt": "wxt build && node scripts/wxt-parity.mjs",
     "harness": "node tests/e2e/build-dashboard-harness.mjs && node tests/e2e/build-popup-harness.mjs"
