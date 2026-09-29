@@ -6,9 +6,9 @@ import { setupDom, loadEngine } from "./helpers/engine";
 
 let HL: any;
 
-beforeEach(() => {
+beforeEach(async () => {
   setupDom();
-  HL = loadEngine({ files: ["shared/constants.js", "shared/format.js"] });
+  HL = await loadEngine({ files: ["shared/constants.js", "shared/format.js"] });
 });
 
 /* 2024-10-27 12:00 UTC — noon UTC keeps the calendar day stable across every

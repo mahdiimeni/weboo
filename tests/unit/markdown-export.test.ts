@@ -8,9 +8,9 @@ import { setupDom, loadEngine } from "./helpers/engine";
 
 let HL: any;
 
-beforeEach(() => {
+beforeEach(async () => {
   setupDom();
-  HL = loadEngine({ files: ["shared/constants.js", "shared/format.js", "shared/markdown-export.js"] });
+  HL = await loadEngine({ files: ["shared/constants.js", "shared/format.js", "shared/markdown-export.js"] });
 });
 
 const T0 = Date.UTC(2024, 9, 27, 12); /* 2024-10-27 (calendar-stable) */

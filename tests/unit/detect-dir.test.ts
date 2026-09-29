@@ -11,10 +11,10 @@ import { setupDom, loadEngine } from "./helpers/engine";
 
 let HL: any;
 
-beforeAll(() => {
+beforeAll(async () => {
   setupDom();
   /* pure module — no dependencies, not even constants */
-  HL = loadEngine({ files: ["shared/detect-dir.js"] });
+  HL = await loadEngine({ files: ["shared/detect-dir.js"] });
 });
 
 describe("detectTextDir", () => {

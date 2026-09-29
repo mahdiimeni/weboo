@@ -20,7 +20,7 @@ import {
 
 describe("types ↔ runtime contract parity (Phase 1)", () => {
   let HL: any;
-  beforeEach(() => { setupDom(); HL = loadEngine({}); });
+  beforeEach(async () => { setupDom(); HL = await loadEngine({}); });
 
   test("HL.MSG values == typed message union (exact set)", () => {
     const runtime = Object.values(HL.MSG).slice().sort();

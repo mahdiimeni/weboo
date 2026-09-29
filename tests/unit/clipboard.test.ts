@@ -8,9 +8,9 @@ let HL: any;
 let win: any;
 let realNavigator: any;
 
-beforeEach(() => {
+beforeEach(async () => {
   win = setupDom();
-  HL = loadEngine({});
+  HL = await loadEngine({});
   realNavigator = (globalThis as any).navigator;
 });
 

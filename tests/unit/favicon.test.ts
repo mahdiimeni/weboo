@@ -10,9 +10,9 @@ let win: any;
 let fetchCalls: number;
 let origFetch: any;
 
-beforeEach(() => {
+beforeEach(async () => {
   win = setupDom({ html: "" });
-  HL = loadEngine({ files: ["shared/constants.js"] });
+  HL = await loadEngine({ files: ["shared/constants.js"] });
   evalClassic(ext("content", "favicon.js"));
   fetchCalls = 0;
   origFetch = (globalThis as any).fetch;

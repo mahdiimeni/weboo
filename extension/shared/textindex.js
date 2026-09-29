@@ -242,9 +242,4 @@
         boundaryToText: boundaryToText
     };
 })();
-/* ES-module surface (Phase 7b): the namespace above IS the public API.
-   Exported BY IDENTITY (same object reference) so bundler consumers can
-   `import { text }` while every unconverted HL.text consumer keeps working.
-   Consumers that import directly replace HL.text reads — that is the
-   globalThis.HL shrink, one file at a time. */
 export const text = globalThis.HL.text; /* the IIFE above assigned it */

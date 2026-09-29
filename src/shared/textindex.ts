@@ -253,4 +253,15 @@
    `import { text }` while every unconverted HL.text consumer keeps working.
    Consumers that import directly replace HL.text reads — that is the
    globalThis.HL shrink, one file at a time. */
-export const text = (globalThis as unknown as { HL: { text: unknown } }).HL.text; /* the IIFE above assigned it */
+/* Structural view of the namespace the IIFE above assigns — members typed
+   loosely at this global seam (DOM-heavy signatures); tighten per-member when
+   consumers import them directly. */
+interface TextView {
+  build: (scope: any) => any;
+  normInfo: (t: string) => any;
+  squash: (s: string) => string;
+  acceptTextNode: (n: any) => number;
+  normalizeRange: (r: any) => void;
+  boundaryToText: (c: any, o: number, preferEnd?: boolean) => any;
+}
+export const text = (globalThis as unknown as { HL: { text: TextView } }).HL.text; /* the IIFE above assigned it */

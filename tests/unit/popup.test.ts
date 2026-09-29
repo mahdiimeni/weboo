@@ -5,7 +5,7 @@
  * popup.html markup (extracted at runtime — drift-proof against the source)
  * + the full engine + a chrome mock (storage + tabs), and observe the real
  * init → renderPage render behavior from the outside.
- * Since the v1.2.9 MVC split, boot() evals the trio (popup-data.js →
+ * Since the v1.2.9 MVC split, await boot() evals the trio (popup-data.js →
  * popup-view.js → popup.js) in page order, plus shared/theme-boot.js (the
  * real <head> script that owns the shared HL.applyThemeNow the controller calls).
  * Core contract: direction comes from HL.detectDir.contentDir — LTR only for
@@ -71,7 +71,7 @@ function rec(id: string, host: string, url: string, title: string, text: string,
 /** a fresh "world": real popup DOM + seed + active tab → returns after full render */
 async function boot(seed: Record<string, any>, tab: any) {
   win = setupDom({ html: WRAP_HTML });
-  HL = loadEngine({ chrome: makeChromeMock(seed, [tab]), files: POPUP_FILES });
+  HL = await loadEngine({ chrome: makeChromeMock(seed, [tab]), files: POPUP_FILES });
   /* the real page loads theme-boot.js in <head> — the controller's shared
      HL.applyThemeNow comes from there (the anti-flash read side is a no-op
      on a fresh window) */

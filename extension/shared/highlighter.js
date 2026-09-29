@@ -24,6 +24,11 @@
  *     onSaved(rec)               (after each successful save — e.g. a UI status update)
  *     onDeleted(id)              (after delete — e.g. purge from the content orphan queue)
  */
+/* Phase 7b-2: explicit ES-module dependencies — the two engines this
+   orchestrator delegates to (index + resolution), imported by identity so
+   there is exactly one textindex/anchor instance per world. */
+import { text as textIndex } from "./textindex.js"; /* alias: selectionCtx has a local `text` string */
+import { anchor } from "./anchor.js";
 (function () {
   'use strict';
   var HL = (globalThis.HL = globalThis.HL || {});
@@ -49,7 +54,7 @@
     /* ---------- Text index ---------- */
 
     function freshIndex() {
-      state.ti = HL.text.build(scope);
+      state.ti = textIndex.build(scope);
       return state.ti;
     }
 
@@ -101,13 +106,13 @@
       if (hasVisibleMarks(rec.id)) return true; /* already applied where the user can see it */
 
       /* Fast path: XPath — but skip it when it lands in a hidden duplicate */
-      var range = HL.anchor.resolveStructural(rec);
+      var range = anchor.resolveStructural(rec);
       var located = null;
 
       /* Textual path (fallback) — the index must be fresh because the previous wrap split nodes */
       if (!range) {
         if (!state.ti) freshIndex();
-        located = HL.anchor.resolve(state.ti, rec);
+        located = anchor.resolve(state.ti, rec);
         range = located && located.range;
       }
       if (!range) return false;
@@ -238,7 +243,7 @@
       if (inBad(sc) || inBad(ec)) return null;
       /* Normalize element boundaries (double-click on the last word + period → boundary lands on <p>) */
       var clone = range.cloneRange();
-      HL.text.normalizeRange(clone);
+      textIndex.normalizeRange(clone);
       return { range: clone, text: text };
     }
 

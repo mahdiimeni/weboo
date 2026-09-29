@@ -9,7 +9,8 @@
 import { Window } from "happy-dom";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { pathToFileURL } from "node:url";
+import { pathToFileURL, fileURLToPath } from "node:url";
+import { SourceTextModule } from "node:vm";
 
 const ROOT = join(import.meta.dir, "..", "..", "..");
 
@@ -27,18 +28,20 @@ export function evalClassic(file: string): void {
 }
 
 /* ---------- module-aware loading (Phase 7b) ----------
-   A converted file carries a top-level import/export. Two paths:
+   A converted file carries a top-level import/export. Three paths:
    export-only  → synchronous: exports are stripped and the body is wrapped in
                   a function, so every world is isolated exactly like classic
                   eval. Tests read the HL namespace, never the bindings, so
                   stripping costs nothing.
-   has imports  → async dynamic import with a world-busted URL (?world=N re-
-                  executes the module graph for this world). Callers of such
-                  worlds must `await loadEngine()` — none exist yet; the path
-                  is here so the first import-bearing conversion needs no
-                  engine rework. Ceiling: relative imports inside a converted
-                  file resolve canonically (no bust) — only safe while files
-                  stay stateless. */
+   has imports  → async vm.SourceTextModule GRAPH, freshly linked+evaluated per
+                  world (per-world module cache = one instance of every file
+                  per world, evaluated in list order, in the current realm so
+                  the shared globalThis.HL is what modules assign to). Callers
+                  of such worlds must `await loadEngine()` — `await` on a sync
+                  world is a no-op, so call sites stay uniform.
+   dep member   → a file reachable from an import-bearing file is loaded via
+                  the SAME per-world graph (never strip-eval'd separately) so
+                  identity holds: HL.anchor === the imported anchor. */
 const srcCache = new Map<string, string>();
 const readSrc = (f: string): string => {
   let c = srcCache.get(f);
@@ -47,13 +50,56 @@ const readSrc = (f: string): string => {
 };
 const RE_TOP_IMPORT = /^import\s/m;
 const RE_TOP_MODULE = /^(?:import|export)\s/m;
-let worldSeq = 0;
 
 function loadModuleSync(file: string): void {
   const stripped = readSrc(file)
     .replace(/^export\s+(?=(?:async\s+)?(?:function|const|let|var|class)\b)/gm, "")
     .replace(/^export\s*\{[^}]*\};?\s*$/gm, "");
   (0, eval)("(function(){\n" + stripped + "\n})()");
+}
+
+/* relative specifiers a file pulls in (extension code: no bare imports) */
+function staticImports(src: string): string[] {
+  const out: string[] = [];
+  for (const m of src.matchAll(/^import\s+(?:[^"'*\n][^"\n]*?\s+from\s+)?["']([^"']+)["']/gm)) out.push(m[1]);
+  for (const m of src.matchAll(/^export\s+[^;\n]*?\s+from\s+["']([^"']+)["']/gm)) out.push(m[1]);
+  return out;
+}
+
+/* files reachable (via relative imports) from the import-bearing members */
+function graphMembers(paths: string[]): Set<string> {
+  const set = new Set<string>();
+  const walk = (p: string): void => {
+    if (set.has(p)) return;
+    set.add(p);
+    for (const spec of staticImports(readSrc(p))) {
+      if (spec.startsWith(".")) walk(fileURLToPath(new URL(spec, pathToFileURL(p))));
+    }
+  };
+  paths.filter((p) => RE_TOP_IMPORT.test(readSrc(p))).forEach(walk);
+  return set;
+}
+
+type WorldCache = Map<string, SourceTextModule>;
+
+/* load file + its relative deps as ONE freshly-evaluated vm graph for this
+   world; already-evaluated members are reused (linking against them is legal) */
+async function loadGraph(file: string, cache: WorldCache): Promise<void> {
+  const ensure = (p: string): SourceTextModule => {
+    let m = cache.get(p);
+    if (!m) {
+      m = new SourceTextModule(readSrc(p), { identifier: pathToFileURL(p).href });
+      cache.set(p, m);
+    }
+    return m;
+  };
+  const root = ensure(file);
+  if (root.status === "unlinked" || root.status === "errored") {
+    if (root.status === "unlinked") {
+      await root.link((spec, ref) => ensure(fileURLToPath(new URL(spec, ref.identifier))));
+    }
+  }
+  if (root.status === "linked") await root.evaluate();
 }
 
 /* ---------- XPath polyfill for happy-dom ----------
@@ -253,22 +299,28 @@ export function loadEngine(opts: EngineOptions = {}): any {
   delete g.HL;
   delete g.chrome;
   if (opts.chrome !== undefined) g.chrome = opts.chrome;
-  const files = [...(opts.files ?? DEFAULT_FILES), ...(opts.extraFiles || [])];
-  const load = (f: string, seq: number): void | Promise<void> => {
-    const path = f.startsWith("/") || /^[A-Za-z]:/.test(f) ? f : ext(f);
-    if (!RE_TOP_MODULE.test(readSrc(path))) return evalClassic(path);
-    if (RE_TOP_IMPORT.test(readSrc(path))) return import(pathToFileURL(path).href + "?world=" + seq);
-    return loadModuleSync(path);
-  };
-  const paths = files.map((f) => (f.startsWith("/") || /^[A-Za-z]:/.test(f) ? f : ext(f)));
-  if (!paths.some((p) => RE_TOP_IMPORT.test(readSrc(p) || ""))) {
-    const seq = ++worldSeq;
-    for (const p of paths) load(p, seq);
+  const paths = [...(opts.files ?? DEFAULT_FILES), ...(opts.extraFiles || [])]
+    .map((f) => (f.startsWith("/") || /^[A-Za-z]:/.test(f) ? f : ext(f)));
+  const isModule = (p: string): boolean => RE_TOP_MODULE.test(readSrc(p));
+  if (!paths.some(isModule)) {
+    /* pure classic world — the fast path that keeps every caller sync */
+    for (const p of paths) evalClassic(p);
     return g.HL;
   }
-  const seq = ++worldSeq;
+  if (!paths.some((p) => RE_TOP_IMPORT.test(readSrc(p)))) {
+    /* export-only modules — strip+wrap eval, still synchronous */
+    for (const p of paths) (isModule(p) ? loadModuleSync(p) : evalClassic(p));
+    return g.HL;
+  }
+  /* import-bearing world — async vm graph (await loadEngine()) */
+  const members = graphMembers(paths);
+  const cache: WorldCache = new Map();
   return (async () => {
-    for (const p of paths) await load(p, seq);
+    for (const p of paths) {
+      if (members.has(p)) await loadGraph(p, cache);
+      else if (isModule(p)) loadModuleSync(p);
+      else evalClassic(p);
+    }
     return g.HL;
   })();
 }

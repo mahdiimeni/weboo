@@ -34,9 +34,9 @@ function makeController(hooks: any = {}) {
   });
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   win = setupDom({ html: HTML });
-  HL = loadEngine({});
+  HL = await loadEngine({});
   art = win.document.getElementById("art");
   store = HL.createStore(HL.backends.memoryArea());
   events = [];

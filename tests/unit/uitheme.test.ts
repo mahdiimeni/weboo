@@ -17,9 +17,9 @@ import { setupDom, loadEngine, readFile, ext } from "./helpers/engine";
 let HL: any;
 let win: any;
 
-beforeEach(() => {
+beforeEach(async () => {
   win = setupDom();
-  HL = loadEngine({});
+  HL = await loadEngine({});
 });
 
 /* ---------- 1) HL.ui.setTheme — the widget theme boundary ---------- */

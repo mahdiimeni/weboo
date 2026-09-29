@@ -15,9 +15,9 @@ let HL: any;
 let win: any;
 let art: any;
 
-beforeAll(() => {
+beforeAll(async () => {
   win = setupDom({ html: HTML });
-  HL = loadEngine({});
+  HL = await loadEngine({});
   art = win.document.getElementById("art");
 });
 

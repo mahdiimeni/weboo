@@ -11,9 +11,9 @@ let captured: any[] = [];
 let realCreate: any;
 let realRevoke: any;
 
-beforeEach(() => {
+beforeEach(async () => {
   win = setupDom();
-  HL = loadEngine({ files: ["shared/export.js"] });
+  HL = await loadEngine({ files: ["shared/export.js"] });
   /* capture blobs instead of real object URLs (works in every runtime) */
   captured = [];
   realCreate = (globalThis as any).URL.createObjectURL;

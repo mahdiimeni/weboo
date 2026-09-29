@@ -10,9 +10,9 @@ import { setupDom, loadEngine } from "./helpers/engine";
 let HL: any;
 let win: any;
 
-beforeEach(() => {
+beforeEach(async () => {
   win = setupDom();
-  HL = loadEngine({});
+  HL = await loadEngine({});
 });
 
 function makePopover(events: any = {}) {

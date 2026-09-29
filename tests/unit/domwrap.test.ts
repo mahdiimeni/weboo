@@ -14,9 +14,9 @@ const HTML = `
 let HL: any;
 let win: any;
 
-beforeEach(() => {
+beforeEach(async () => {
   win = setupDom({ html: HTML });
-  HL = loadEngine({});
+  HL = await loadEngine({});
 });
 
 describe("markRange / unwrap", () => {

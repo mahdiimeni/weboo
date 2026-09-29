@@ -24,6 +24,9 @@
  * extension/shared/anchor.js — Phase 7b: converted ES module (tail export,
  * identity-exported HL.anchor; loaders/status per src/shared/textindex.ts).
  */
+/* Phase 7b-2: explicit dependency — the norm-scorer above the IIFE comes from
+   the text-index module itself (same instance the rest of the page sees). */
+import { text } from "./textindex.js";
 (function () {
     'use strict';
     const g = globalThis;
@@ -85,8 +88,8 @@
         collect: function (ctx) {
             var out = [];
             var ti = ctx.ti, rec = ctx.rec;
-            var N = HL.text.normInfo(ti.text);
-            var q = HL.text.normInfo(ctx.quote);
+            var N = text.normInfo(ti.text);
+            var q = text.normInfo(ctx.quote);
             if (!q.norm)
                 return out;
             var j = N.norm.indexOf(q.norm);

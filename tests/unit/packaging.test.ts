@@ -10,9 +10,9 @@ import { setupDom, loadEngine, readFile, ext, exists } from "./helpers/engine";
 
 let HL: any;
 
-beforeAll(() => {
+beforeAll(async () => {
   setupDom();
-  HL = loadEngine({ files: ["shared/constants.js"] });
+  HL = await loadEngine({ files: ["shared/constants.js"] });
 });
 
 describe("یکپارچگی بسته (packaging)", () => {

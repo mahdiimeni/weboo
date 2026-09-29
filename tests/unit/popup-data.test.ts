@@ -12,9 +12,9 @@ import { setupDom, loadEngine, evalClassic, ext } from "./helpers/engine";
 
 let HL: any;
 
-beforeEach(() => {
+beforeEach(async () => {
   setupDom();
-  HL = loadEngine({ files: ["shared/constants.js", "shared/format.js", "shared/detect-dir.js"] });
+  HL = await loadEngine({ files: ["shared/constants.js", "shared/format.js", "shared/detect-dir.js"] });
   evalClassic(ext("popup", "popup-data.js"));
 });
 

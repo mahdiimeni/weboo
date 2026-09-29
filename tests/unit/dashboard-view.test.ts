@@ -9,9 +9,9 @@ import { setupDom, loadEngine, evalClassic, ext, sleep, readFile } from "./helpe
 let HL: any;
 let win: any;
 
-beforeEach(() => {
+beforeEach(async () => {
   win = setupDom();
-  HL = loadEngine({ files: ["shared/constants.js", "shared/format.js", "shared/detect-dir.js", "shared/tags.js", "shared/domkit.js", "shared/runtime-bridge.js", "shared/textindex.js"] });
+  HL = await loadEngine({ files: ["shared/constants.js", "shared/format.js", "shared/detect-dir.js", "shared/tags.js", "shared/domkit.js", "shared/runtime-bridge.js", "shared/textindex.js"] });
   evalClassic(ext("dashboard", "dashboard-data.js"));
   evalClassic(ext("dashboard", "dashboard-view.js"));
 });

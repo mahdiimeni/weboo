@@ -13,16 +13,16 @@ import { setupDom, loadEngine, evalClassic, ext } from "./helpers/engine";
 let HL: any;
 let win: any;
 
-/* the real page order: constants → domkit → theme-boot (eval = script tag) */
-function bootThemeBoot() {
+/* the real page order: constants → domkit → theme-await boot (eval = script tag) */
+async function bootThemeBoot() {
   win = setupDom();
-  HL = loadEngine({ files: ["shared/constants.js", "shared/domkit.js"] });
+  HL = await loadEngine({ files: ["shared/constants.js", "shared/domkit.js"] });
   evalClassic(ext("shared", "theme-boot.js"));
   return HL;
 }
 
-beforeEach(() => {
-  bootThemeBoot();
+beforeEach(async () => {
+  await bootThemeBoot();
 });
 
 describe("anti-flash (read side)", () => {
@@ -61,9 +61,9 @@ describe("HL.applyThemeNow (write side — shared)", () => {
     expect(HL.applyThemeNow(null)).toBe("auto");
   });
 
-  test("بدون HL.domkit (هسته لود نشده) → no-op امن و null", () => {
+  test("بدون HL.domkit (هسته لود نشده) → no-op امن و null", async () => {
     win = setupDom();
-    loadEngine({ files: [] });
+    await loadEngine({ files: [] });
     evalClassic(ext("shared", "theme-boot.js"));
     /* the classic script created the namespace itself — read it back from globalThis */
     HL = (globalThis as any).HL;

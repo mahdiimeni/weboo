@@ -11,9 +11,9 @@ import { setupDom, loadEngine } from "./helpers/engine";
 let HL: any;
 let win: any;
 
-beforeEach(() => {
+beforeEach(async () => {
   win = setupDom();
-  HL = loadEngine({ files: ["shared/constants.js", "shared/format.js", "shared/utils.js", "shared/domkit.js"] });
+  HL = await loadEngine({ files: ["shared/constants.js", "shared/format.js", "shared/utils.js", "shared/domkit.js"] });
 });
 
 function makeSpot() {

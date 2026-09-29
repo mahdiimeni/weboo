@@ -13,9 +13,9 @@ import { setupDom, loadEngine, readFile, ext } from "./helpers/engine";
 let HL: any;
 let cssExt: string;
 
-beforeAll(() => {
+beforeAll(async () => {
   setupDom();
-  HL = loadEngine({ files: ["shared/constants.js"] });
+  HL = await loadEngine({ files: ["shared/constants.js"] });
   cssExt = readFile(ext("content", "mark-style.css"));
 });
 
