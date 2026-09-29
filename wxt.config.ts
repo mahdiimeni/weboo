@@ -14,7 +14,8 @@ import { defineConfig } from "wxt";
  * each step updates this config and the parity check together.
  */
 const manifest = JSON.parse(readFileSync("extension/manifest.json", "utf-8"));
-delete manifest.background; /* owned by entrypoints/background.ts (Phase 6 entry #1) */
+delete manifest.background; /* owned by entrypoints/background.ts (entry #1) */
+delete manifest.content_scripts; /* owned by entrypoints/content.ts (entry #2, 6b) — the file's js list stays the CANONICAL ORDER, pinned to the entrypoint imports by wxt-parity */
 
 export default defineConfig({
   publicDir: "extension",
