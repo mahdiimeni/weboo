@@ -1962,3 +1962,20 @@ Work Log:
 Stage Summary:
 - Phase 6 COMPLETE (6a background → 6b content → 6c popup/options closure): every manifest key has an explicit owner, every bundle byte-proven in real Chrome
 - Next: Phase 7 — real ES-module exports in src/shared (the globalThis.HL shrink), starting from the content bundle which the bundler already owns
+---
+Task ID: 73
+Agent: main (Hermes)
+Task: Modernization Phase 7a — packaging bridge: ship the WXT output (prerequisite for real ES modules)
+
+Work Log:
+- Why: a file can only gain import/export once EVERY classic loader of it is gone. Content scripts are the hard wall (MV3 manifest has no module mode) — so the shipped artifact must be the WXT bundle before textindex/anchor/highlighter/… become modules. Phase 7a makes .output/chrome-mv3 the release product WITHOUT touching any file contents (zero behavior change; parity proves equivalence).
+- scripts/build-zip.mjs: packs .output/chrome-mv3 instead of extension/; refuses when output missing (prints the build commands); header documents the split — extension/ = source tree (tests/harnesses/manifest config source), .output = packed product. version still read from extension/manifest.json (single source; parity proves output manifest equal).
+- package.json: `zip` = build:ext && build:wxt && node scripts/build-zip.mjs — a zip can never contain a stale or unverified output (build:wxt runs wxt-parity first). Result: 54 entries (was 50: +background.js, +content-scripts/{content.js,content.css}), harnesses still excluded, 176,185 bytes.
+- E2E rigs (real-theme + next-compat): default EXT_DIR = .output/chrome-mv3 with an auto `bun run build:ext && bun run build:wxt` when HLX_EXT_DIR is unset — the rigs test the SHIPPED artifact and can never run against a stale build; HLX_EXT_DIR=extension still selects the source tree (both trees stay loadable-unpacked until 7b removes the content classic list).
+- First run failed: execSync ReferenceError in both rigs — the import insertion guard matched a pre-existing 'node:child_process' substring and skipped the import. Fixed with a verified regex insert; rerun green.
+- Verification: bun run test 644/0/2478 · lint 0 · typecheck 0 · zip 54 entries (parity OK inside chain) · real-theme(.output default)=0 · next-compat(.output default)=16/16 · real-theme(source)=0 · next-compat(source)=16/16.
+- Not shipped yet conceptually: the zip still contains byte-copied classic content files (publicDir = full source copy; manifest only references the bundles — dead but inert). The source manifest content_scripts list remains the canonical ORDER pin for the parity import-order guard.
+
+Stage Summary:
+- Phase 7a complete: release artifact = WXT build end-to-end; both rigs default to it with freshness guaranteed
+- Phase 7b next: content-only files → real ES modules (their only remaining classic loaders are the source manifest list — now order-data, not a load path — and the unit-test engine, which switches to imports)
