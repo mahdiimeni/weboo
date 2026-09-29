@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Web Highlighter — text anchoring engine
  * Turns page text into a character index so we can:
@@ -12,11 +11,13 @@
  * locate, offsets, range normalization). Compiled by `bun run build:ext`
  * into extension/shared/textindex.js — never edit the .js directly.
  *
- * NOTE (classic-script invariant): this file must contain NO import/export
- * statements — a single import flips tsc to module output and appends
- * `export {};`, which is a SyntaxError when the manifest injects the file as
- * a classic script. Cross-module types are therefore expressed as local
- * structural views until the bundler lands (Phase 6).
+ * NOTE (Phase 7b — ES module): this file IS a converted module (tail export,
+ * identity-exported HL.text). It may carry module syntax ONLY because no
+ * classic loader of it remains: content ships as the WXT bundle, the test
+ * engine strips-and-wraps module files for world isolation, and the manifest
+ * content list is order-data (7a). Every OTHER emitted file must stay
+ * classic until its loaders migrate — packaging.test's allowlist tripwire
+ * enforces both directions.
  */
 (function () {
     'use strict';
@@ -241,3 +242,9 @@
         boundaryToText: boundaryToText
     };
 })();
+/* ES-module surface (Phase 7b): the namespace above IS the public API.
+   Exported BY IDENTITY (same object reference) so bundler consumers can
+   `import { text }` while every unconverted HL.text consumer keeps working.
+   Consumers that import directly replace HL.text reads — that is the
+   globalThis.HL shrink, one file at a time. */
+export const text = globalThis.HL.text; /* the IIFE above assigned it */

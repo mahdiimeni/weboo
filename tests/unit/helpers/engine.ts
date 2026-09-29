@@ -9,6 +9,7 @@
 import { Window } from "happy-dom";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 
 const ROOT = join(import.meta.dir, "..", "..", "..");
 
@@ -23,6 +24,36 @@ export const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 export function evalClassic(file: string): void {
   /* indirect eval — evaluates in global scope, exactly like a <script> tag */
   (0, eval)(readFileSync(file, "utf-8"));
+}
+
+/* ---------- module-aware loading (Phase 7b) ----------
+   A converted file carries a top-level import/export. Two paths:
+   export-only  → synchronous: exports are stripped and the body is wrapped in
+                  a function, so every world is isolated exactly like classic
+                  eval. Tests read the HL namespace, never the bindings, so
+                  stripping costs nothing.
+   has imports  → async dynamic import with a world-busted URL (?world=N re-
+                  executes the module graph for this world). Callers of such
+                  worlds must `await loadEngine()` — none exist yet; the path
+                  is here so the first import-bearing conversion needs no
+                  engine rework. Ceiling: relative imports inside a converted
+                  file resolve canonically (no bust) — only safe while files
+                  stay stateless. */
+const srcCache = new Map<string, string>();
+const readSrc = (f: string): string => {
+  let c = srcCache.get(f);
+  if (c === undefined) { c = readFileSync(f, "utf-8"); srcCache.set(f, c); }
+  return c;
+};
+const RE_TOP_IMPORT = /^import\s/m;
+const RE_TOP_MODULE = /^(?:import|export)\s/m;
+let worldSeq = 0;
+
+function loadModuleSync(file: string): void {
+  const stripped = readSrc(file)
+    .replace(/^export\s+(?=(?:async\s+)?(?:function|const|let|var|class)\b)/gm, "")
+    .replace(/^export\s*\{[^}]*\};?\s*$/gm, "");
+  (0, eval)("(function(){\n" + stripped + "\n})()");
 }
 
 /* ---------- XPath polyfill for happy-dom ----------
@@ -214,14 +245,30 @@ export interface EngineOptions {
   extraFiles?: string[]; /* extra absolute paths outside the shared engine (e.g. content/favicon.js) */
 }
 
-/** Returns a fresh HL (previous chrome/HL is cleared before loading) */
+/** Returns a fresh HL (previous chrome/HL is cleared before loading).
+ *  Sync for classic + export-only worlds; returns a Promise ONLY when the
+ *  file set contains an import-bearing module (await it — HL lands after). */
 export function loadEngine(opts: EngineOptions = {}): any {
   const g: any = globalThis;
   delete g.HL;
   delete g.chrome;
   if (opts.chrome !== undefined) g.chrome = opts.chrome;
-  const files = opts.files ?? DEFAULT_FILES;
-  for (const f of files) evalClassic(ext(f));
-  for (const f of opts.extraFiles || []) evalClassic(f);
-  return g.HL;
+  const files = [...(opts.files ?? DEFAULT_FILES), ...(opts.extraFiles || [])];
+  const load = (f: string, seq: number): void | Promise<void> => {
+    const path = f.startsWith("/") || /^[A-Za-z]:/.test(f) ? f : ext(f);
+    if (!RE_TOP_MODULE.test(readSrc(path))) return evalClassic(path);
+    if (RE_TOP_IMPORT.test(readSrc(path))) return import(pathToFileURL(path).href + "?world=" + seq);
+    return loadModuleSync(path);
+  };
+  const paths = files.map((f) => (f.startsWith("/") || /^[A-Za-z]:/.test(f) ? f : ext(f)));
+  if (!paths.some((p) => RE_TOP_IMPORT.test(readSrc(p) || ""))) {
+    const seq = ++worldSeq;
+    for (const p of paths) load(p, seq);
+    return g.HL;
+  }
+  const seq = ++worldSeq;
+  return (async () => {
+    for (const p of paths) await load(p, seq);
+    return g.HL;
+  })();
 }

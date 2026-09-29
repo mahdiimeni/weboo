@@ -100,14 +100,23 @@ describe("emit کلاسیک (TypeScript → اسکریپت قابل تزریق)"
   test("خروجی tsc هرگز import/export ندارد", () => {
     /* tsconfig.extension.json emits these from src/shared/*.ts. A single
        `import`/`export` in a TS source flips tsc to module output and appends
-       `export {};` — a SyntaxError when the manifest injects the file as a
-       classic script. This is the tripwire for that whole class of bug. */
+       `export {};` — a SyntaxError when a CLASSIC loader injects the file
+       (popup/dashboard <script> tags, any not-yet-migrated list). This is
+       the tripwire for that whole class of bug.
+       Phase 7b: textindex/anchor are converted ES modules — allowed to be
+       modules ONLY because every classic loader of them is gone (WXT bundle
+       + engine strip-path; manifest list = order data). The allowlist is
+       explicit: a conversion outside it fails here until its classic loaders
+       are removed first. */
     const emitted = ["format", "detect-dir", "url", "utils", "tags", "textindex", "anchor", "store"];
+    const allowedModules = new Set(["textindex", "anchor"]); /* 7b: bundler-only files */
     for (const name of emitted) {
       /* source of truth lives in src/shared (ext() is extension/-rooted — ".." climbs out) */
       expect(exists(ext("..", "src", "shared", name + ".ts"))).toBe(true);
       const js = readFile(ext("shared", name + ".js"));
-      expect(js).not.toMatch(/^\s*(import|export)\s/m); /* classic: no module statements */
+      const isModule = /^\s*(import|export)\s/m.test(js);
+      if (allowedModules.has(name)) expect(isModule).toBe(true); /* drift-proof the other way */
+      else expect(isModule).toBe(false); /* classic: no module statements */
     }
   });
 });

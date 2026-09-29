@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Web Highlighter — anchor resolution (Phase 3 extraction).
  *
@@ -22,8 +21,8 @@
  * touching orchestration (see anchor.test's OCP test).
  *
  * Phase 2/3 pipeline: compiled by `bun run build:ext` into
- * extension/shared/anchor.js — classic script, zero imports (see the
- * invariant note in src/shared/textindex.ts).
+ * extension/shared/anchor.js — Phase 7b: converted ES module (tail export,
+ * identity-exported HL.anchor; loaders/status per src/shared/textindex.ts).
  */
 (function () {
     'use strict';
@@ -156,3 +155,7 @@
         resolve: resolve
     };
 })();
+/* ES-module surface (Phase 7b): exported by identity — HL.anchor === anchor —
+   so the ordered resolvers array stays the SINGLE instance every consumer
+   mutates (the OCP seam: append a resolver, it is picked up everywhere). */
+export const anchor = globalThis.HL.anchor; /* the IIFE above assigned it */
