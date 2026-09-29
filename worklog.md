@@ -1995,3 +1995,18 @@ Work Log:
 Stage Summary:
 - First files are real ES modules end-to-end (tsc emit → WXT bundle in real Chrome → engine world isolation), tripwire keeps every non-converted file classic
 - The gate that matters next: highlighter conversion flips loadEngine to async for default-file worlds — the await sweep is designed (fails loudly on missed awaits) but not started
+---
+Task ID: 75
+Agent: main (Hermes)
+Task: Modernization Phase 7b-2 — highlighter declares its engine imports; engine loads real module graphs (vm); full await sweep
+
+Work Log:
+- Conversions (the shrink in action): src/shared/anchor.ts gains `import { text } from "./textindex.js"` (HL.text.normInfo → text.normInfo ×2); extension/shared/highlighter.js gains `import { text as textIndex } from "./textindex.js"` + `import { anchor } from "./anchor.js"` (4 HL.* reads → direct bindings). The alias exists because selectionCtx has `var text = sel.toString()` — a hoisted function-scoped shadow that made `text.normalizeRange` undefined (caught by 4 live failures before the alias). Three files are now real ES modules with REAL cross-imports; every other HL.* read in highlighter (dom, clipboard, format, …) stays for the shared-file wave.
+- Engine async path rebuilt: vm.SourceTextModule GRAPH per world (probe: bun runs it in the CURRENT realm, so modules assign to the same globalThis.HL tests read). graphMembers() walks relative imports of import-bearing files; those files load via ONE per-world cache (fresh link+evaluate each world) so identity holds — verified: `imported text === HL.text`. Export-only files keep strip+wrap eval; pure-classic worlds stay sync. loadEngine returns a Promise only for import-bearing worlds.
+- Await sweep across ALL 26 suites (uniform: `await loadEngine` is a no-op on sync worlds): loadEngine sites awaited, enclosing beforeAll/beforeEach/test callbacks → async, async-helper cascades (boot, chromeCtx, memoryCtx, makeRecord, recA/B/C, loadExport, bootThemeBoot) awaited at every call site + `Promise<Ctx>` signatures. Sweep bugs found by fail-loud runs: `async async function` doubles, `() => await` arrows missing async, describe-title `makeCtx().name` → `makeCtx.name` (would have been undefined on a Promise), SCENARIOS type → `() => Promise<Ctx>`, recA/B/C calls saved Promises as records (empty-store failures) → awaited.
+- Typography: textindex export typed `TextView` (structural, 6 members) after TS18046 `'text' is of type 'unknown'` in anchor.
+- Verification: build:ext (tsc) 0 · bun run test **644/0/2478** · lint 0 · typecheck 0 · zip 54 (parity inside chain) · real-theme 0 · next-compat **16/16** — the triple-import module graph ships in the WXT content bundle into real Chrome.
+
+Stage Summary:
+- highlighter (orchestrator) → textindex + anchor are declared ES-module dependencies; engine evaluates real graphs per test world with instance identity proven
+- Remaining shrink surface: shared classic files (constants, store, tags, format, …) + popup/dashboard single module entry + domwrap's HL.text reads — the shared-file wave
