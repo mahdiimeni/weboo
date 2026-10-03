@@ -29,6 +29,7 @@
    there is exactly one textindex/anchor instance per world. */
 import { text as textIndex } from "./textindex.js"; /* alias: selectionCtx has a local `text` string */
 import { anchor } from "./anchor.js";
+import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine — 16 HL.dom reads collapse to this binding */
 (function () {
   'use strict';
   var HL = (globalThis.HL = globalThis.HL || {});
@@ -97,8 +98,8 @@ import { anchor } from "./anchor.js";
        unclickable. Hidden marks are kept, never unwrapped here (they are
        correct again if the site re-shows that copy). */
     function hasVisibleMarks(id) {
-      var ms = HL.dom.marksOf(id).filter(inScope);
-      for (var i = 0; i < ms.length; i++) if (!HL.dom.isHidden(ms[i])) return true;
+      var ms = dom.marksOf(id).filter(inScope);
+      for (var i = 0; i < ms.length; i++) if (!dom.isHidden(ms[i])) return true;
       return false;
     }
 
@@ -123,19 +124,19 @@ import { anchor } from "./anchor.js";
       var sEl = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
       if (sEl && sEl.closest && sEl.closest('mark[data-hl-id="' + rec.id + '"]')) return false;
 
-      var marks = HL.dom.markRange(range, rec.id, rec.color);
+      var marks = dom.markRange(range, rec.id, rec.color);
       if (!marks.length) return false;
-      HL.dom.setNoted(rec.id, hasNote(rec)); /* underline = note marker */
+      dom.setNoted(rec.id, hasNote(rec)); /* underline = note marker */
       state.ti = null; /* text structure changed; the index must be rebuilt */
 
       if (located) {
         /* self-heal: store the new anchor and exact offsets */
-        rec.anchor = HL.dom.serializeRange(range);
+        rec.anchor = dom.serializeRange(range);
         rec.start = located.start;
         rec.end = located.end;
         queueHealSave(rec);
       }
-      for (var i = 0; i < marks.length; i++) if (!HL.dom.isHidden(marks[i])) return true;
+      for (var i = 0; i < marks.length; i++) if (!dom.isHidden(marks[i])) return true;
       return false; /* wrapped only into a hidden copy — reconcile will retry */
     }
 
@@ -258,8 +259,8 @@ import { anchor } from "./anchor.js";
 
       var id = HL.util.newId();
       var now = Date.now();
-      var anchor = HL.dom.serializeRange(ctx.range);
-      var marks = HL.dom.markRange(ctx.range, id, color);
+      var anchor = dom.serializeRange(ctx.range);
+      var marks = dom.markRange(ctx.range, id, color);
       if (!marks.length) { onError('این قسمت از صفحه قابل هایلایت نیست.'); clearSelection(); return null; }
       state.ti = null;
 
@@ -310,15 +311,15 @@ import { anchor } from "./anchor.js";
         suffix: ti.text.slice(offs.end, offs.end + 32),
         start: offs.start,
         end: offs.end,
-        anchor: HL.dom.serializeRange(range),
+        anchor: dom.serializeRange(range),
         color: color,
         note: note || '',
         createdAt: now,
         updatedAt: now
       };
-      var marks = HL.dom.markRange(range, id, color);
+      var marks = dom.markRange(range, id, color);
       if (!marks.length) { clearSelection(); return null; }
-      if (note && String(note).trim()) HL.dom.setNoted(id, true);
+      if (note && String(note).trim()) dom.setNoted(id, true);
       state.ti = null;
       state.recs.set(id, rec);
       persistRecord(rec, { count: true });
@@ -333,7 +334,7 @@ import { anchor } from "./anchor.js";
       if (!rec) return;
       rec.color = color;
       rec.updatedAt = Date.now();
-      HL.dom.setColor(id, color);
+      dom.setColor(id, color);
       persistRecord(rec, {});
     }
 
@@ -342,13 +343,13 @@ import { anchor } from "./anchor.js";
       if (!rec) return;
       rec.note = note;
       rec.updatedAt = Date.now();
-      HL.dom.setNoted(id, hasNote(rec)); /* add/remove the underline */
+      dom.setNoted(id, hasNote(rec)); /* add/remove the underline */
       persistRecord(rec, { count: true });
     }
 
     function removeHighlight(id) {
       var rec = state.recs.get(id);
-      HL.dom.unwrap(id);
+      dom.unwrap(id);
       state.recs.delete(id);
       if (rec) toast('هایلایت حذف شد.');
       return store.remove(id, page.host).then(function () {
@@ -391,10 +392,10 @@ import { anchor } from "./anchor.js";
     function openPopover(id, opts) {
       var rec = state.recs.get(id);
       if (!rec) return;
-      var marks = HL.dom.marksOf(id).filter(inScope);
+      var marks = dom.marksOf(id).filter(inScope);
       var mark = null;
       for (var i = 0; i < marks.length; i++) { /* anchor to the copy the user sees */
-        if (!HL.dom.isHidden(marks[i])) { mark = marks[i]; break; }
+        if (!dom.isHidden(marks[i])) { mark = marks[i]; break; }
       }
       if (!mark) mark = marks[0];
       if (!mark && !(opts && opts.mark)) return;
@@ -521,3 +522,6 @@ import { anchor } from "./anchor.js";
 
   HL.createHighlighter = createHighlighter;
 })();
+
+/* identity export (content imports this factory) */
+export const createHighlighter = globalThis.HL.createHighlighter;

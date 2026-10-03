@@ -74,5 +74,9 @@
     }).then(function () { return true; }, function () { return false; });
   }
 
-  HL.favicon = { MAX_BYTES: MAX_BYTES, pickIconHref: pickIconHref, captureSiteFavicon: captureSiteFavicon };
+HL.favicon = { MAX_BYTES: MAX_BYTES, pickIconHref: pickIconHref, captureSiteFavicon: captureSiteFavicon };
+
 })();
+
+/* identity export (same instance content imports) */
+export const favicon = globalThis.HL.favicon;

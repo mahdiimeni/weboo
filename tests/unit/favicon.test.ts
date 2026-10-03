@@ -12,8 +12,8 @@ let origFetch: any;
 
 beforeEach(async () => {
   win = setupDom({ html: "" });
-  HL = await loadEngine({ files: ["shared/constants.js"] });
-  evalClassic(ext("content", "favicon.js"));
+  /* favicon.js is an ES module since 7b-3 — load it through the engine (export-only world => sync strip path), not evalClassic */
+  HL = await loadEngine({ files: ["shared/constants.js"], extraFiles: [ext("content", "favicon.js")] });
   fetchCalls = 0;
   origFetch = (globalThis as any).fetch;
   (globalThis as any).fetch = () => { fetchCalls++; throw new Error("fetch must not run in unit tests"); };

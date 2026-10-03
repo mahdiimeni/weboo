@@ -109,7 +109,7 @@ describe("emit کلاسیک (TypeScript → اسکریپت قابل تزریق)"
        explicit: a conversion outside it fails here until its classic loaders
        are removed first. */
     const emitted = ["format", "detect-dir", "url", "utils", "tags", "textindex", "anchor", "store"];
-    const allowedModules = new Set(["textindex", "anchor"]); /* 7b: bundler-only files */
+    const allowedModules = new Set(["textindex", "anchor"]); /* 7b: bundler-only emitted files */
     for (const name of emitted) {
       /* source of truth lives in src/shared (ext() is extension/-rooted — ".." climbs out) */
       expect(exists(ext("..", "src", "shared", name + ".ts"))).toBe(true);
@@ -117,6 +117,36 @@ describe("emit کلاسیک (TypeScript → اسکریپت قابل تزریق)"
       const isModule = /^\s*(import|export)\s/m.test(js);
       if (allowedModules.has(name)) expect(isModule).toBe(true); /* drift-proof the other way */
       else expect(isModule).toBe(false); /* classic: no module statements */
+    }
+  });
+});
+
+describe("فایل‌های محتوایی تبدیل‌شده (7b: ماژول‌های دست‌نویس)", () => {
+  test("must contain module syntax (drift-proof both ways)", () => {
+    /* Hand-written (non-emitted) files converted to ES modules in 7b-2/7b-3.
+       Their only loaders are the WXT content bundle + the engine vm graph —
+       if a conversion loses its module syntax the bundler silently drops the
+       declared edges and identity exports rot. Same two-way tripwire shape as
+       the emitted set: converted => module syntax must be present. */
+    const converted = ["shared/domwrap.js", "shared/highlighter.js", "content/favicon.js", "content/content.js"];
+    for (const rel of converted) {
+      expect(/^\s*(import|export)\s/m.test(readFile(ext(rel)))).toBe(true);
+    }
+  });
+
+  test("classic content files keep zero module syntax", () => {
+    /* The not-yet-converted content-side files are still injected as classic
+       scripts by any non-bundle loader (engine evalClassic worlds) — module
+       syntax in them is a SyntaxError there. */
+    const classic = [
+      "shared/constants.js", "shared/backends/chrome-storage.js", "shared/url.js",
+      "shared/utils.js", "shared/format.js", "shared/detect-dir.js",
+      "shared/clipboard.js", "shared/tags.js", "shared/ui/base.js",
+      "shared/ui/toast.js", "shared/ui/toolbar.js", "shared/ui/popover.js",
+      "shared/store.js", "shared/runtime-bridge.js",
+    ];
+    for (const rel of classic) {
+      expect(/^\s*(import|export)\s/m.test(readFile(ext(rel)))).toBe(false);
     }
   });
 });

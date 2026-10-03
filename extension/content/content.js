@@ -15,6 +15,13 @@
  *  - jumping straight to a highlight via the #hlx-goto-<id> hash
  *  - reporting the count to the service worker for the badge
  */
+/* Phase 7b-3: the composition root declares its engine dependencies as real
+   ES-module imports (the orchestrator shrinks from HL.* reads). Shared classic
+   files (store/backends/url/ui/util/runtime/MSG) stay on the HL namespace
+   until the shared-file wave. */
+import { dom } from "../shared/domwrap.js";
+import { createHighlighter } from "../shared/highlighter.js";
+import { favicon } from "./favicon.js";
 (function () {
   'use strict';
   if (window.__hlxContentInit) return;
@@ -41,7 +48,7 @@
   };
   var navSeq = 0; /* SPA navigation token — async loaders abort when it moves */
 
-  var hl = HL.createHighlighter({
+  var hl = createHighlighter({
     page: page,
     scope: document.body,
     eventRoot: document,
@@ -71,7 +78,7 @@
   function captureSiteFavicon() {
     if (state.disabled || state.faviconDone || !page.host) return;
     if (location.protocol !== 'http:' && location.protocol !== 'https:') { state.faviconDone = true; return; }
-    HL.favicon.captureSiteFavicon(HL.store, page.host, document, location)
+    favicon.captureSiteFavicon(HL.store, page.host, document, location)
       .then(function () { state.faviconDone = true; }); /* failures too — this page load won't retry */
   }
 
@@ -138,7 +145,7 @@
     hl.setPage(next); /* page object identity preserved — every page.* reader sees the new URL */
     hl.toolbar.dismiss();
     hl.popover.dismiss();
-    hl.each(function (rec) { HL.dom.unwrap(rec.id); }); /* the old page's marks go with its DOM */
+    hl.each(function (rec) { dom.unwrap(rec.id); }); /* the old page's marks go with its DOM */
     hl.resetRecords();
     state.orphaned = new Set();
     state.retries = 0;
@@ -158,15 +165,15 @@
   function gotoHighlight(id, cleanHash) {
     var attempt = 0;
     var tryScroll = function () {
-      var marks = HL.dom.marksOf(id);
+      var marks = dom.marksOf(id);
       var m = null;
       for (var i = 0; i < marks.length; i++) { /* jump to the copy the user sees */
-        if (!HL.dom.isHidden(marks[i])) { m = marks[i]; break; }
+        if (!dom.isHidden(marks[i])) { m = marks[i]; break; }
       }
       if (!m) m = marks[0];
       if (m) {
         try { m.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch (e) { /* noop */ }
-        HL.dom.flash(id);
+        dom.flash(id);
         if (hl.has(id)) setTimeout(function () { hl.openPopover(id); }, 700);
         if (cleanHash) {
           try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* noop */ }
@@ -217,7 +224,7 @@
       state.disabled = true;
       hl.toolbar.dismiss();
       hl.popover.dismiss();
-      hl.each(function (rec) { HL.dom.unwrap(rec.id); });
+      hl.each(function (rec) { dom.unwrap(rec.id); });
       state.orphaned.clear();
       reportCount();
     } else if (!nowDisabled && wasDisabled) {
@@ -240,7 +247,7 @@
       /* Removed ones (e.g. from the dashboard) */
       hl.each(function (rec, id) {
         if (!fresh.has(id)) {
-          HL.dom.unwrap(id);
+          dom.unwrap(id);
           hl.forgetRecord(id);
           state.orphaned.delete(id);
         }
@@ -255,10 +262,10 @@
           if (!hl.applyRecord(rec)) state.orphaned.add(rec);
         } else {
           hl.adoptRecord(rec);
-          if (old.color !== rec.color) HL.dom.setColor(rec.id, rec.color);
+          if (old.color !== rec.color) dom.setColor(rec.id, rec.color);
           var hadNote = !!(old.note && String(old.note).trim());
           var hasNoteNow = !!(rec.note && String(rec.note).trim());
-          if (hadNote !== hasNoteNow) HL.dom.setNoted(rec.id, hasNoteNow); /* e.g. a backup import from another tab */
+          if (hadNote !== hasNoteNow) dom.setNoted(rec.id, hasNoteNow); /* e.g. a backup import from another tab */
           if ((old.note || '') !== (rec.note || '') && hl.isPopoverOpen() && hl.popover.currentId() === rec.id) {
             hl.popover.updateNote(rec.note);
           }

@@ -5,7 +5,7 @@
  * Resolution order (v0.6.7 behavior — audited from highlighter.applyRecord +
  * textindex.findRange before the move, preserved field-for-field):
  *
- *   1. structural — XPath serialize/resolve (HL.dom.resolveAnchor); a hit that
+ *   1. structural — XPath serialize/resolve (dom.resolveAnchor); a hit that
  *      lands in a hidden duplicate copy is rejected (isHidden) → fallback.
  *   2. textual    — candidate SOURCES scored by ONE scorer, best wins:
  *      offsets → exact (indexOf, guard 200) → normalized (word-boundary only;
@@ -27,6 +27,7 @@
 /* Phase 7b-2: explicit dependency — the norm-scorer above the IIFE comes from
    the text-index module itself (same instance the rest of the page sees). */
 import { text } from "./textindex.js";
+import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine (resolveAnchor/isHidden) */
 (function () {
     'use strict';
     const g = globalThis;
@@ -50,7 +51,7 @@ import { text } from "./textindex.js";
         /* +8: the occurrence the user can SEE always beats a hidden duplicate
            (max hidden score = 1+2+2−0 = 5; worst visible = 8−1.5 = 6.5) */
         var here = ti.locate(cand.start);
-        if (here && !HL.dom?.isHidden(here.node))
+        if (here && !dom.isHidden(here.node))
             sc += 8;
         return sc;
     }
@@ -106,8 +107,8 @@ import { text } from "./textindex.js";
     /* ---------- The two top-level strategies ---------- */
     /** 1) Structural: XPath round-trip; hidden duplicate copies are rejected. */
     function resolveStructural(rec) {
-        var range = HL.dom.resolveAnchor(rec.anchor, rec.text);
-        if (range && HL.dom.isHidden(range.commonAncestorContainer))
+        var range = dom.resolveAnchor(rec.anchor, rec.text);
+        if (range && dom.isHidden(range.commonAncestorContainer))
             range = null;
         return range;
     }
