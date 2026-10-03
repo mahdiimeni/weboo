@@ -156,7 +156,9 @@ async function shot(sessionId, file) {
 let extId = null;
 /* dev-tree layout (background/service-worker.js) AND WXT layout (background.js
    — collides with the sandbox's foreign extensions, so CONFIRM via HL sentinel) */
-for (let i = 0; i < 40 && !extId; i++) {
+/* budget: 80 x 600ms (~48s) — a cold SW on a loaded box raced the old 40-iter
+   window once (false "extension did not load" right after real-theme) */
+for (let i = 0; i < 80 && !extId; i++) {
   const { targetInfos } = await browser.send('Target.getTargets');
   const cands = targetInfos.filter((t) => t.url.startsWith('chrome-extension://') &&
     (t.url.includes('background/service-worker.js') || t.url.endsWith('/background.js')));
@@ -169,7 +171,14 @@ for (let i = 0; i < 40 && !extId; i++) {
   }
   if (!extId) await sleep(600);
 }
-if (!extId) { fail('extension did not load'); chrome.kill(); process.exit(1); }
+if (!extId) {
+  /* diagnostics: what candidates did we actually see (foreign vs ours)? */
+  try {
+    const { targetInfos } = await browser.send('Target.getTargets');
+    log('candidates seen:', JSON.stringify(targetInfos.filter((t) => t.url.startsWith('chrome-extension://')).map((t) => t.url)));
+  } catch (e) { /* best-effort */ }
+  fail('extension did not load'); chrome.kill(); process.exit(1);
+}
 log('extension loaded, id =', extId);
 
 /* ---------- site tab ---------- */
