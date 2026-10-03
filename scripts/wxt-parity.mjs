@@ -91,6 +91,12 @@ if (!srcCs) {
   const setEq = (a = [], b = []) => a.length === b.length && [...a].sort().every((v, i) => v === [...b].sort()[i]);
   if (!setEq(c.matches, srcCs.matches)) problems.push(`content matches differ: ${JSON.stringify(c.matches)}`);
   if (c.run_at !== srcCs.run_at) problems.push(`content run_at: expected ${srcCs.run_at}, got ${c.run_at}`);
+    /* 7b-3 finding: content_scripts has NO "type" key in Chrome (BCD lists
+       only world/run_at/matches/...; Chrome 145 empirically ignores a planted
+       "type":"module") — MV3 content scripts are ALWAYS classic. That is why
+       the shipped artifact is the WXT bundle: extension/ content files carry
+       import/export and are NOT loadable unpacked. Source-tree unpacked loading
+       is retired; the rigs guard against it. */
   if ((c.all_frames ?? false) !== (srcCs.all_frames ?? false)) problems.push(`content all_frames: expected ${srcCs.all_frames}, got ${c.all_frames}`);
   if (!Array.isArray(c.js) || c.js.length !== 1) {
     problems.push(`expected single bundled content js, got ${JSON.stringify(c.js)}`);

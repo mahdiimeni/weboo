@@ -21,18 +21,30 @@
  * Usage: bun tests/e2e/real-theme-e2e.mjs
  */
 import { spawn, execSync } from "node:child_process";
-import { writeFileSync } from 'node:fs';
+import { rmSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
 /* Default: the SHIPPED artifact (.output/chrome-mv3 — WXT build, parity-gated).
-   Rebuild it fresh here so the rig never tests a stale output; point
-   HLX_EXT_DIR at extension/ to test the source tree instead. */
+   Rebuild it fresh here so the rig never tests a stale output. HLX_EXT_DIR can
+   point at any OTHER built extension dir; it cannot point at extension/ (the
+   source tree) since 7b — see the guard below. */
 const EXT_DIR = process.env.HLX_EXT_DIR || join(ROOT, '.output', 'chrome-mv3');
 if (!process.env.HLX_EXT_DIR) {
   execSync('bun run build:ext && bun run build:wxt', { cwd: ROOT, stdio: 'inherit' });
+}
+
+/* extension/ (the source tree) is NOT loadable unpacked since 7b: its content
+   files carry ES-module import/export and MV3 content_scripts are ALWAYS
+   classic in Chrome (there is no content_scripts "type" key — verified against
+   BCD and Chrome 145: a planted value is ignored). Only the WXT bundle
+   (.output/chrome-mv3) is a loadable extension. Fail fast + honestly instead
+   of letting probe failures obscure the reason. */
+if (EXT_DIR.replace(/[\/]$/, '') === join(ROOT, 'extension')) {
+  console.log('[FAIL] extension/ is source data, not a loadable extension (content files are ES modules; MV3 content_scripts are always classic). Drop HLX_EXT_DIR to build+test .output/chrome-mv3.');
+  process.exit(1);
 }
 const CHROME = process.env.HLX_CHROME || '/root/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome';
 const CDP_PORT = 9340 + Math.floor(Math.random() * 40); /* random port — zombies from a previous run must not hold us hostage */
@@ -69,6 +81,12 @@ const args = [
   '--no-first-run', '--no-default-browser-check', '--no-sandbox', '--disable-gpu',
   '--disable-dev-shm-usage', '--window-size=1280,900', 'about:blank',
 ];
+
+/* fresh profile every run: chrome.storage (theme cycle etc.) persists in the
+   profile and the probes assume a fresh 'auto' start — stale state walks the
+   cycle one step off (observed: runs failing in sequence, passing after /tmp cleanup) */
+try { rmSync(PROFILE, { recursive: true, force: true }); } catch {}
+
 const chrome = spawn(CHROME, args, { stdio: ['ignore', 'pipe', 'pipe'] });
 chrome.stderr.on('data', () => { /* noise */ });
 
@@ -326,5 +344,24 @@ const summary = {
 };
 writeFileSync(join(HERE, 'real-theme-report.json'), JSON.stringify(summary, null, 2));
 log('SUMMARY:', JSON.stringify(summary, null, 2));
+
+/* hard gate (7b-3): these were informational — the rig reported exit 0 while
+   the source-tree content script never injected (module files injected as
+   classic scripts). Core product probes must hold in BOTH layouts: the WXT
+   bundle (.output) and the extension/ source tree. */
+const required = {
+  extensionLoaded: summary.extensionLoaded,
+  contentScriptInjected: summary.contentScriptInjected,
+  popupPageReady: summary.popupPageReady,
+  popupCycleOk: summary.popupCycle.afterLight === 'light' && summary.popupCycle.afterDark === 'dark',
+  hostsFlippedLive: summary.hostsFlippedLive,
+  toolbarThemedDarkLive: summary.toolbarThemedDarkLive,
+  markCreated: summary.markCreated,
+  popoverThemedDark: summary.popoverThemedDark,
+  bootPathToolbarDark: summary.bootPathToolbarDark,
+};
+const missingProbes = Object.entries(required).filter(([, ok]) => !ok).map(([k]) => k);
 chrome.kill();
+if (missingProbes.length) { fail('required probes failed:', missingProbes.join(', ')); process.exit(1); }
 process.exit(0);
+
