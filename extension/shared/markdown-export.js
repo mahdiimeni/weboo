@@ -13,18 +13,20 @@
  *   - YAML frontmatter (app/version/date/counts) → Obsidian properties panel
  *   - `##` per article, blockquote per highlight (the classic highlight idiom),
  *     bold-labeled note line, em-dash meta line (Persian date + color)
- *   - every quote/note is oneLine-collapsed (HL.format.oneLine) so USER text
+ *   - every quote/note is oneLine-collapsed (format.oneLine) so USER text
  *     can never break the document's own block structure
  *   - Persian chrome strings (summary, counts, dates) use Persian digits
- *     (HL.format.faNum) and stay single-line — each block is directionally
+ *     (format.faNum) and stay single-line — each block is directionally
  *     homogeneous, which is the best bidi contract plain Markdown offers
  *
  * Dependencies (script order): shared/constants.js, shared/format.js
  */
+import { APP_NAME, VERSION, COLORS } from "./constants.js";
+import { format } from "./format.js"; /* 7c-3 */
 (function () {
   'use strict';
   var HL = (globalThis.HL = globalThis.HL || {});
-  var fmt = HL.format;
+  var fmt = format;
 
   /* ---------- Local pure helpers ---------- */
 
@@ -36,7 +38,7 @@
 
   /** Persian color label of a record ('' for unknown keys — no invented data) */
   function colorLabel(r) {
-    var c = HL.COLORS[r && r.color];
+    var c = COLORS[r && r.color];
     return c ? c.label : '';
   }
 
@@ -134,8 +136,8 @@
 
     var out = [];
     out.push('---');
-    out.push('app: "' + HL.APP_NAME + '"');
-    out.push('version: "' + HL.VERSION + '"');
+    out.push('app: "' + APP_NAME + '"');
+    out.push('version: "' + VERSION + '"');
     if (exportedAt) out.push('exported_at: "' + fmt.isoDate(exportedAt) + '"');
     out.push('highlights: ' + total);
     out.push('articles: ' + groups.length);
@@ -143,7 +145,7 @@
     out.push('');
     out.push('# کتابچه هایلایت‌های من');
     out.push('');
-    var summary = 'خروجی از «' + HL.APP_NAME + '» — ' + fmt.faNum(total) + ' هایلایت از ' +
+    var summary = 'خروجی از «' + APP_NAME + '» — ' + fmt.faNum(total) + ' هایلایت از ' +
       fmt.faNum(groups.length) + ' مقاله';
     if (exportedAt) summary += ' · ' + fmt.fmtDate(exportedAt);
     out.push('> ' + summary);
@@ -167,3 +169,6 @@
     buildLibraryMarkdown: buildLibraryMarkdown
   };
 })();
+
+/* identity export (7c-3) */
+export const markdown = globalThis.HL.markdown;

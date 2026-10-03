@@ -12,15 +12,17 @@
  * Dependencies (script order): shared/constants.js, shared/format.js,
  * shared/detect-dir.js, popup-data.js.
  */
+import { THEME_KEYS } from "../shared/constants.js";
+import { format } from "../shared/format.js";
+import { detectDir } from "../shared/detect-dir.js"; /* 7c-3 */
 (function () {
   'use strict';
   var HL = (globalThis.HL = globalThis.HL || {});
   /* Module guard — same convention as the popup controller: HL rides on
      globalThis (in a real page window === globalThis; globalThis also works
      in unit tests) */
-  if (!HL.format || !HL.detectDir) return;
-
-  var fmt = HL.format;
+  
+  var fmt = format;
 
   /* ---------- Supported sites ---------- */
 
@@ -35,7 +37,7 @@
   /** (settings|null) → valid theme key ('auto' fallback — storage is raw and can hold anything) */
   function validTheme(settings) {
     var t = settings && settings.theme;
-    return (HL.THEME_KEYS && HL.THEME_KEYS.indexOf(t) !== -1) ? t : 'auto';
+    return (THEME_KEYS && THEME_KEYS.indexOf(t) !== -1) ? t : 'auto';
   }
 
   /* ---------- Page summary ---------- */
@@ -51,7 +53,7 @@
   /* ---------- Smart direction (v1.2.7/v1.2.8) ---------- */
 
   /**
-   * (title, recsMap) → 'ltr' | 'rtl' — HL.detectDir.contentDir fed with the
+   * (title, recsMap) → 'ltr' | 'rtl' — detectDir.contentDir fed with the
    * page's own signals: the tab's live title (or host label — the caller
    * decides) + the highlight texts. The single smart-direction source shared
    * with the dashboard; the view only applies the result (DIP).
@@ -59,7 +61,7 @@
   function directionOf(title, recs) {
     const dirTexts = [];
     (recs || new Map()).forEach(function (r) { if (r && r.text) dirTexts.push(r.text); });
-    return HL.detectDir.contentDir(title || '', dirTexts);
+    return detectDir.contentDir(title || '', dirTexts);
   }
 
   /* ---------- List ---------- */
@@ -103,3 +105,6 @@
     nextDisabledHosts: nextDisabledHosts
   };
 })();
+
+/* identity export (7c-3) */
+export const pop = globalThis.HL.pop;

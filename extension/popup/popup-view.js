@@ -15,19 +15,21 @@
  * Dependencies (script order): shared/constants.js, shared/format.js,
  * shared/domkit.js, popup-data.js, popup-view.js → popup.js.
  */
+import { THEMES } from "../shared/constants.js";
+import { format } from "../shared/format.js";
+import { domkit } from "../shared/domkit.js"; /* 7c-3 */
 (function () {
   'use strict';
   var HL = (globalThis.HL = globalThis.HL || {});
   /* Module guard — same convention as the popup controller: HL rides on
      globalThis (in a real page window === globalThis; globalThis also works
      in unit tests) */
-  if (!HL.domkit || !HL.format || !HL.THEMES) return;
-
+  
   /* ---------- Shared widgets (aliases — single implementation in HL.format/HL.domkit) ---------- */
 
-  const el = HL.domkit.el;
-  const faNum = HL.format.faNum;
-  const dotColorOf = HL.format.dotColorOf;
+  const el = domkit.el;
+  const faNum = format.faNum;
+  const dotColorOf = format.dotColorOf;
 
   /* StickyNote icon — our own constant string (innerHTML only for constants) */
   const ICON_NOTE = '<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.5 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9l7-7V5a2 2 0 0 0-2-2Z"/><path d="M14 21v-4a2 2 0 0 1 2-2h4"/></svg>';
@@ -97,10 +99,10 @@
   function fillPageCard(els, card) {
     const host = String((card && card.host) || '');
     const hostLabel = host || 'فایل محلی';
-    els.pageTitle.textContent = HL.format.excerpt((card && card.title) || hostLabel, 60) || hostLabel;
+    els.pageTitle.textContent = format.excerpt((card && card.title) || hostLabel, 60) || hostLabel;
     els.pageHost.textContent = hostLabel;
-    els.fl.textContent = HL.format.faviconLetter(host);
-    HL.domkit.mountFavicon(els.fl, (card && card.favicon) || null);
+    els.fl.textContent = format.faviconLetter(host);
+    domkit.mountFavicon(els.fl, (card && card.favicon) || null);
   }
 
   /** sum = HL.pop.summarize(recs) → { total, notes } (Persian digits) */
@@ -159,11 +161,11 @@
 
     const txt = el('span', 'txt');
     const line = el('p', 'hl-text');
-    line.textContent = HL.format.excerpt(rec.text, 80);
+    line.textContent = format.excerpt(rec.text, 80);
 
     const meta = el('span', 'hl-meta');
     const date = el('span', 'date');
-    date.textContent = HL.format.fmtDateTime(rec.updatedAt || rec.createdAt);
+    date.textContent = format.fmtDateTime(rec.updatedAt || rec.createdAt);
     meta.appendChild(date);
     if (rec.note) {
       const ic = el('span', 'note-ic');
@@ -215,8 +217,8 @@
   /** key: valid theme key (HL.pop.validTheme) — label from the HL.THEMES registry */
   function renderThemeBtn(els, key) {
     if (!els.btnTheme) return;
-    els.btnTheme.title = 'قالب: ' + HL.THEMES[key].label;
-    els.btnTheme.setAttribute('aria-label', 'تغییر قالب (' + HL.THEMES[key].label + ')');
+    els.btnTheme.title = 'قالب: ' + THEMES[key].label;
+    els.btnTheme.setAttribute('aria-label', 'تغییر قالب (' + THEMES[key].label + ')');
     els.btnTheme.innerHTML = THEME_ICON[key]; /* our own constant */
   }
 
@@ -237,3 +239,6 @@
     renderThemeBtn: renderThemeBtn
   };
 })();
+
+/* identity export (7c-3) */
+export const popView = globalThis.HL.popView;

@@ -4,7 +4,7 @@
  * SRP/MVC: this module only "builds" — where data comes from and what happens
  * after a click is the controller's (dashboard.js) concern, injected into these
  * builders via handlers. There is no getElementById/save/remove here.
- * DOM widgets come from HL.domkit and display formats from HL.format.
+ * DOM widgets come from domkit and display formats from format.
  * Text is rendered only via textContent/createTextNode (XSS-safe against web
  * page content); innerHTML is used only for our own constant icon strings.
  *
@@ -69,12 +69,16 @@
  * call): the overlay click and Escape close; the card itself is the focus
  * anchor (dashboard.html tabindex="-1").
  */
+import { APP_NAME, VERSION, COLORS, COLOR_KEYS, TAG_MAX_LEN, THEMES, THEME_KEYS } from "../shared/constants.js";
+import { format } from "../shared/format.js";
+import { domkit } from "../shared/domkit.js";
+import { dash } from "./dashboard-data.js"; /* 7c-3 */
+
 (function () {
   'use strict';
   var HL = (globalThis.HL = globalThis.HL || {});
-  var dash = HL.dash;
-  var el = HL.domkit.el;
-  var txtNode = HL.domkit.txtNode;
+    var el = domkit.el;
+  var txtNode = domkit.txtNode;
 
   /* Our own constant icons — the only place innerHTML is used */
   var ICONS = {
@@ -248,7 +252,7 @@
     function openTagInput() {
       var inp = el('input', 'tag-input');
       inp.type = 'text';
-      inp.maxLength = HL.TAG_MAX_LEN;
+      inp.maxLength = TAG_MAX_LEN;
       inp.setAttribute('dir', 'auto'); /* typing-time first-strong (v0.6.1) */
       inp.placeholder = 'نام برچسب…';
       inp.setAttribute('aria-label', 'نام برچسب جدید');
@@ -387,12 +391,12 @@
     fl.title = g.host || 'فایل محلی';
     /* Real favicon — dataURL captured from the page itself (hlx:f:<host>);
        without it (old records/failed capture) the first letter stays (fallback) */
-    HL.domkit.mountFavicon(fl, g.favicon || null);
+    domkit.mountFavicon(fl, g.favicon || null);
 
     var gt = el('span', 'group-txt');
     var title = el('strong', 'group-title');
     /* the shared article-title chain (v0.6.3) — excerpted for the header row */
-    title.textContent = HL.format.excerpt(articleTitleOf(g), 60) || 'بدون عنوان';
+    title.textContent = format.excerpt(articleTitleOf(g), 60) || 'بدون عنوان';
     /* Only the host part is shown (full link → tooltip) */
     var url = el('span', 'group-url');
     url.textContent = dash.displayHost(g.url || g.host);
@@ -633,7 +637,7 @@
        takes no attribute and follows the card, exactly as before. */
     var textDir = dash.detectTextDir(rec.text);
     if (textDir) text.setAttribute('dir', textDir);
-    text.textContent = HL.format.excerpt(rec.text, 200);
+    text.textContent = format.excerpt(rec.text, 200);
     if (onPreview) {
       /* "click the highlight → see its full text" (v0.6.1) — the quote is
          text-only (no nested buttons), so the group-head a11y contract is
@@ -673,7 +677,7 @@
          are untouched — only this note's row flips. */
       var noteDir = dash.detectTextDir(rec.note);
       if (noteDir) note.setAttribute('dir', noteDir);
-      nt.textContent = HL.format.excerpt(rec.note, 300);
+      nt.textContent = format.excerpt(rec.note, 300);
       if (onPreview) {
         /* The note preview (300 chars) opens the same full-text window — an
            extra mouse surface, deliberately NOT a tab stop (the quote already
@@ -691,7 +695,7 @@
     /* fa-IR date (v0.5.2): Persian chrome — its own RTL context, so an LTR card
        frame never scrambles «۱۵ خرداد ۱۴۰۳، ۱۴:۳۰» (day-month-year order and
        the mirrored punctuation stay intact). */
-    meta.appendChild(faEl('span', 'item-date', HL.format.fmtDateTime(rec.updatedAt || rec.createdAt)));
+    meta.appendChild(faEl('span', 'item-date', format.fmtDateTime(rec.updatedAt || rec.createdAt)));
 
     var actions = el('div', 'item-actions');
 
@@ -720,8 +724,8 @@
    */
   function buildColorChips(container, selected, onToggle) {
     container.textContent = '';
-    (HL.COLOR_KEYS || []).forEach(function (k) {
-      var c = HL.COLORS[k];
+    (COLOR_KEYS || []).forEach(function (k) {
+      var c = COLORS[k];
       var b = el('button', 'cchip');
       b.type = 'button';
       b.dataset.key = k;
@@ -782,8 +786,8 @@
    */
   function buildColorDots(container, current, onSelect) {
     container.textContent = '';
-    (HL.COLOR_KEYS || []).forEach(function (k) {
-      var c = HL.COLORS[k];
+    (COLOR_KEYS || []).forEach(function (k) {
+      var c = COLORS[k];
       var b = el('button', 'cdot');
       b.type = 'button';
       b.dataset.key = k;
@@ -813,14 +817,14 @@
 
   /**
    * container gets filled; current: active key ('auto' default); onSelect(key)
-   * Built from the HL.THEMES registry (OCP: a new theme = a registry entry).
+   * Built from the THEMES registry (OCP: a new theme = a registry entry).
    * Same pattern as buildColorDots — but radios wrapped in labels (native keyboard/AT).
    */
   function buildThemeRadios(container, current, onSelect) {
     container.textContent = '';
-    var cur = (HL.THEME_KEYS && HL.THEME_KEYS.indexOf(current) !== -1) ? current : 'auto';
-    (HL.THEME_KEYS || []).forEach(function (k) {
-      var t = HL.THEMES[k];
+    var cur = (THEME_KEYS && THEME_KEYS.indexOf(current) !== -1) ? current : 'auto';
+    (THEME_KEYS || []).forEach(function (k) {
+      var t = THEMES[k];
       var lab = el('label', 'radio');
       var input = el('input');
       input.type = 'radio';
@@ -876,10 +880,10 @@
   function fillModalSummary(container, b) {
     container.textContent = '';
     var count = (b.meta && b.meta.count) || Object.keys(b.highlights).length;
-    addRow('نام مجموعه', b.name || HL.APP_NAME);
+    addRow('نام مجموعه', b.name || APP_NAME);
     addRow('تعداد هایلایت‌ها', dash.faNum(count));
-    addRow('تاریخ خروجی', b.exportedAt ? HL.format.fmtDateTime(b.exportedAt) : '—');
-    addRow('نسخه', 'v' + (b.version || HL.VERSION));
+    addRow('تاریخ خروجی', b.exportedAt ? format.fmtDateTime(b.exportedAt) : '—');
+    addRow('نسخه', 'v' + (b.version || VERSION));
     function addRow(k, v) {
       var r = el('div', 'sum-row');
       var kk = el('span', 'muted');
@@ -967,7 +971,7 @@
    */
   function fillHighlightTitle(el, rec) {
     var full = articleTitleOf(rec);
-    el.textContent = HL.format.excerpt(full, 60) || 'بدون عنوان';
+    el.textContent = format.excerpt(full, 60) || 'بدون عنوان';
     el.title = full; /* the untruncated title on hover */
     var d = dash.detectTextDir(full);
     if (d) el.setAttribute('dir', d);
@@ -1031,7 +1035,7 @@
        (.hl-meta-t via faEl: the fa-IR date keeps its day-month-year order and
        mirrored punctuation inside LTR windows). Aligned by the frame,
        ordered by the language — exactly how the card's item dates behave. */
-    var meta = HL.format.fmtDateTime(rec.updatedAt || rec.createdAt);
+    var meta = format.fmtDateTime(rec.updatedAt || rec.createdAt);
     var metaRow = el('div', 'hl-meta');
     metaRow.appendChild(faEl('span', 'hl-meta-t', meta));
     container.appendChild(metaRow);
@@ -1135,3 +1139,6 @@
     renderBulkToggle: renderBulkToggle
   };
 })();
+
+/* identity export (7c-3) */
+export const dashView = globalThis.HL.dashView;

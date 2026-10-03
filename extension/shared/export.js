@@ -94,3 +94,6 @@
     printHtml: printHtml
   };
 })();
+
+/* identity export (7c-3): 'export' is a reserved word — module binding is exportTools, namespace stays HL.export */
+export const exportTools = globalThis.HL.export;

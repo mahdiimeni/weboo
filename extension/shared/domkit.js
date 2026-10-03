@@ -5,6 +5,7 @@
  * local versions. Deliberately kept small and stable; any more complex
  * builder belongs to the consumer's own view layer.
  */
+import { THEME_KEYS } from "./constants.js"; /* 7c-3 */
 (function () {
   'use strict';
   const HL = (globalThis.HL = globalThis.HL || {});
@@ -29,7 +30,7 @@
    */
   function applyTheme(doc, theme) {
     var t = 'auto';
-    if (theme && HL.THEME_KEYS && HL.THEME_KEYS.indexOf(theme) !== -1) t = theme;
+    if (theme && THEME_KEYS && THEME_KEYS.indexOf(theme) !== -1) t = theme;
     var root = doc && doc.documentElement;
     if (!root || !root.setAttribute) return 'auto';
     if (t === 'auto') {
@@ -73,3 +74,6 @@
 
   HL.domkit = { el: el, txtNode: txtNode, mountFavicon: mountFavicon, applyTheme: applyTheme };
 })();
+
+/* identity export (7c-3) */
+export const domkit = globalThis.HL.domkit;

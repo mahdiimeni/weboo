@@ -1,3 +1,19 @@
+/* 7c-3: single module entry — the page's former <script> tags in exact document
+   order (theme-boot stays a classic head script: it must run BEFORE any module —
+   anti-flash window, asserted by the page-shape tripwire). */
+import { DEFAULT_SETTINGS, GOTO_HASH_PREFIX, MSG, SETTINGS_HASH, THEME_KEYS, VERSION } from "../shared/constants.js";
+import { backends } from "../shared/backends/chrome-storage.js";
+import { url as urlUtil } from "../shared/url.js"; /* aliased: local vars named `url` (tab/dashboard URLs) shadow the binding */
+import "../shared/format.js";
+import "../shared/detect-dir.js";
+import "../shared/domkit.js";
+import { exportTools } from "../shared/export.js";
+import "../shared/tags.js";
+import { createStore } from "../shared/store.js";
+import { runtime } from "../shared/runtime-bridge.js";
+import { pop } from "./popup-data.js";
+import { popView as view } from "./popup-view.js";
+
 /**
  * Web Highlighter — popup controller (platform-specific page)
  *
@@ -29,15 +45,12 @@
 
   /* ---------- Composition root ---------- */
 
-  globalThis.HL.store = globalThis.HL.store || globalThis.HL.createStore(globalThis.HL.backends.chromeStorage());
+  globalThis.HL.store = globalThis.HL.store || createStore(backends.chromeStorage()); /* dynamic slot — kept on the namespace (read across worlds) */
   var HL = globalThis.HL;
   /* Module guard — same convention as the rest of the core: HL rides on globalThis
      (in a real page window === globalThis; globalThis also works in unit tests) */
-  if (!globalThis.HL || !HL.format || !HL.detectDir || !HL.domkit || !HL.export || !HL.url || !HL.store || !HL.MSG || !HL.runtime || !HL.pop || !HL.popView) return;
-
-  var pop = HL.pop;
-  var view = HL.popView;
-
+  
+    
   /* ---------- DOM references ---------- */
 
   function $(id) { return document.getElementById(id); }
@@ -125,14 +138,14 @@
    */
   function openDashboard(hash) {
     let url = 'dashboard/dashboard.html';
-    try { url = HL.runtime.getURL('dashboard/dashboard.html'); } catch (e) { /* keep the default value */ }
+    try { url = runtime.getURL('dashboard/dashboard.html'); } catch (e) { /* keep the default value */ }
     createTab(url + (hash || '')).then(function () { window.close(); });
   }
 
   /* ---------- Theme (auto/light/dark — user's choice) ---------- */
 
   els.btnTheme.addEventListener('click', async function () {
-    var next = HL.THEME_KEYS[(HL.THEME_KEYS.indexOf(pop.validTheme(state.settings)) + 1) % HL.THEME_KEYS.length];
+    var next = THEME_KEYS[(THEME_KEYS.indexOf(pop.validTheme(state.settings)) + 1) % THEME_KEYS.length];
     try {
       state.settings = await HL.store.setSettings({ theme: next });
     } catch (e) {
@@ -167,7 +180,7 @@
     view.fillPageCard(els, { title: state.tab.title || hostLabel, host: host, favicon: favIcon });
 
     try { state.settings = await HL.store.getSettings(); }
-    catch (e) { state.settings = Object.assign({}, HL.DEFAULT_SETTINGS); }
+    catch (e) { state.settings = Object.assign({}, DEFAULT_SETTINGS); }
 
     const hosts = (state.settings && state.settings.disabledHosts) || [];
     setSwitch(hosts.indexOf(host) === -1);
@@ -185,10 +198,10 @@
   }
 
   function gotoRec(rec) {
-    const hashUrl = String(rec.url || '') + '#' + HL.GOTO_HASH_PREFIX + rec.id;
+    const hashUrl = String(rec.url || '') + '#' + GOTO_HASH_PREFIX + rec.id;
     const tabId = state.tab ? state.tab.id : null;
     if (tabId == null) { openUrl(hashUrl); window.close(); return; }
-    sendToTab(tabId, { type: HL.MSG.GOTO, id: rec.id })
+    sendToTab(tabId, { type: MSG.GOTO, id: rec.id })
       .then(function () { window.close(); })
       .catch(function () {
         /* page without content script → open the URL with the hash */
@@ -218,7 +231,7 @@
   async function doExport() {
     try {
       const b = await HL.store.exportData();
-      HL.export.saveBackup(b);
+      exportTools.saveBackup(b);
       toast('فایل بک‌آپ دانلود شد');
     } catch (e) {
       toast('خروجی گرفتن ناموفق بود', 'error');
@@ -228,19 +241,19 @@
   /* ---------- Bootstrap ---------- */
 
   async function init() {
-    try { view.setVersion(els, HL.runtime.manifestVersion()); }
-    catch (e) { view.setVersion(els, HL.VERSION || ''); }
+    try { view.setVersion(els, runtime.manifestVersion()); }
+    catch (e) { view.setVersion(els, VERSION || ''); }
 
     /* Theme: applied before any rendering (theme-boot.js's anti-flash has already
        put the forced theme on <html>; here we sync it with the real settings) */
     try { state.settings = await HL.store.getSettings(); }
-    catch (e) { state.settings = Object.assign({}, HL.DEFAULT_SETTINGS); }
+    catch (e) { state.settings = Object.assign({}, DEFAULT_SETTINGS); }
     HL.applyThemeNow(state.settings.theme);
     view.renderThemeBtn(els, pop.validTheme(state.settings));
 
     /* Live sync: settings changes (e.g. theme) from another tab's dashboard */
     HL.store.onSettingsChanged(function (s) {
-      state.settings = s || Object.assign({}, HL.DEFAULT_SETTINGS);
+      state.settings = s || Object.assign({}, DEFAULT_SETTINGS);
       HL.applyThemeNow(state.settings.theme);
       view.renderThemeBtn(els, pop.validTheme(state.settings));
       if (state.nu && state.nu.host) {
@@ -250,7 +263,7 @@
     });
 
     /* Header gear button: dashboard + opening the settings panel (#hlx-settings contract — consumer: dashboard.js) */
-    els.btnSettings.addEventListener('click', function () { openDashboard('#' + HL.SETTINGS_HASH); });
+    els.btnSettings.addEventListener('click', function () { openDashboard('#' + SETTINGS_HASH); });
     els.btnDashboard.addEventListener('click', function () { openDashboard(); });
     els.btnDashUnsupp.addEventListener('click', function () { openDashboard(); });
     els.btnExport.addEventListener('click', doExport);
@@ -261,7 +274,7 @@
 
     if (!url) { await renderGeneric(); return; }
 
-    const nu = HL.url.normalizeUrl(url);
+    const nu = urlUtil.normalizeUrl(url);
     if (!nu || !pop.isSupportedSite(nu)) { view.showUnsupported(els); return; }
 
     state.nu = nu;

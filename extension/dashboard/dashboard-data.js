@@ -30,10 +30,13 @@
  * Boot collapse policy (v1.2.14): initialCollapsed — on a fresh dashboard tab
  * only the most-recently-highlighted article's card starts expanded.
  */
+import { format } from "../shared/format.js";
+import { detectDir } from "../shared/detect-dir.js";
+import { tags } from "../shared/tags.js"; /* 7c-3 */
 (function () {
   'use strict';
   var HL = (globalThis.HL = globalThis.HL || {});
-  var fmt = HL.format;
+  var fmt = format;
 
   /* ---------- Domain validation for «سایت‌های غیرفعال» (disabled sites) ---------- */
 
@@ -72,7 +75,7 @@
     var items = g.items || [];
     var texts = [];
     for (var i = 0; i < items.length; i++) texts.push(items[i].text || '');
-    return HL.detectDir.contentDir(g.title || '', texts);
+    return detectDir.contentDir(g.title || '', texts);
   }
 
   /* ---------- Filter ---------- */
@@ -95,7 +98,7 @@
     return list.filter(function (r) {
       if (filters.notesOnly && !r.note) return false;
       if (colors.size && !colors.has(r.color)) return false;
-      if (tagFilterOn && !HL.tags.hasActiveTag(tmap[articleKey(r)], activeTags)) return false;
+      if (tagFilterOn && !tags.hasActiveTag(tmap[articleKey(r)], activeTags)) return false;
       if (q) {
         var hay = ((r.text || '') + '\n' + (r.note || '') + '\n' + (r.title || '') +
           '\n' + (r.host || '') + '\n' + (r.url || '')).toLowerCase();
@@ -420,7 +423,7 @@
     displayHost: fmt.displayHost,
     sanitizeHost: sanitizeHost,
     articleKey: articleKey,
-    detectTextDir: HL.detectDir.detectTextDir, /* delegate to the shared core (v1.2.7) */
+    detectTextDir: detectDir.detectTextDir, /* delegate to the shared core (v1.2.7) */
     applyFilters: applyFilters,
     groupRecords: groupRecords,
     initialCollapsed: initialCollapsed,
@@ -435,3 +438,6 @@
     paginate: paginate
   };
 })();
+
+/* identity export (7c-3) */
+export const dash = globalThis.HL.dash;

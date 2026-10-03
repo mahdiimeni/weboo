@@ -96,3 +96,5 @@ export const THEME_KEYS = globalThis.HL.THEME_KEYS;
 export const TAG_MAX_LEN = globalThis.HL.TAG_MAX_LEN;
 export const TAG_MAX_PER_ARTICLE = globalThis.HL.TAG_MAX_PER_ARTICLE;
 export const DEFAULT_SETTINGS = globalThis.HL.DEFAULT_SETTINGS;
+export const THEMES = globalThis.HL.THEMES;
+export const SETTINGS_HASH = globalThis.HL.SETTINGS_HASH;

@@ -15,3 +15,5 @@ export const THEME_KEYS: string[];
 export const TAG_MAX_LEN: number;
 export const TAG_MAX_PER_ARTICLE: number;
 export const DEFAULT_SETTINGS: Record<string, unknown>;
+export const THEMES: Record<string, any>;
+export const SETTINGS_HASH: string;

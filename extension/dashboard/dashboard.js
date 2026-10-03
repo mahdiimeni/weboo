@@ -1,3 +1,22 @@
+/* 7c-3: single module entry — the page's former <script> tags in exact document
+   order (theme-boot stays a classic head script: it must run BEFORE any module —
+   anti-flash window, asserted by the page-shape tripwire). */
+import { APP_ID, DEFAULT_SETTINGS, GOTO_HASH_PREFIX, SETTINGS_HASH, TAG_MAX_LEN, TAG_MAX_PER_ARTICLE, VERSION } from "../shared/constants.js";
+import { backends } from "../shared/backends/chrome-storage.js";
+import { util } from "../shared/utils.js";
+import "../shared/format.js";
+import "../shared/detect-dir.js";
+import "../shared/domkit.js";
+import { exportTools } from "../shared/export.js";
+import { markdown } from "../shared/markdown-export.js";
+import { booklet } from "../shared/booklet-export.js";
+import { clipboard } from "../shared/clipboard.js";
+import { tags } from "../shared/tags.js";
+import { createStore } from "../shared/store.js";
+import { runtime } from "../shared/runtime-bridge.js";
+import { dash } from "./dashboard-data.js";
+import { dashView as view } from "./dashboard-view.js";
+
 /**
  * Web Highlighter — dashboard controller (options page)
  *
@@ -66,12 +85,9 @@
 
   /* ---------- Composition root ---------- */
 
-  globalThis.HL.store = globalThis.HL.store || globalThis.HL.createStore(globalThis.HL.backends.chromeStorage());
+  globalThis.HL.store = globalThis.HL.store || createStore(backends.chromeStorage()); /* dynamic slot — kept on the namespace */
   var HL = globalThis.HL;
-  if (!window.HL || !HL.util || !HL.store || !HL.MSG || !HL.runtime) return;
-  var dash = HL.dash;
-  var view = HL.dashView;
-
+      
   function $(id) { return document.getElementById(id); }
 
   /* ---------- State ---------- */
@@ -80,7 +96,7 @@
   let groups = [];                                       /* grouped articles — renderList's single groupRecords computation, hoisted so the bulk handler reads the same list (v0.3.0) */
   let favicons = {};                                     /* { host: {icon, capturedAt} } */
   let tagMap = {};                                       /* { urlNorm: [tag, …] } — article tags (v1.2.15) */
-  let settings = Object.assign({}, HL.DEFAULT_SETTINGS);
+  let settings = Object.assign({}, DEFAULT_SETTINGS);
   const filters = { q: '', colors: new Set(), tags: new Set(), notesOnly: false, sort: 'newest' };
   const collapsedGroups = new Set();                    /* collapsed urlNorm keys (user-owned after boot) */
   const reversedGroups = new Set();                     /* v0.4.0: per-card flipped item order (user-owned view state, same pattern as collapsedGroups) */
@@ -166,7 +182,7 @@
     catch (e) { tagMap = {}; }
     if (hard) {
       try { settings = await HL.store.getSettings(); }
-      catch (e) { settings = Object.assign({}, HL.DEFAULT_SETTINGS); }
+      catch (e) { settings = Object.assign({}, DEFAULT_SETTINGS); }
       HL.applyThemeNow(settings.theme);
       renderSettingsPanel();
     }
@@ -217,7 +233,7 @@
     },
     onView: function (rec) {
       if (!rec.url) { toast('آدرس این هایلایت ثبت نشده است', 'error'); return; }
-      try { window.open(rec.url + '#' + HL.GOTO_HASH_PREFIX + rec.id, '_blank'); }
+      try { window.open(rec.url + '#' + GOTO_HASH_PREFIX + rec.id, '_blank'); }
       catch (e) { toast('بازکردن صفحه ناموفق بود', 'error'); }
     },
     /* ---------- Highlight preview (v0.6.1) — the full-text window ----------
@@ -262,11 +278,11 @@
     },
     /* ---------- Article tags (v1.2.15) — validation + persistence ---------- */
     onAddTag: function (g, rawTag) {
-      var tag = HL.tags.sanitizeTag(rawTag);
-      if (!tag) { toast('نام برچسب معتبر نیست (حداکثر ' + dash.faNum(HL.TAG_MAX_LEN) + ' نویسه)', 'error'); return; }
+      var tag = tags.sanitizeTag(rawTag);
+      if (!tag) { toast('نام برچسب معتبر نیست (حداکثر ' + dash.faNum(TAG_MAX_LEN) + ' نویسه)', 'error'); return; }
       var cur = tagMap[g.key] || [];
-      if (HL.tags.hasTag(cur, tag)) { toast('این برچسب روی این مقاله هست', 'info'); return; }
-      if (cur.length >= HL.TAG_MAX_PER_ARTICLE) { toast('حداکثر ' + dash.faNum(HL.TAG_MAX_PER_ARTICLE) + ' برچسب برای هر مقاله', 'error'); return; }
+      if (tags.hasTag(cur, tag)) { toast('این برچسب روی این مقاله هست', 'info'); return; }
+      if (cur.length >= TAG_MAX_PER_ARTICLE) { toast('حداکثر ' + dash.faNum(TAG_MAX_PER_ARTICLE) + ' برچسب برای هر مقاله', 'error'); return; }
       HL.store.setArticleTags(g.key, cur.concat([tag])).then(function () {
         toast('برچسب «' + tag + '» اضافه شد', 'success');
         reload(false);
@@ -363,7 +379,7 @@
 
   function copyText(t) {
     if (!t) { toast('چیزی برای کپی نیست', 'info'); return; }
-    HL.clipboard.copyText(t).then(function (ok) {
+    clipboard.copyText(t).then(function (ok) {
       toast(ok ? 'کپی شد ✓' : 'کپی ناموفق بود', ok ? 'success' : 'error');
     });
   }
@@ -387,7 +403,7 @@
   /** The toolbar's tag filter row — rebuilt on every data refresh (tags are
       dynamic, unlike the static color registry). Hidden when no tags exist. */
   function renderTagFilter() {
-    var counts = HL.tags.tagCounts(tagMap);
+    var counts = tags.tagCounts(tagMap);
     els.tagFilter.hidden = counts.length === 0;
     view.buildTagChips(els.tagChips, counts, filters.tags, function () {
       visibleLimit = 50;
@@ -413,7 +429,7 @@
       renderList();
     });
 
-    els.q.addEventListener('input', HL.util.debounce(function () {
+    els.q.addEventListener('input', util.debounce(function () {
       filters.q = els.q.value.trim().toLowerCase();
       visibleLimit = 50;
       renderList();
@@ -461,7 +477,7 @@
     try {
       const b = await HL.store.exportData();
       const n = (b.meta && b.meta.count) || 0;
-      HL.export.saveBackup(b);
+      exportTools.saveBackup(b);
       toast('فایل بک‌آپ با ' + dash.faNum(n) + ' هایلایت دانلود شد', 'success');
     } catch (e) {
       toast('خروجی گرفتن ناموفق بود', 'error');
@@ -483,7 +499,7 @@
       let data = null;
       try { data = JSON.parse(String(reader.result)); }
       catch (e) { data = null; }
-      if (!data || data.app !== HL.APP_ID || !data.highlights || typeof data.highlights !== 'object') {
+      if (!data || data.app !== APP_ID || !data.highlights || typeof data.highlights !== 'object') {
         toast('فایل معتبر نیست', 'error');
         return;
       }
@@ -558,9 +574,9 @@
     var total = 0;
     gs.forEach(function (g) { total += g.items.length; });
     try {
-      HL.export.downloadText(
-        HL.export.markdownFileName(),
-        HL.markdown.buildLibraryMarkdown({ groups: gs, exportedAt: Date.now() }),
+      exportTools.downloadText(
+        exportTools.markdownFileName(),
+        markdown.buildLibraryMarkdown({ groups: gs, exportedAt: Date.now() }),
         'text/markdown'
       );
       toast('فایل Markdown با ' + dash.faNum(total) + ' هایلایت دانلود شد', 'success');
@@ -577,12 +593,12 @@
     var total = 0;
     gs.forEach(function (g) { total += g.items.length; });
     try {
-      var html = HL.booklet.buildBookletHtml({ groups: gs, mode: mode, exportedAt: Date.now() });
+      var html = booklet.buildBookletHtml({ groups: gs, mode: mode, exportedAt: Date.now() });
       if (format === 'pdf') {
-        HL.export.printHtml(html);
+        exportTools.printHtml(html);
         toast('پنجره‌ی چاپ باز شد — برای PDF گزینه‌ی «Save as PDF» را انتخاب کن', 'info');
       } else {
-        HL.export.downloadText(HL.export.bookletFileName(), html, 'text/html');
+        exportTools.downloadText(exportTools.bookletFileName(), html, 'text/html');
         toast('کتابچه HTML با ' + dash.faNum(total) + ' هایلایت دانلود شد', 'success');
       }
     } catch (e) {
@@ -628,11 +644,11 @@
 
   /**
    * Settings panel deep-link (#hlx-settings from the popup's gear button) —
-   * same pattern as checkHash in content.js (HL.SETTINGS_HASH contract).
+   * same pattern as checkHash in content.js (SETTINGS_HASH contract).
    * The hash is cleared after use so a later reload doesn't reopen the drawer.
    */
   function checkSettingsHash() {
-    if ((location.hash || '') !== '#' + HL.SETTINGS_HASH) return;
+    if ((location.hash || '') !== '#' + SETTINGS_HASH) return;
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* noop */ }
     openDrawer();
   }
@@ -769,8 +785,8 @@
   /* ---------- Bootstrap ---------- */
 
   function init() {
-    try { els.ver.textContent = 'v' + HL.runtime.manifestVersion(); }
-    catch (e) { els.ver.textContent = 'v' + (HL.VERSION || ''); }
+    try { els.ver.textContent = 'v' + runtime.manifestVersion(); }
+    catch (e) { els.ver.textContent = 'v' + (VERSION || ''); }
 
     bindToolbar();
 
@@ -780,10 +796,10 @@
     /* Live sync: data changes in another tab → re-read with a 400ms debounce.
        Article tags (v1.2.15) sync the same way — hlx:tags changes re-read the
        whole view (records+tags) so cards and the filter row stay consistent. */
-    HL.store.onRecordsChanged(HL.util.debounce(function () { reload(false); }, 400));
-    HL.store.onTagsChanged(HL.util.debounce(function () { reload(false); }, 400));
+    HL.store.onRecordsChanged(util.debounce(function () { reload(false); }, 400));
+    HL.store.onTagsChanged(util.debounce(function () { reload(false); }, 400));
     HL.store.onSettingsChanged(function (s) {
-      settings = s || Object.assign({}, HL.DEFAULT_SETTINGS);
+      settings = s || Object.assign({}, DEFAULT_SETTINGS);
       renderSettingsPanel();
       HL.applyThemeNow(settings.theme);
     });
