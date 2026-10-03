@@ -2105,3 +2105,18 @@ Stage Summary:
 - The only globalThis.HL state left is: namespace ASSIGNMENTS serving page readers (HL.ui.X, HL.backends.X, HL.pop/dash/markdown/booklet facades), HL.applyThemeNow (theme-boot classic contract), identity export tails, and doc comments — no dynamic cross-context slots
 - Phase 12 (remove globalThis.HL entirely) now has a concrete path: roots already inject; remaining work is turning namespace assigns into imports at their reader sites + retiring identity tails
 - Next per plan (docs/migration-baseline.md §8): Phase 7 formalize dashboard selectors (verify/no-op audit), Phase 8 dashboard React view layer, Phase 9 popup React decision, Phase 11 benchmarks, Phase 12 HL removal
+
+---
+Task ID: 81
+Agent: main (Hermes)
+Task: Modernization Phase 7 close-out — dashboard selectors audit (formalize: verify + record)
+
+Done (audit, zero code changes by design):
+- Purity check on extension/dashboard/dashboard-data.js: document/window/chrome/localStorage/setTimeout/querySelector hits = NONE; imports = format + detect-dir + tags (all module imports since 7c-3). The data layer is pure — selectors are NOT in the data layer.
+- Controller (dashboard.js): its only DOM knowledge is the `els` map + textContent updates — normal MVC controller wiring, not data logic. View (dashboard-view.js) owns element construction (23 builder/facade functions); its DOM assertions remain covered by dashboard-view.test.ts.
+- Exit criterion "dashboard-data tests unchanged" holds by construction: no code changed; suite stays 646/0/2497 (baseline), lint 0, typecheck 0 — gates green from Task 80, tree clean.
+- Verdict: Phase 7 was already satisfied by the v1.2.9 MVC split; "formalize" = this record. No extraction needed — nothing to move.
+
+Stage Summary:
+- Plan phases 0-7 all closed; remaining: Phase 8 (dashboard React view layer — plan written to .hermes/plans/2026-10-03_154509-dashboard-react-phase8.md), Phase 9 (popup React decision), Phase 10 (storage migration-pipeline verification), Phase 11 (benchmarks), Phase 12 (remove globalThis.HL)
+- Phase 8 scope note surfaced by this audit: the controller holds ~112 imperative DOM lines (els map + textContent) — the React rewrite moves those into components too; "view layer only" in docs/migration-baseline.md §8 underestimates the swap boundary
