@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Web Highlighter — general utilities core (SRP: shared stateless primitives)
  *
@@ -47,3 +46,6 @@
         cssEscape: cssEscape
     };
 })();
+/* identity export (7c-1): read the namespace the IIFE above assigned —
+   same instance every classic/module consumer shares. */
+export const util = globalThis.HL.util;

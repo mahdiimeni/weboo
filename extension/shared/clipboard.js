@@ -43,3 +43,6 @@
 
   HL.clipboard = { copyText: copyText };
 })();
+
+/* identity export (7c-1) */
+export const clipboard = globalThis.HL.clipboard;

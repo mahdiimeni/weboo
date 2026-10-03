@@ -695,3 +695,7 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
   HL.createStore = createStore;
   HL.createStoreReader = createStoreReader;
 })();
+
+/* identity export (7c-1): read the namespace the IIFE above assigned —
+   same instance every classic/module consumer shares. */
+export const createStore = (globalThis as unknown as { HL: { createStore: unknown } }).HL.createStore;

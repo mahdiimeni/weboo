@@ -6,7 +6,7 @@
  *  - dependency composition (composition root): chrome backend + store + orchestrator
  *    (only the modules content needs are loaded — ISP)
  *  - site enable/disable state (disabledHosts) and live sync with storage
- *  - applying the extension UI theme (HL.ui.setTheme) to floating widgets — at boot and live
+ *  - applying the extension UI theme (ui.setTheme) to floating widgets — at boot and live
  *  - retrying orphaned highlights on dynamic pages
  *  - client-side (SPA) navigation: re-keying the page context, swapping and
  *    re-applying records when the URL changes without a reload (Next.js,
@@ -22,18 +22,27 @@
 import { dom } from "../shared/domwrap.js";
 import { createHighlighter } from "../shared/highlighter.js";
 import { favicon } from "./favicon.js";
+/* 7c-1: shared-file wave — the orchestrator's remaining HL.* reads collapse to bindings.
+   HL.store stays a namespace slot (dynamic singleton assigned below, read across worlds). */
+import { MSG, GOTO_HASH_PREFIX } from "../shared/constants.js";
+import { backends } from "../shared/backends/chrome-storage.js";
+import { url } from "../shared/url.js";
+import { util } from "../shared/utils.js";
+import { createStore } from "../shared/store.js";
+import { runtime } from "../shared/runtime-bridge.js";
+import { ui } from "../shared/ui/base.js";
 (function () {
   'use strict';
   if (window.__hlxContentInit) return;
   window.__hlxContentInit = true;
 
   var HL = globalThis.HL;
-  var page = HL.url.normalizeUrl(location.href);
+  var page = url.normalizeUrl(location.href);
   if (!page) return; /* URL can't be normalized (e.g. about:blank) */
 
   /* ---------- Composition root ---------- */
 
-  HL.store = HL.store || HL.createStore(HL.backends.chromeStorage());
+  HL.store = HL.store || createStore(backends.chromeStorage());
 
   var state = {
     settings: null,
@@ -60,8 +69,8 @@ import { favicon } from "./favicon.js";
       defaultColor: function () {
         return (state.settings && state.settings.defaultColor) || 'yellow';
       },
-      toast: function (m) { HL.ui.Toast.show(m); },
-      onError: function (m) { HL.ui.Toast.show(m); },
+      toast: function (m) { ui.Toast.show(m); },
+      onError: function (m) { ui.Toast.show(m); },
       onCount: function (n) { reportCount(n); },
       onDeleted: function (id) { state.orphaned.delete(id); },
       /* the site's real favicon — only alongside saving a highlight (no request
@@ -86,7 +95,7 @@ import { favicon } from "./favicon.js";
 
   function reportCount(n) {
     try {
-      var p = HL.runtime.send({ type: HL.MSG.COUNT_REPORT, count: (n == null ? hl.count() : n) });
+      var p = runtime.send({ type: MSG.COUNT_REPORT, count: (n == null ? hl.count() : n) });
       if (p && p.catch) p.catch(function () { /* SW is asleep */ });
     } catch (e) { /* noop */ }
   }
@@ -136,7 +145,7 @@ import { favicon } from "./favicon.js";
 
   async function onHrefChange() {
     if (!state.started) return;
-    var next = HL.url.normalizeUrl(location.href);
+    var next = url.normalizeUrl(location.href);
     if (!next) return;
     if (next.norm === page.norm && next.host === page.host) return; /* hash-only change — hashchange handles the jump */
     var seq = ++navSeq;
@@ -187,7 +196,7 @@ import { favicon } from "./favicon.js";
 
   function checkHash() {
     var h = location.hash || '';
-    var prefix = '#' + HL.GOTO_HASH_PREFIX;
+    var prefix = '#' + GOTO_HASH_PREFIX;
     if (h.indexOf(prefix) === 0) {
       var id = h.slice(prefix.length);
       if (id) gotoHighlight(id, true);
@@ -197,15 +206,15 @@ import { favicon } from "./favicon.js";
 
   /* ---------- Runtime messages (via the bridge) ---------- */
 
-  HL.runtime.onMessage(function (msg, sender, sendResponse) {
+  runtime.onMessage(function (msg, sender, sendResponse) {
     if (!msg || !msg.type) return false;
-    if (msg.type === HL.MSG.HIGHLIGHT_SELECTION) {
+    if (msg.type === MSG.HIGHLIGHT_SELECTION) {
       var ctx = state.disabled ? null : hl.selectionCtx();
       if (ctx) hl.createFromCtx(ctx, (state.settings && state.settings.defaultColor) || 'yellow', false);
       sendResponse({ ok: !!ctx });
-    } else if (msg.type === HL.MSG.GET_COUNT) {
+    } else if (msg.type === MSG.GET_COUNT) {
       sendResponse({ count: hl.count() });
-    } else if (msg.type === HL.MSG.GOTO) {
+    } else if (msg.type === MSG.GOTO) {
       if (msg.id) gotoHighlight(msg.id, false);
       sendResponse({ ok: true });
     }
@@ -215,7 +224,7 @@ import { favicon } from "./favicon.js";
   /* ---------- Live sync with storage ---------- */
 
   HL.store.onSettingsChanged(function (s) {
-    HL.ui.setTheme(s && s.theme); /* floating widgets get the same extension UI theme */
+    ui.setTheme(s && s.theme); /* floating widgets get the same extension UI theme */
     var wasDisabled = state.disabled;
     state.settings = s;
     var nowDisabled = !!((s.disabledHosts || []).indexOf(page.host) !== -1);
@@ -296,7 +305,7 @@ import { favicon } from "./favicon.js";
 
   function observeDom() {
     if (typeof MutationObserver === 'undefined') return;
-    var mo = new MutationObserver(HL.util.debounce(reconcileOrphans, 800));
+    var mo = new MutationObserver(util.debounce(reconcileOrphans, 800));
     try {
       mo.observe(document.documentElement, { childList: true, subtree: true });
     } catch (e) { /* noop */ }
@@ -310,12 +319,12 @@ import { favicon } from "./favicon.js";
       return;
     }
     state.settings = await HL.store.getSettings();
-    var here = HL.url.normalizeUrl(location.href);
+    var here = url.normalizeUrl(location.href);
     if (here && (here.norm !== page.norm || here.host !== page.host)) hl.setPage(here); /* navigated while settings loaded */
     state.disabled = !!((state.settings.disabledHosts || []).indexOf(page.host) !== -1);
-    HL.ui.setTheme(state.settings.theme); /* widgets render with the right theme from the very start */
+    ui.setTheme(state.settings.theme); /* widgets render with the right theme from the very start */
     state.started = true;
-    HL.url.watchHref(window, function () { onHrefChange(); }, 300); /* SPA route changes from here on */
+    url.watchHref(window, function () { onHrefChange(); }, 300); /* SPA route changes from here on */
 
     if (!state.disabled) {
       await loadPageRecords(navSeq);

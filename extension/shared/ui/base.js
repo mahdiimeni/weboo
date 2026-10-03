@@ -149,3 +149,7 @@
     ICON: ICON
   };
 })();
+
+/* identity export (7c-1): HL.ui is created here and MUTATED in place by toast/toolbar/popover
+   (HL.ui = HL.ui || {}) — one object for every world, so this binding stays valid */
+export const ui = globalThis.HL.ui;

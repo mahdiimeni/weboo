@@ -67,3 +67,6 @@
 
   HL.runtime = runtimeBridge();
 })();
+
+/* identity export (7c-1) */
+export const runtime = globalThis.HL.runtime;

@@ -90,3 +90,7 @@
     };
   }
 })();
+
+/* identity export (7c-1): read the namespace the IIFE above assigned —
+   same instance every classic/module consumer shares. */
+export const url = (globalThis as unknown as { HL: { url: unknown } }).HL.url;

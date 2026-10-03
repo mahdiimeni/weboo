@@ -53,3 +53,7 @@
     cssEscape: cssEscape
   };
 })();
+
+/* identity export (7c-1): read the namespace the IIFE above assigned —
+   same instance every classic/module consumer shares. */
+export const util = (globalThis as unknown as { HL: { util: unknown } }).HL.util;

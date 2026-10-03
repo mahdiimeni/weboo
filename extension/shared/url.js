@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Web Highlighter — page URL normalization (SRP: the URL concern only)
  *
@@ -74,3 +73,6 @@
         };
     }
 })();
+/* identity export (7c-1): read the namespace the IIFE above assigned —
+   same instance every classic/module consumer shares. */
+export const url = globalThis.HL.url;

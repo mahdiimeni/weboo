@@ -8,7 +8,7 @@
  *   - text-selection/click/Escape events
  *
  * DIP: no platform dependency (chrome.*) here; everything is injected via cfg:
- * (module dependencies: HL.text/dom/ui/clipboard/util/format — all shared core)
+ * (module imports: text/dom/util/clipboard/ui/anchor — HL.store stays a dynamic slot)
  * Since v1.2.9 the record set is encapsulated behind count/has/get/each +
  * adoptRecord/forgetRecord/resetRecords (was: the raw recs Map leaked to callers).
  *   cfg.page      { url, norm, site, host, title? }  — page context (title optional)
@@ -30,6 +30,10 @@
 import { text as textIndex } from "./textindex.js"; /* alias: selectionCtx has a local `text` string */
 import { anchor } from "./anchor.js";
 import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine — 16 HL.dom reads collapse to this binding */
+/* 7c-1: shared-file wave — util/clipboard/ui bindings (call-time HL.store kept: dynamic singleton) */
+import { util } from "./utils.js";
+import { clipboard } from "./clipboard.js";
+import { ui } from "./ui/base.js";
 (function () {
   'use strict';
   var HL = (globalThis.HL = globalThis.HL || {});
@@ -76,7 +80,7 @@ import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine — 16 HL.dom 
     /* ---------- Anchor self-healing (batched saving of updates) ---------- */
 
     var healQueue = new Map();
-    var flushHeal = HL.util.debounce(function () {
+    var flushHeal = util.debounce(function () {
       var arr = Array.from(healQueue.values());
       healQueue.clear();
       if (arr.length) {
@@ -191,7 +195,7 @@ import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine — 16 HL.dom 
 
     function copyText(t) {
       if (!t) return;
-      HL.clipboard.copyText(t).then(function (ok) {
+      clipboard.copyText(t).then(function (ok) {
         if (ok) toast('کپی شد ✓');
       });
     }
@@ -257,7 +261,7 @@ import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine — 16 HL.dom 
       var offs = ti.offsetsOfRange(ctx.range);
       if (!offs) { onError('این قسمت از صفحه قابل هایلایت نیست.'); clearSelection(); return null; }
 
-      var id = HL.util.newId();
+      var id = util.newId();
       var now = Date.now();
       var anchor = dom.serializeRange(ctx.range);
       var marks = dom.markRange(ctx.range, id, color);
@@ -297,7 +301,7 @@ import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine — 16 HL.dom 
       var ti = freshIndex();
       var offs = ti.offsetsOfRange(range);
       if (!offs) { clearSelection(); return null; }
-      var id = HL.util.newId();
+      var id = util.newId();
       var now = Date.now();
       var rec = {
         id: id,
@@ -362,7 +366,7 @@ import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine — 16 HL.dom 
     /* ---------- Toolbar + popover ---------- */
 
     var popoverOpen = false;
-    var popover = new HL.ui.NotePopover({
+    var popover = new ui.NotePopover({
       onColorChange: function (id, color) { setRecordColor(id, color); },
       onSaveNote: function (id, note) { setRecordNote(id, note); },
       onDelete: function (id) { removeHighlight(id); },
@@ -373,7 +377,7 @@ import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine — 16 HL.dom 
     });
     popover.h.onClose = function () { popoverOpen = false; };
 
-    var toolbar = new HL.ui.FloatingToolbar({
+    var toolbar = new ui.FloatingToolbar({
       onColor: function (color, ctx) {
         toolbar.dismiss();
         createFromCtx(ctx, color, false);
@@ -431,7 +435,7 @@ import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine — 16 HL.dom 
       toolbar.present(ctx);
     }
 
-    var onSelEnd = HL.util.debounce(maybeShowToolbar, 180);
+    var onSelEnd = util.debounce(maybeShowToolbar, 180);
 
     on(eventRoot, 'mouseup', function (e) {
       if (e.button !== 0) return;
@@ -439,7 +443,7 @@ import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine — 16 HL.dom 
       setTimeout(onSelEnd, 30);
     }, true);
 
-    on(document, 'selectionchange', HL.util.debounce(function () {
+    on(document, 'selectionchange', util.debounce(function () {
       var sel = window.getSelection();
       if (!sel || sel.isCollapsed) {
         if (!popoverOpen) toolbar.dismiss();

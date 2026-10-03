@@ -81,3 +81,7 @@
     theme: 'auto'
   };
 })();
+
+/* identity export (7c-1): the two names content imports; others stay on the HL namespace until their importer arrives */
+export const MSG = globalThis.HL.MSG;
+export const GOTO_HASH_PREFIX = globalThis.HL.GOTO_HASH_PREFIX;

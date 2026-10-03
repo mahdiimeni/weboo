@@ -147,3 +147,6 @@
   HL.backends.chromeStorage = chromeStorage;
   HL.backends.memoryArea = memoryArea;
 })();
+
+/* identity export (7c-1) */
+export const backends = globalThis.HL.backends;

@@ -1,4 +1,3 @@
-"use strict";
 /* ============================================================
    Port type mirror (type-only — erased at emit): StorageBackend below is the
    exact duplicate of src/types/storage.ts StorageBackend; the compile-time
@@ -642,3 +641,6 @@
     HL.createStore = createStore;
     HL.createStoreReader = createStoreReader;
 })();
+/* identity export (7c-1): read the namespace the IIFE above assigned —
+   same instance every classic/module consumer shares. */
+export const createStore = globalThis.HL.createStore;
