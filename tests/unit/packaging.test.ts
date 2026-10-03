@@ -48,7 +48,7 @@ describe("یکپارچگی بسته (packaging)", () => {
 
   test("هر اسکریپت ارجاع‌شده در popup.html وجود دارد", () => {
     const html = readFile(ext("popup", "popup.html"));
-    const srcs = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map((m) => m[1]);
+    const srcs = [...html.matchAll(/<script[^>]*src="([^"]+)"><\/script>/g)].map((m) => m[1]);
     expect(srcs.length).toBeGreaterThanOrEqual(5);
     for (const s of srcs) {
       const rel = s.startsWith("../") ? s.slice(3) : "popup/" + s;
@@ -70,7 +70,7 @@ describe("یکپارچگی بسته (packaging)", () => {
 
   test("هر اسکریپت ارجاع‌شده در dashboard.html وجود دارد", () => {
     const html = readFile(ext("dashboard", "dashboard.html"));
-    const srcs = [...html.matchAll(/<script src="([^"]+)"><\/script>/g)].map((m) => m[1]);
+    const srcs = [...html.matchAll(/<script[^>]*src="([^"]+)"><\/script>/g)].map((m) => m[1]);
     expect(srcs.length).toBeGreaterThanOrEqual(7);
     for (const s of srcs) {
       const rel = s.startsWith("../") ? s.slice(3) : "dashboard/" + s;
@@ -109,7 +109,7 @@ describe("emit کلاسیک (TypeScript → اسکریپت قابل تزریق)"
        explicit: a conversion outside it fails here until its classic loaders
        are removed first. */
     const emitted = ["format", "detect-dir", "url", "utils", "tags", "textindex", "anchor", "store"];
-    const allowedModules = new Set(["textindex", "anchor"]); /* 7b: bundler-only emitted files */
+    const allowedModules = new Set(["textindex", "anchor", "url", "utils", "store"]); /* 7b-1/7c-1: emitted modules */
     for (const name of emitted) {
       /* source of truth lives in src/shared (ext() is extension/-rooted — ".." climbs out) */
       expect(exists(ext("..", "src", "shared", name + ".ts"))).toBe(true);
@@ -128,7 +128,9 @@ describe("فایل‌های محتوایی تبدیل‌شده (7b: ماژول�
        if a conversion loses its module syntax the bundler silently drops the
        declared edges and identity exports rot. Same two-way tripwire shape as
        the emitted set: converted => module syntax must be present. */
-    const converted = ["shared/domwrap.js", "shared/highlighter.js", "content/favicon.js", "content/content.js"];
+    const converted = ["shared/domwrap.js", "shared/highlighter.js", "content/favicon.js", "content/content.js",
+      /* 7c-1 shared-file wave */ "shared/constants.js", "shared/backends/chrome-storage.js",
+      "shared/clipboard.js", "shared/runtime-bridge.js", "shared/ui/base.js"];
     for (const rel of converted) {
       expect(/^\s*(import|export)\s/m.test(readFile(ext(rel)))).toBe(true);
     }
@@ -139,14 +141,29 @@ describe("فایل‌های محتوایی تبدیل‌شده (7b: ماژول�
        scripts by any non-bundle loader (engine evalClassic worlds) — module
        syntax in them is a SyntaxError there. */
     const classic = [
-      "shared/constants.js", "shared/backends/chrome-storage.js", "shared/url.js",
-      "shared/utils.js", "shared/format.js", "shared/detect-dir.js",
-      "shared/clipboard.js", "shared/tags.js", "shared/ui/base.js",
+      "shared/format.js", "shared/detect-dir.js", "shared/tags.js",
       "shared/ui/toast.js", "shared/ui/toolbar.js", "shared/ui/popover.js",
-      "shared/store.js", "shared/runtime-bridge.js",
     ];
     for (const rel of classic) {
       expect(/^\s*(import|export)\s/m.test(readFile(ext(rel)))).toBe(false);
+    }
+  });
+});
+
+describe("صفحات ماژولی (7c-1: اسکریپت‌ها type=module)", () => {
+  test("popup.html و dashboard.html — همه‌ی اسکریپت‌ها ماژول‌اند جز theme-boot", () => {
+    /* Converted shared files carry import/export — a classic <script> tag would
+       SyntaxError them. theme-boot stays classic on purpose: a blocking <head>
+       script runs BEFORE every deferred module (anti-flash window) and it is
+       the first script in both pages. Mixed classic+module is only order-safe
+       while classic exists exclusively first. */
+    for (const page of ["popup/popup.html", "dashboard/dashboard.html"]) {
+      const html = readFile(ext(page));
+      const tags = [...html.matchAll(/<script([^>]*)><\/script>/g)].map((m) => m[1].trim());
+      expect(tags.length).toBeGreaterThanOrEqual(5);
+      const classicOnes = tags.filter((t) => !t.includes('type="module"'));
+      expect(classicOnes).toEqual(['src="../shared/theme-boot.js"']);
+      expect(tags.filter((t) => t.includes('type="module"')).length).toBe(tags.length - 1);
     }
   });
 });

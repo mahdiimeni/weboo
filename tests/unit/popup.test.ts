@@ -21,10 +21,9 @@ let win: any;
 
 /* real popup body markup — exactly what the user sees (drift-proof) */
 const POPUP_HTML = readFile(ext("popup", "popup.html"));
-const WRAP_HTML = POPUP_HTML.slice(
-  POPUP_HTML.indexOf('<div class="wrap">'),
-  POPUP_HTML.indexOf('<script src="../shared/constants.js"></script>')
-).trim();
+const WRAP_END = POPUP_HTML.indexOf('<script type="module" src="../shared/constants.js"></script>');
+if (POPUP_HTML.indexOf('<div class="wrap">') < 0 || WRAP_END < 0) throw new Error("popup.html markup anchors drifted — WRAP_HTML would silently slice wrong");
+const WRAP_HTML = POPUP_HTML.slice(POPUP_HTML.indexOf('<div class="wrap">'), WRAP_END).trim();
 
 /* popup.html script order — without popup.js itself (eval'd separately) */
 const POPUP_FILES = [
