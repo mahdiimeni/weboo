@@ -29,4 +29,11 @@ delete manifest.content_scripts; /* owned by entrypoints/content.ts (entry #2, 6
 export default defineConfig({
   publicDir: "extension",
   manifest,
+  /* Phase 8 — React module registered up front (Task 1); it only transforms
+     .jsx/.tsx entrypoints, of which there are none yet, so the emitted tree
+     stays byte-identical until the dashboard switchover (Task 3).
+     NOTE: WXT resolves `modules` entries as PACKAGE ID STRINGS via
+     import.meta.resolve — objects crash with "Cannot find package
+     '[object Object]'" (resolveWxtUserModules). String, not import. */
+  modules: ["@wxt-dev/module-react"],
 });
