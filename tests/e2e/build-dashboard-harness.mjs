@@ -183,14 +183,14 @@ const MOCK = `<script>
 })();
 </script>`;
 
-if (!html.includes('<script type="module" src="../shared/constants.js"></script>')) {
+if (!html.includes('<script type="module" src="dashboard.js"></script>')) {
   console.error("anchor script tag not found in dashboard.html");
   process.exit(1);
 }
 
 const out = html.replace(
-  '<script type="module" src="../shared/constants.js"></script>',
-  MOCK + '\n  <script type="module" src="../shared/constants.js"></script>'
+  '<script type="module" src="dashboard.js"></script>',
+  MOCK + '\n  <script type="module" src="dashboard.js"></script>'
 );
 
 writeFileSync(OUT, out);

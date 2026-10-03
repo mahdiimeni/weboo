@@ -4,16 +4,14 @@
  * assertions target DOM structure and handler invocations (MVC kept separate).
  */
 import { describe, test, expect, beforeEach } from "bun:test";
-import { setupDom, loadEngine, evalClassic, ext, sleep, readFile } from "./helpers/engine";
+import { setupDom, loadEngine, ext, sleep, readFile } from "./helpers/engine";
 
 let HL: any;
 let win: any;
 
 beforeEach(async () => {
   win = setupDom();
-  HL = await loadEngine({ files: ["shared/constants.js", "shared/format.js", "shared/detect-dir.js", "shared/tags.js", "shared/domkit.js", "shared/runtime-bridge.js", "shared/textindex.js"] });
-  evalClassic(ext("dashboard", "dashboard-data.js"));
-  evalClassic(ext("dashboard", "dashboard-view.js"));
+  HL = await loadEngine({ files: ["shared/constants.js", "shared/format.js", "shared/detect-dir.js", "shared/tags.js", "shared/domkit.js", "shared/runtime-bridge.js", "shared/textindex.js", "dashboard/dashboard-data.js", "dashboard/dashboard-view.js"] });
 });
 
 const G = () => ({

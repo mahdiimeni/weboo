@@ -8,14 +8,13 @@
  * constants + format + detect-dir — nothing else.
  */
 import { describe, test, expect, beforeEach } from "bun:test";
-import { setupDom, loadEngine, evalClassic, ext } from "./helpers/engine";
+import { setupDom, loadEngine, ext } from "./helpers/engine";
 
 let HL: any;
 
 beforeEach(async () => {
   setupDom();
-  HL = await loadEngine({ files: ["shared/constants.js", "shared/format.js", "shared/detect-dir.js"] });
-  evalClassic(ext("popup", "popup-data.js"));
+  HL = await loadEngine({ files: ["shared/constants.js", "shared/format.js", "shared/detect-dir.js", "popup/popup-data.js"] });
 });
 
 describe("پاپ‌آپ — لایه‌ی داده (HL.pop)", () => {

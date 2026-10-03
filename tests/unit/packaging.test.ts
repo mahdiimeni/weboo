@@ -47,52 +47,42 @@ describe("یکپارچگی بسته (packaging)", () => {
   });
 
   test("هر اسکریپت ارجاع‌شده در popup.html وجود دارد", () => {
+    /* 7c-3: the page carries theme-boot (classic) + ONE module entry — the
+       load-order contract now lives in the entry's import list, which this
+       test parses. Order pairs below mirror the pre-7c-3 document order. */
     const html = readFile(ext("popup", "popup.html"));
     const srcs = [...html.matchAll(/<script[^>]*src="([^"]+)"><\/script>/g)].map((m) => m[1]);
-    expect(srcs.length).toBeGreaterThanOrEqual(5);
-    for (const s of srcs) {
-      const rel = s.startsWith("../") ? s.slice(3) : "popup/" + s;
-      expect(exists(ext(rel))).toBe(true);
-    }
-    /* order: constants → backends → store before popup.js */
-    const names = srcs.map((s) => s.split("/").pop());
-    expect(names.indexOf("constants.js")).toBeLessThan(names.indexOf("chrome-storage.js"));
-    expect(names.indexOf("store.js")).toBeLessThan(names.indexOf("popup.js"));
-    expect(names.indexOf("format.js")).toBeLessThan(names.indexOf("popup.js"));
-    /* article tags (v1.2.15): the tag domain loads with the store everywhere */
-    expect(names.indexOf("tags.js")).toBeLessThan(names.indexOf("store.js"));
-    /* MVC order (v1.2.9): pure data → view → controller */
-    expect(names.indexOf("popup-data.js")).toBeLessThan(names.indexOf("popup-view.js"));
-    expect(names.indexOf("popup-view.js")).toBeLessThan(names.indexOf("popup.js"));
+    expect(srcs).toEqual(["../shared/theme-boot.js", "popup.js"]);
+    for (const s of srcs) expect(exists(ext(s.startsWith("../") ? s.slice(3) : "popup/" + s))).toBe(true);
+    const names = [...readFile(ext("popup", "popup.js")).matchAll(/^import\s+(?:[^"']*?from\s+)?["']([^"']+)["']/gm)].map((m) => m[1]);
+    expect(names.length).toBeGreaterThanOrEqual(10);
+    for (const sp of names) expect(exists(ext("popup", sp))).toBe(true);
+    /* order: constants → backends; tags → store; MVC data → view (entry is last by definition) */
+    expect(names.indexOf("../shared/constants.js")).toBeLessThan(names.indexOf("../shared/backends/chrome-storage.js"));
+    expect(names.indexOf("../shared/tags.js")).toBeLessThan(names.indexOf("../shared/store.js"));
+    expect(names.indexOf("./popup-data.js")).toBeLessThan(names.indexOf("./popup-view.js"));
+    expect(names.indexOf("../shared/store.js")).toBeLessThan(names.indexOf("./popup-data.js"));
     /* ISP: the popup does not load utils/clipboard (not needed) */
-    expect(srcs.some((s) => s.endsWith("utils.js") || s.endsWith("clipboard.js"))).toBe(false);
+    expect(names.some((n) => n.includes("utils.js") || n.includes("clipboard.js"))).toBe(false);
   });
 
   test("هر اسکریپت ارجاع‌شده در dashboard.html وجود دارد", () => {
     const html = readFile(ext("dashboard", "dashboard.html"));
     const srcs = [...html.matchAll(/<script[^>]*src="([^"]+)"><\/script>/g)].map((m) => m[1]);
-    expect(srcs.length).toBeGreaterThanOrEqual(7);
-    for (const s of srcs) {
-      const rel = s.startsWith("../") ? s.slice(3) : "dashboard/" + s;
-      expect(exists(ext(rel))).toBe(true);
-    }
-    const names = srcs.map((s) => s.split("/").pop());
-    expect(names.indexOf("constants.js")).toBeLessThan(names.indexOf("chrome-storage.js"));
-    expect(names.indexOf("store.js")).toBeLessThan(names.indexOf("dashboard-data.js"));
-    expect(names.indexOf("dashboard-view.js")).toBeLessThan(names.indexOf("dashboard.js"));
-    /* article tags (v1.2.15): tag domain → store → dashboard-data (its applyFilters consumes HL.tags) */
-    expect(names.indexOf("tags.js")).toBeLessThan(names.indexOf("store.js"));
-    expect(names.indexOf("tags.js")).toBeLessThan(names.indexOf("dashboard-data.js"));
-    /* reading exports (v0.6.0): both document builders consume HL.format → load
-       after it; the controller consumes both → load before dashboard.js */
-    expect(names.indexOf("format.js")).toBeLessThan(names.indexOf("markdown-export.js"));
-    expect(names.indexOf("format.js")).toBeLessThan(names.indexOf("booklet-export.js"));
-    expect(names.indexOf("markdown-export.js")).toBeLessThan(names.indexOf("dashboard.js"));
-    expect(names.indexOf("booklet-export.js")).toBeLessThan(names.indexOf("dashboard.js"));
-    /* ISP: the export builders are dashboard-only — the content-script list must NOT carry them */
-    const manifest = JSON.parse(readFile(ext("manifest.json")));
-    expect(manifest.content_scripts[0].js.includes("shared/markdown-export.js")).toBe(false);
-    expect(manifest.content_scripts[0].js.includes("shared/booklet-export.js")).toBe(false);
+    expect(srcs).toEqual(["../shared/theme-boot.js", "dashboard.js"]);
+    for (const s of srcs) expect(exists(ext(s.startsWith("../") ? s.slice(3) : "dashboard/" + s))).toBe(true);
+    const names = [...readFile(ext("dashboard", "dashboard.js")).matchAll(/^import\s+(?:[^"']*?from\s+)?["']([^"']+)["']/gm)].map((m) => m[1]);
+    expect(names.length).toBeGreaterThanOrEqual(13);
+    for (const sp of names) expect(exists(ext("dashboard", sp))).toBe(true);
+    expect(names.indexOf("../shared/constants.js")).toBeLessThan(names.indexOf("../shared/backends/chrome-storage.js"));
+    expect(names.indexOf("../shared/tags.js")).toBeLessThan(names.indexOf("../shared/store.js"));
+    expect(names.indexOf("../shared/store.js")).toBeLessThan(names.indexOf("./dashboard-data.js"));
+    expect(names.indexOf("./dashboard-data.js")).toBeLessThan(names.indexOf("./dashboard-view.js"));
+    /* reading exports (v0.6.0): both document builders consume format → imported
+       before them; the controller consumes both → later in the entry list */
+    expect(names.indexOf("../shared/format.js")).toBeLessThan(names.indexOf("../shared/markdown-export.js"));
+    expect(names.indexOf("../shared/format.js")).toBeLessThan(names.indexOf("../shared/booklet-export.js"));
+    expect(names.indexOf("../shared/markdown-export.js")).toBeLessThan(names.indexOf("./dashboard-data.js"));
   });
 });
 
@@ -134,20 +124,19 @@ describe("کل مسیر محتوا ماژولی است (7c-2)", () => {
   });
 });
 
-describe("صفحات ماژولی (7c-1: اسکریپت‌ها type=module)", () => {
-  test("popup.html و dashboard.html — همه‌ی اسکریپت‌ها ماژول‌اند جز theme-boot", () => {
-    /* Converted shared files carry import/export — a classic <script> tag would
-       SyntaxError them. theme-boot stays classic on purpose: a blocking <head>
-       script runs BEFORE every deferred module (anti-flash window) and it is
-       the first script in both pages. Mixed classic+module is only order-safe
-       while classic exists exclusively first. */
-    for (const page of ["popup/popup.html", "dashboard/dashboard.html"]) {
+describe("صفحات ماژولی (7c-1/7c-3)", () => {
+  test("popup و dashboard: یک اسکریپت کلاسیک (theme-boot) + یک entry ماژول", () => {
+    /* theme-boot stays classic on purpose: a blocking <head> script runs
+       BEFORE every deferred module (anti-flash window) and it is first in both
+       pages — mixed classic+module is order-safe ONLY while classic exists
+       exclusively first. Everything else is ONE module entry whose import list
+       is the page's load-order contract (7c-3). A classic tag on any converted
+       file would SyntaxError it. */
+    const cases: Array<[string, string]> = [["popup/popup.html", "popup.js"], ["dashboard/dashboard.html", "dashboard.js"]];
+    for (const [page, entry] of cases) {
       const html = readFile(ext(page));
       const tags = [...html.matchAll(/<script([^>]*)><\/script>/g)].map((m) => m[1].trim());
-      expect(tags.length).toBeGreaterThanOrEqual(5);
-      const classicOnes = tags.filter((t) => !t.includes('type="module"'));
-      expect(classicOnes).toEqual(['src="../shared/theme-boot.js"']);
-      expect(tags.filter((t) => t.includes('type="module"')).length).toBe(tags.length - 1);
+      expect(tags).toEqual([`src="../shared/theme-boot.js"`, `type="module" src="${entry}"`]);
     }
   });
 });
