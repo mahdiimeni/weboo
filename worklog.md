@@ -2026,3 +2026,23 @@ Stage Summary:
 - Content side now declares real ES edges: domwrap→textindex, highlighter→textindex/anchor/dom, anchor→textindex/dom, content→dom/highlighter/favicon, favicon export-only — HL.* remains only for shared classic files (store, backends, constants, url, ui, util, runtime, MSG) + popup/dashboard/SW pages
 - E2E rigs now tell the truth: content probes gate, source-tree loadability is an explicit honest failure, storage state is deterministic
 - Remaining shrink surface: shared-file wave (constants, chrome-storage, url, utils, format, detect-dir, clipboard, tags, store, runtime-bridge, ui/*) + popup/dashboard single module entry + theme-boot/domkit/export/markdown-export/booklet-export
+
+---
+Task ID: 77
+Agent: main (Hermes)
+Task: Modernization Phase 7c-1 — shared-file wave (identity exports + orchestrator imports) and module pages
+
+Done:
+- Converted the shared files with real importers to ES modules via identity tails: hand-written constants (MSG, GOTO_HASH_PREFIX), backends/chrome-storage (backends), clipboard (clipboard), runtime-bridge (runtime), ui/base (ui — HL.ui is created there and mutated in place by toast/toolbar/popover, so one object binding stays valid); TS-sourced url/utils/store (export url/util/createStore from their TS sources, emitted classic body + tail).
+- content.js now imports all of them — its remaining HL.* namespace reads are gone except HL.store (dynamic singleton assigned below the imports, read across worlds) and comment mentions. highlighter.js imports util/clipboard/ui (5+1+2 reads collapsed); HL.store reads kept call-time by design.
+- popup.html + dashboard.html: every script tag became type="module" except theme-boot, which stays classic ON PURPOSE — a blocking <head> script runs before every deferred module (anti-flash window) and it is first in both pages; mixed classic+module is only order-safe while classic exists exclusively first. All 11 page-only scripts verified strict + no document.currentScript before the flip (module semantics identical).
+- Tripwires: packaging emitted allowlist grew to {textindex, anchor, url, utils, store}; hand-written converted list +5; classic list now only format/detect-dir/tags/ui-toast-toolbar-popover; NEW test pins the page-script shape (only theme-boot classic) because a classic tag on a converted file would SyntaxError; html script-src regex accepts type="module".
+- Bug caught by the flip: popup.test WRAP_HTML slice anchored on the old classic tag — indexOf returned -1 and slice(start, -1) silently wrapped the WHOLE page (tests still green on wrong markup). Anchor updated + fail-loud drift guard added.
+- Harness builders (popup/dashboard) follow the module tag; harness regenerated. tests/e2e/popover-page.html still uses classic tags for now-module files — it has ZERO references anywhere (orphan fixture), left untouched.
+- Dashboard module-page smoke (CDP, /tmp/dash-module-smoke): full Persian UI renders, 17 scripts parsed, 0 exceptions, 0 console errors. Probe pitfall: target search must match OUR SW exactly (ends /background.js) — a foreign extension's thunk.js SW was matched first and its missing dashboard gave a bogus ERR_FILE_NOT_FOUND.
+- Gates: unit 647/0/2499 · lint 0 · typecheck 0 · parity OK (44 byte-identical, manifest 13 keys) · zip 54 / 178,077 B · real-theme exit 0 (module popup cycles → light → dark, storage.theme = dark) · next-compat 16/16 · dashboard smoke clean.
+
+Stage Summary:
+- content/highlighter orchestrators are now import-driven for every shared file they touch; the HL namespace remains only for page glue (HL.store slot, popup/dashboard page files, SW-side reads) and not-yet-imported shared files (format, detect-dir, tags, ui-toast/toolbar/popover keep HL reads — they load before their readers in both bundle and pages)
+- popup/dashboard are real module pages; theme-boot is the deliberate classic anchor
+- Remaining shrink surface: format/detect-dir/tags + ui internal reads (importers arrive with the popup/dashboard single module entry), page files (popup-*/dashboard-*/domkit/export/*) as importable modules, SW named imports
