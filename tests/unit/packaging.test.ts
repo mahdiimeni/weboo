@@ -109,43 +109,27 @@ describe("emit کلاسیک (TypeScript → اسکریپت قابل تزریق)"
        explicit: a conversion outside it fails here until its classic loaders
        are removed first. */
     const emitted = ["format", "detect-dir", "url", "utils", "tags", "textindex", "anchor", "store"];
-    const allowedModules = new Set(["textindex", "anchor", "url", "utils", "store"]); /* 7b-1/7c-1: emitted modules */
     for (const name of emitted) {
       /* source of truth lives in src/shared (ext() is extension/-rooted — ".." climbs out) */
       expect(exists(ext("..", "src", "shared", name + ".ts"))).toBe(true);
-      const js = readFile(ext("shared", name + ".js"));
-      const isModule = /^\s*(import|export)\s/m.test(js);
-      if (allowedModules.has(name)) expect(isModule).toBe(true); /* drift-proof the other way */
-      else expect(isModule).toBe(false); /* classic: no module statements */
+      /* 7c-2: every emitted file is an ES module — its only loaders are the WXT
+         content bundle, the pages (type=module tags) and the engine vm graph. */
+      expect(/^\s*(import|export)\s/m.test(readFile(ext("shared", name + ".js")))).toBe(true);
     }
   });
 });
 
-describe("فایل‌های محتوایی تبدیل‌شده (7b: ماژول‌های دست‌نویس)", () => {
-  test("must contain module syntax (drift-proof both ways)", () => {
-    /* Hand-written (non-emitted) files converted to ES modules in 7b-2/7b-3.
-       Their only loaders are the WXT content bundle + the engine vm graph —
-       if a conversion loses its module syntax the bundler silently drops the
-       declared edges and identity exports rot. Same two-way tripwire shape as
-       the emitted set: converted => module syntax must be present. */
-    const converted = ["shared/domwrap.js", "shared/highlighter.js", "content/favicon.js", "content/content.js",
-      /* 7c-1 shared-file wave */ "shared/constants.js", "shared/backends/chrome-storage.js",
-      "shared/clipboard.js", "shared/runtime-bridge.js", "shared/ui/base.js"];
-    for (const rel of converted) {
-      expect(/^\s*(import|export)\s/m.test(readFile(ext(rel)))).toBe(true);
-    }
-  });
-
-  test("classic content files keep zero module syntax", () => {
-    /* The not-yet-converted content-side files are still injected as classic
-       scripts by any non-bundle loader (engine evalClassic worlds) — module
-       syntax in them is a SyntaxError there. */
-    const classic = [
-      "shared/format.js", "shared/detect-dir.js", "shared/tags.js",
-      "shared/ui/toast.js", "shared/ui/toolbar.js", "shared/ui/popover.js",
-    ];
-    for (const rel of classic) {
-      expect(/^\s*(import|export)\s/m.test(readFile(ext(rel)))).toBe(false);
+describe("کل مسیر محتوا ماژولی است (7c-2)", () => {
+  test("هر ۲۰ فایل manifest content_scripts سینتکس ماژول دارد", () => {
+    /* Final-form two-way tripwire: since 7c-2 every content-side file carries
+       import/export. One direction: no file may lose its module syntax (the
+       WXT bundle would silently drop declared edges and identity exports rot).
+       The opposite direction lives in the bundle test above: the emitted
+       content-scripts/content.js must contain ZERO module statements. */
+    const files = JSON.parse(readFile(ext("manifest.json"))).content_scripts[0].js;
+    expect(files.length).toBe(20);
+    for (const f of files) {
+      expect(/^\s*(import|export)\s/m.test(readFile(ext(f)))).toBe(true);
     }
   });
 });
