@@ -2067,3 +2067,23 @@ Stage Summary:
 - The content path (manifest 20 files) is now 100% ES modules with real import edges; remaining HL.* are the intentional HL.store slot and namespace assignments that serve page consumers
 - SW shows its real deps (backends, createStoreReader) as named imports; constants/tags remain side-effect imports by design
 - Remaining shrink surface: page files (popup-*/dashboard-*/domkit/export/markdown-export/booklet-export/theme-boot) toward a single module entry per page; utils/export layering reads if any importer needs them; optional HL.store -> DI at composition root (bigger, deliberate)
+
+---
+Task ID: 79
+Agent: main (Hermes)
+Task: Modernization Phase 7c-3 — single module entry per page (popup/dashboard controllers become the entry; MVC trio import-driven)
+
+Done:
+- popup.html: 14 script tags -> 2 (theme-boot classic + type=module src=popup.js). dashboard.html: 17 -> 2 (same shape). The page's load-order contract now lives in the entry's import list, which the packaging tests parse directly.
+- popup.js = single module entry: imports the former document-order tags (constants, backends, url, format, detect-dir, domkit, export, tags, store, runtime-bridge) + siblings ./popup-data.js and ./popup-view.js; 20 HL reads collapsed (format/detectDir/domkit/MSG/THEME_KEYS/SETTINGS_HASH/DEFAULT_SETTINGS/GOTO/VERSION/runtime/url/export->exportTools + pop/popView via import, popView aliased as view). Kept: HL.store dynamic slot + HL.applyThemeNow (theme-boot classic-first contract).
+- dashboard.js = single module entry (15 imports incl. markdown/booklet/clipboard/util + dash/dashView siblings, dashView aliased as view); 30+ HL reads collapsed (store x22 + applyThemeNow x4 kept by design). Guards removed: imports guarantee the deps now (popup.js 13-clause guard, dashboard.js 5-clause guard, popup-data/view 1-clause guards).
+- MVC trios converted: popup-data (THEME_KEYS/format/detectDir + export pop), popup-view (THEMES/format/domkit + export popView), dashboard-data (format/detectDir/tags + export dash), dashboard-view (7 constants + format/domkit/dash + export dashView) — all identity exports, namespace assigns kept for test/namespace readers.
+- Page-only shared files converted with real importers: domkit (THEME_KEYS; export domkit), export.js (export exportTools — reserved word makes the module binding exportTools, namespace stays HL.export), markdown-export (APP_NAME/VERSION/COLORS/format + export markdown), booklet-export (same + export booklet). constants exports 12 -> 14 (+THEMES, +SETTINGS_HASH) with constants.d.ts updated.
+- Bugs caught and fixed en route: (1) sibling paths written as ../ from files living IN shared/ (domkit/markdown/booklet -> extension/constants.js ENOENT) — systematic specifier audit fixed 5, pattern now checked; (2) import { url } shadowed by locals `let url`/`const url` in popup.js init (url.normalizeUrl is not a function) — aliased url as urlUtil, same class as the 7b-2 `var text` shadow; scanned every converted file for local-decl-vs-import collisions (dashboard.js clean; highlighter's `var anchor` predates and is covered by green tests).
+- Tests reworked: evalClassic of the trios (popup, popup-data, dashboard-data, dashboard-view) replaced by loadEngine file lists (graph pulls their imports; theme-boot rides FIRST in popup's list = page order); unused evalClassic imports dropped. packaging script-exists tests now parse the ENTRY import list (order pairs preserved: constants<backends, tags<store, data<view, format<markdown/booklet, ISP no utils/clipboard in popup); page-shape test asserts exactly ['theme-boot classic', 'one module entry'] per page. Harness builders anchor the entry tag; harness regenerated (2 tags + MOCK inline).
+- Gates: unit 646/0/2497 · lint 0 · typecheck 0 · parity OK (44 byte-identical, manifest 13 keys) · zip 54 / 179,677 B · real-theme exit 0 (popup entry boots, cycle -> light -> dark) · next-compat 16/16 · dashboard smoke: full render, scripts=2, 0 exceptions · SW smoke: HL wired, 0 exceptions.
+
+Stage Summary:
+- Both pages are now one classic anti-flash script + one ES module entry; the MVC trios and page-only shared files are real modules with explicit deps
+- Page-side live HL reads = HL.store slot (28) + HL.applyThemeNow (5) + doc comments — everything else imported
+- Remaining: optional HL.store -> DI at composition roots (content.js + both entries share the slot pattern — deliberate, needs a design decision); theme-boot stays classic by design (anti-flash); orphan tests/e2e/popover-page.html still classic-tagged (zero references)
