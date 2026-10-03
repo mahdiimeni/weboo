@@ -16,6 +16,8 @@
  * media (unless light is forced), forced dark via :host([data-theme="dark"])
  * — the popup.css pattern.
  */
+import { THEME_KEYS } from "../constants.js"; /* 7c-2: the theme allow-list */
+
 (function () {
   'use strict';
   const HL = (globalThis.HL = globalThis.HL || {});
@@ -40,7 +42,7 @@
    * Returns: the applied theme key (for tests/mirroring — domkit.applyTheme pattern).
    */
   function setTheme(t) {
-    theme = (t && HL.THEME_KEYS && HL.THEME_KEYS.indexOf(t) !== -1) ? t : 'auto';
+    theme = (t && THEME_KEYS && THEME_KEYS.indexOf(t) !== -1) ? t : 'auto';
     for (var i = hosts.length - 1; i >= 0; i--) {
       if (!hosts[i].isConnected) { hosts.splice(i, 1); continue; } /* dead host */
       applyThemeAttr(hosts[i]);
@@ -153,3 +155,4 @@
 /* identity export (7c-1): HL.ui is created here and MUTATED in place by toast/toolbar/popover
    (HL.ui = HL.ui || {}) — one object for every world, so this binding stays valid */
 export const ui = globalThis.HL.ui;
+export const uiBase = globalThis.HL.uiBase;

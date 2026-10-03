@@ -21,7 +21,7 @@
  * before while light gains contrast — contrast contract in uitheme.test.ts.
  * Smart content direction (v1.2.10): the quote box (.q), the note editor
  * (textarea) and the saved-note display (.note-text) render in the content's
- * own direction — HL.detectDir.detectTextDir (the single source the popup and
+ * own direction — detectDir.detectTextDir (the single source the popup and
  * dashboard already use) decides; LTR content gets dir="ltr", RTL takes no
  * attribute (the window's rtl default — precise scope: the Persian UI chrome
  * never flips). The editor re-decides on every keystroke (oninput delegation)
@@ -42,11 +42,17 @@
  * .btn-p — the theme-invariant primary-button convention (amber on both
  * surfaces, exactly like the «ذخیره یادداشت» button in edit mode).
  */
+import { uiBase } from "./base.js";
+import { detectDir } from "../detect-dir.js";
+import { format } from "../format.js";
+import { util } from "../utils.js";
+import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
+
 (function () {
   'use strict';
   const HL = (globalThis.HL = globalThis.HL || {});
-  var svg = HL.uiBase.svg;
-  var ICON = HL.uiBase.ICON;
+  var svg = uiBase.svg;
+  var ICON = uiBase.ICON;
 
   var LIGHT = [
     '--po-bg: #ffffff;',
@@ -118,7 +124,7 @@
     ':host([data-theme="dark"]) { color-scheme: dark; ' + DARK + ' }',
     '.hlx-po { position: fixed; direction: rtl; width: 328px; max-width: calc(100vw - 20px);',
     '  background: var(--po-bg); color: var(--po-fg); border: 1px solid var(--po-border); border-radius: 14px;',
-    '  box-shadow: 0 14px 44px rgba(0,0,0,.2); font-family: ' + HL.uiBase.FONT + '; font-size: 13px;',
+    '  box-shadow: 0 14px 44px rgba(0,0,0,.2); font-family: ' + uiBase.FONT + '; font-size: 13px;',
     '  pointer-events: auto; animation: hlx-po-pop .16s ease-out; z-index: 2147483647; }',
     '@keyframes hlx-po-pop { from { opacity: 0; transform: translateY(6px) scale(.97); } to { opacity: 1; } }',
     '.hlx-po .head { display: flex; align-items: center; gap: 6px; padding: 10px 12px 6px; cursor: grab; touch-action: none; }',
@@ -171,18 +177,18 @@
   ].join('\n');
 
   /* ---------- Content direction (v1.2.10) ----------
-     The decision lives in HL.detectDir.detectTextDir — the single source the
+     The decision lives in detectDir.detectTextDir — the single source the
      popup and dashboard already consume; this view only applies it (DIP, the
      same split as detect-dir.js documents): LTR content gets dir="ltr", RTL
      takes no attribute at all (the window's rtl default). */
 
   function ltrDirAttr(text) {
-    return HL.detectDir.detectTextDir(text) === 'ltr' ? ' dir="ltr"' : '';
+    return detectDir.detectTextDir(text) === 'ltr' ? ' dir="ltr"' : '';
   }
 
   /** Typing direction — re-decided on every keystroke via the oninput delegation. */
   function syncNoteDir(ta) {
-    if (HL.detectDir.detectTextDir(ta.value) === 'ltr') ta.setAttribute('dir', 'ltr');
+    if (detectDir.detectTextDir(ta.value) === 'ltr') ta.setAttribute('dir', 'ltr');
     else ta.removeAttribute('dir');
   }
 
@@ -200,7 +206,7 @@
     this.visible = false;
     this.userPos = null; // { left, top } — only after a drag; null means anchored to the mark
 
-    var h = HL.uiBase.makeHost();
+    var h = uiBase.makeHost();
     this.host = h.host;
     this.root = h.root;
 
@@ -266,14 +272,14 @@
     this.mode = mode || 'view';
     var d = this.data;
     if (!d) return;
-    var esc = HL.util.escapeHtml;
+    var esc = util.escapeHtml;
     var html = '';
 
     // Header: drag grip + colors + close
     html += '<div class="head">';
     html += '<span class="grip" title="جابجایی پنجره — بکشید و رها کنید" aria-hidden="true">' + svg(ICON.grip, 14) + '</span>';
-    (HL.COLOR_KEYS || []).forEach(function (k) {
-      var c = HL.COLORS[k];
+    (COLOR_KEYS || []).forEach(function (k) {
+      var c = COLORS[k];
       html += '<button class="c' + (k === d.color ? ' active' : '') + '" data-color="' + k + '" title="' + esc(c.label) + '" aria-label="رنگ ' + esc(c.label) + '" style="background:' + c.dot + '"></button>';
     });
     html += '<span class="grow"></span>';
@@ -281,7 +287,7 @@
     html += '</div>';
 
     // Highlighted text — rendered in its own direction (v1.2.10)
-    var quoteShown = HL.format.excerpt(d.quote, 260);
+    var quoteShown = format.excerpt(d.quote, 260);
     html += '<div class="q"' + ltrDirAttr(quoteShown) + '>' + esc(quoteShown) + '</div>';
 
     if (this.mode === 'view') {
@@ -307,7 +313,7 @@
 
     // Footer: date + copy + delete
     html += '<div class="foot">';
-    html += '<span class="date">' + esc(HL.format.fmtDateTime(d.createdAt)) + '</span>';
+    html += '<span class="date">' + esc(format.fmtDateTime(d.createdAt)) + '</span>';
     html += '<span class="act">';
     html += '<button class="ib" data-act="copy" title="کپی متن و یادداشت" aria-label="کپی">' + svg(ICON.copy, 15) + '</button>';
     html += '<button class="ib del" data-act="del" title="حذف هایلایت" aria-label="حذف">' + svg(ICON.trash, 15) + '</button>';

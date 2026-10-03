@@ -9,6 +9,7 @@
 /* Phase 7b module: textindex is a real import (squash/acceptTextNode reads —
    the old HL.text namespace seam shrinks). Identity via globalThis.HL; tail
    `export const dom` below. Consumers (anchor/highlighter/content) import dom. */
+import { util } from "./utils.js"; /* 7c-2: cssEscape */
 import { text as textIndex } from "./textindex.js"; /* alias: `text` is a common local name in DOM code */
 (function () {
   'use strict';
@@ -145,7 +146,7 @@ import { text as textIndex } from "./textindex.js"; /* alias: `text` is a common
 
   function marksOf(id) {
     try {
-      var sel = 'mark.hlx-marker[data-hl-id="' + HL.util.cssEscape(id) + '"]';
+      var sel = 'mark.hlx-marker[data-hl-id="' + util.cssEscape(id) + '"]';
       return Array.prototype.slice.call(document.querySelectorAll(sel));
     } catch (e) {
       return [];

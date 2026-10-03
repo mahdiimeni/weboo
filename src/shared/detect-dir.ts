@@ -79,3 +79,6 @@
     contentDir: contentDir
   };
 })();
+
+/* identity export (7c-2) */
+export const detectDir = (globalThis as unknown as { HL: { detectDir: unknown } }).HL.detectDir;

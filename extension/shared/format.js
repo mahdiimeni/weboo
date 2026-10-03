@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Web Highlighter — display formats (SRP: data → display-string conversion)
  *
@@ -10,6 +9,7 @@
  * extension/shared/format.js — the classic script the extension loads.
  * Never edit the .js directly; edit here.
  */
+import { COLORS } from "./constants.js";
 (function () {
     'use strict';
     const g = globalThis;
@@ -86,7 +86,7 @@
     /* ---------- Record display formats (shared by popup and dashboard) ---------- */
     /** Highlight color dot for display (the color registry's dot) */
     function dotColorOf(key) {
-        const colors = HL.COLORS;
+        const colors = COLORS;
         const c = colors && colors[key];
         return (c && c.dot) || (colors && colors.yellow && colors.yellow.dot) || '#f5b800';
     }
@@ -127,3 +127,5 @@
         displayHost: displayHost
     };
 })();
+/* identity export (7c-2) */
+export const format = globalThis.HL.format;

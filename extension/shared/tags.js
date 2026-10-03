@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Web Highlighter — article-tag domain rules (pure: no DOM, no storage)
  *
@@ -17,6 +16,7 @@
  * Phase 2 migration (TypeScript): compiled by `bun run build:ext` into
  * extension/shared/tags.js — never edit the .js directly.
  */
+import { TAG_MAX_LEN, TAG_MAX_PER_ARTICLE } from "./constants.js";
 (function () {
     'use strict';
     const g = globalThis;
@@ -31,7 +31,7 @@
      * file) is rejected at the gate instead of being coerced into junk tags.
      * Persian ZWNJ (نیم‌فاصله) is preserved — it is part of words like
      * «برنامه‌نویسی»; only real whitespace collapses (\s does not match U+200C).
-     * The length cap (HL.TAG_MAX_LEN) applies AFTER cleanup.
+     * The length cap (TAG_MAX_LEN) applies AFTER cleanup.
      */
     function sanitizeTag(raw) {
         if (typeof raw !== 'string')
@@ -39,14 +39,14 @@
         var t = raw.replace(/\s+/g, ' ').trim();
         if (!t)
             return null;
-        if (t.length > HL.TAG_MAX_LEN)
+        if (t.length > TAG_MAX_LEN)
             return null;
         return t;
     }
     /**
      * Clean list: sanitize each entry, drop unusable ones, dedupe
      * case-insensitively (first spelling wins), cap the count at
-     * HL.TAG_MAX_PER_ARTICLE. Non-array input → [].
+     * TAG_MAX_PER_ARTICLE. Non-array input → [].
      */
     function sanitizeTagList(list) {
         if (!Array.isArray(list))
@@ -62,7 +62,7 @@
                 continue;
             seen[k] = true;
             out.push(t);
-            if (out.length >= HL.TAG_MAX_PER_ARTICLE)
+            if (out.length >= TAG_MAX_PER_ARTICLE)
                 break;
         }
         return out;
@@ -150,3 +150,6 @@
         hasActiveTag: hasActiveTag
     };
 })();
+/* identity export (7c-2): the namespace surface importers consume, typed where
+   it lives (store.ts reads these two). Erased at emit — .js sees no interface. */
+export const tags = globalThis.HL.tags;

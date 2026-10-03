@@ -5,6 +5,8 @@
    the two ever drift. ReaderBackend = Pick of exactly the members the reader
    validates. File contract: see the header below.
    ============================================================ */
+import { APP_ID, APP_NAME, BACKUP_FORMAT, VERSION, COLORS, DEFAULT_SETTINGS } from "./constants.js";
+import { tags as tagRules } from "./tags.js";
 /**
  *
  * GENERATED TARGET — this source (src/shared/store.ts) compiles to
@@ -89,7 +91,7 @@
         return { host: host, icon: icon, capturedAt: (at > 0 ? at : Date.now()) };
     }
     function mergeSettings(s) {
-        return Object.assign({}, HL.DEFAULT_SETTINGS, s || {});
+        return Object.assign({}, DEFAULT_SETTINGS, s || {});
     }
     /**
      * Ordered, forward-only schema migrations: { from, to, run(backend) }.
@@ -231,13 +233,13 @@
         /* ---------- Article tags (v1.2.15) — raw ---------- */
         async function getTagsRaw() {
             var m = await getRaw(K_TAGS, {});
-            return HL.tags.normalizeTagMap(m);
+            return tagRules.normalizeTagMap(m);
         }
         async function setArticleTagsRaw(urlNorm, tags) {
             var key = String(urlNorm || '');
             if (!key)
                 return;
-            var clean = HL.tags.sanitizeTagList(tags);
+            var clean = tagRules.sanitizeTagList(tags);
             var m = await getTagsRaw();
             if (clean.length)
                 m[key] = clean;
@@ -437,10 +439,10 @@
             var favicons = await getFaviconMapRaw();
             var tags = await getTagsRaw();
             return {
-                app: HL.APP_ID,
-                name: HL.APP_NAME,
-                format: HL.BACKUP_FORMAT,
-                version: HL.VERSION,
+                app: APP_ID,
+                name: APP_NAME,
+                format: BACKUP_FORMAT,
+                version: VERSION,
                 exportedAt: Date.now(),
                 settings: settings,
                 highlights: highlights,
@@ -463,7 +465,7 @@
             out.text = String(r.text || '');
             out.prefix = String(r.prefix || '');
             out.suffix = String(r.suffix || '');
-            out.color = (HL.COLORS && HL.COLORS[r.color]) ? r.color : 'yellow';
+            out.color = (COLORS && COLORS[r.color]) ? r.color : 'yellow';
             out.note = String(r.note || '');
             out.createdAt = Number(r.createdAt) || Date.now();
             out.updatedAt = Number(r.updatedAt) || out.createdAt;
@@ -476,7 +478,7 @@
          */
         async function importDataRaw(backup, mode) {
             var report = { added: 0, updated: 0, skipped: 0, removed: 0 };
-            if (!backup || backup.app !== HL.APP_ID || !backup.highlights || typeof backup.highlights !== 'object') {
+            if (!backup || backup.app !== APP_ID || !backup.highlights || typeof backup.highlights !== 'object') {
                 throw new Error('فایل پشتیبان معتبر «وب هایلایتر» نیست.');
             }
             var current = await getAllRecordsRaw();
@@ -530,7 +532,7 @@
                `tags` keeps (merge) / clears (replace — clearAll already wiped them)
                the current tags, mirroring the highlights' behavior. */
             if (backup.tags && typeof backup.tags === 'object') {
-                var incTags = HL.tags.normalizeTagMap(backup.tags);
+                var incTags = tagRules.normalizeTagMap(backup.tags);
                 if (mode === 'replace') {
                     await setRaw(makeObj(K_TAGS, incTags));
                 }
@@ -538,7 +540,7 @@
                     var curTags = await getTagsRaw();
                     var mergedTags = Object.assign({}, curTags);
                     Object.keys(incTags).forEach(function (k) {
-                        mergedTags[k] = HL.tags.sanitizeTagList((curTags[k] || []).concat(incTags[k]));
+                        mergedTags[k] = tagRules.sanitizeTagList((curTags[k] || []).concat(incTags[k]));
                     });
                     await setRaw(makeObj(K_TAGS, mergedTags));
                 }
@@ -644,3 +646,4 @@
 /* identity export (7c-1): read the namespace the IIFE above assigned —
    same instance every classic/module consumer shares. */
 export const createStore = globalThis.HL.createStore;
+export const createStoreReader = globalThis.HL.createStoreReader;

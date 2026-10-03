@@ -16,6 +16,8 @@
  * Phase 2 migration (TypeScript): compiled by `bun run build:ext` into
  * extension/shared/tags.js — never edit the .js directly.
  */
+import { TAG_MAX_LEN, TAG_MAX_PER_ARTICLE } from "./constants.js";
+
 (function () {
   'use strict';
 
@@ -49,20 +51,20 @@
    * file) is rejected at the gate instead of being coerced into junk tags.
    * Persian ZWNJ (نیم‌فاصله) is preserved — it is part of words like
    * «برنامه‌نویسی»; only real whitespace collapses (\s does not match U+200C).
-   * The length cap (HL.TAG_MAX_LEN) applies AFTER cleanup.
+   * The length cap (TAG_MAX_LEN) applies AFTER cleanup.
    */
   function sanitizeTag(raw: unknown): string | null {
     if (typeof raw !== 'string') return null;
     var t = raw.replace(/\s+/g, ' ').trim();
     if (!t) return null;
-    if (t.length > HL.TAG_MAX_LEN) return null;
+    if (t.length > TAG_MAX_LEN) return null;
     return t;
   }
 
   /**
    * Clean list: sanitize each entry, drop unusable ones, dedupe
    * case-insensitively (first spelling wins), cap the count at
-   * HL.TAG_MAX_PER_ARTICLE. Non-array input → [].
+   * TAG_MAX_PER_ARTICLE. Non-array input → [].
    */
   function sanitizeTagList(list: unknown): string[] {
     if (!Array.isArray(list)) return [];
@@ -75,7 +77,7 @@
       if (seen[k]) continue;
       seen[k] = true;
       out.push(t);
-      if (out.length >= HL.TAG_MAX_PER_ARTICLE) break;
+      if (out.length >= TAG_MAX_PER_ARTICLE) break;
     }
     return out;
   }
@@ -163,3 +165,10 @@
     hasActiveTag: hasActiveTag
   };
 })();
+
+/* identity export (7c-2): the namespace surface importers consume, typed where
+   it lives (store.ts reads these two). Erased at emit — .js sees no interface. */
+export const tags: {
+  normalizeTagMap(obj: unknown): Record<string, string[]>;
+  sanitizeTagList(list: unknown): string[];
+} = (globalThis as unknown as { HL: { tags: Record<string, unknown> & { normalizeTagMap(obj: unknown): Record<string, string[]>; sanitizeTagList(list: unknown): string[]; } } }).HL.tags;

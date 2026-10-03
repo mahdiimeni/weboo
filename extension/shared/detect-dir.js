@@ -1,4 +1,3 @@
-"use strict";
 /**
  * Web Highlighter — content display-direction detection (SRP: the direction decision, separate from applying it)
  *
@@ -73,3 +72,5 @@
         contentDir: contentDir
     };
 })();
+/* identity export (7c-2) */
+export const detectDir = globalThis.HL.detectDir;

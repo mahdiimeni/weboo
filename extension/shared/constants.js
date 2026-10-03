@@ -82,6 +82,17 @@
   };
 })();
 
-/* identity export (7c-1): the two names content imports; others stay on the HL namespace until their importer arrives */
+/* identity exports (7c-1/7c-2): the names content/store/ui/SW import. One assignment
+   per name at load — static binding is safe for every consumer. */
 export const MSG = globalThis.HL.MSG;
 export const GOTO_HASH_PREFIX = globalThis.HL.GOTO_HASH_PREFIX;
+export const APP_NAME = globalThis.HL.APP_NAME;
+export const APP_ID = globalThis.HL.APP_ID;
+export const BACKUP_FORMAT = globalThis.HL.BACKUP_FORMAT;
+export const VERSION = globalThis.HL.VERSION;
+export const COLORS = globalThis.HL.COLORS;
+export const COLOR_KEYS = globalThis.HL.COLOR_KEYS;
+export const THEME_KEYS = globalThis.HL.THEME_KEYS;
+export const TAG_MAX_LEN = globalThis.HL.TAG_MAX_LEN;
+export const TAG_MAX_PER_ARTICLE = globalThis.HL.TAG_MAX_PER_ARTICLE;
+export const DEFAULT_SETTINGS = globalThis.HL.DEFAULT_SETTINGS;

@@ -6,21 +6,22 @@
  *  - the Alt+Shift+H shortcut (commands)
  *  - the counter badge on the icon (per the showBadge setting)
  *
- * Note: shared/*.js files have no exports and populate globalThis.HL;
- * importing them for their side effects in the SW module is allowed and required.
+ * Note: shared/*.js are ES modules now (7c-1/7c-2): named imports where the SW
+ * consumes a symbol, side-effect imports for constants/tags whose values the
+ * composition root and IIFE read via the HL namespace.
  * This SW is the platform layer and chrome.* is "allowed and natural" here (DIP boundary);
  * settings are read from the read-only store slice (createStoreReader — composition root).
  * No heavy state is kept (the SW may sleep between events) —
  * just a light settings cache refreshed by storage events.
  */
 import '../shared/constants.js';
-import '../shared/backends/chrome-storage.js';
-import '../shared/tags.js';
-import '../shared/store.js';
+import { backends } from '../shared/backends/chrome-storage.js';
+import '../shared/tags.js'; /* side-effect: reader/export paths normalize through HL.tags */
+import { createStoreReader } from '../shared/store.js';
 
 /* Composition root: the read-only reader (ISP) — the SW never writes;
    utils/format/clipboard/export are not loaded at all for this layer */
-globalThis.HL.reader = globalThis.HL.createStoreReader(globalThis.HL.backends.chromeStorage());
+globalThis.HL.reader = createStoreReader(backends.chromeStorage());
 
 (function () {
   'use strict';

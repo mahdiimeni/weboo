@@ -6,6 +6,9 @@
    validates. File contract: see the header below.
    ============================================================ */
 
+import { APP_ID, APP_NAME, BACKUP_FORMAT, VERSION, COLORS, DEFAULT_SETTINGS } from "./constants.js";
+import { tags as tagRules } from "./tags.js";
+
 interface StorageChange {
   oldValue?: unknown;
   newValue?: unknown;
@@ -126,7 +129,7 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
   }
 
   function mergeSettings(s: unknown): Record<string, unknown> {
-    return Object.assign({}, HL.DEFAULT_SETTINGS, s || {});
+    return Object.assign({}, DEFAULT_SETTINGS, s || {});
   }
 
   /**
@@ -280,13 +283,13 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
 
     async function getTagsRaw() {
       var m = await getRaw(K_TAGS, {});
-      return HL.tags.normalizeTagMap(m);
+      return tagRules.normalizeTagMap(m);
     }
 
     async function setArticleTagsRaw(urlNorm, tags) {
       var key = String(urlNorm || '');
       if (!key) return;
-      var clean = HL.tags.sanitizeTagList(tags);
+      var clean = tagRules.sanitizeTagList(tags);
       var m = await getTagsRaw();
       if (clean.length) m[key] = clean;
       else delete m[key]; /* an emptied list removes the article from the map */
@@ -492,10 +495,10 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
       var favicons = await getFaviconMapRaw();
       var tags = await getTagsRaw();
       return {
-        app: HL.APP_ID,
-        name: HL.APP_NAME,
-        format: HL.BACKUP_FORMAT,
-        version: HL.VERSION,
+        app: APP_ID,
+        name: APP_NAME,
+        format: BACKUP_FORMAT,
+        version: VERSION,
         exportedAt: Date.now(),
         settings: settings,
         highlights: highlights,
@@ -519,7 +522,7 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
       out.text = String(r.text || '');
       out.prefix = String(r.prefix || '');
       out.suffix = String(r.suffix || '');
-      out.color = (HL.COLORS && HL.COLORS[r.color]) ? r.color : 'yellow';
+      out.color = (COLORS && COLORS[r.color]) ? r.color : 'yellow';
       out.note = String(r.note || '');
       out.createdAt = Number(r.createdAt) || Date.now();
       out.updatedAt = Number(r.updatedAt) || out.createdAt;
@@ -533,7 +536,7 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
      */
     async function importDataRaw(backup: Record<string, any>, mode?: string) {
       var report = { added: 0, updated: 0, skipped: 0, removed: 0 };
-      if (!backup || backup.app !== HL.APP_ID || !backup.highlights || typeof backup.highlights !== 'object') {
+      if (!backup || backup.app !== APP_ID || !backup.highlights || typeof backup.highlights !== 'object') {
         throw new Error('فایل پشتیبان معتبر «وب هایلایتر» نیست.');
       }
       var current = await getAllRecordsRaw();
@@ -577,14 +580,14 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
          `tags` keeps (merge) / clears (replace — clearAll already wiped them)
          the current tags, mirroring the highlights' behavior. */
       if (backup.tags && typeof backup.tags === 'object') {
-        var incTags = HL.tags.normalizeTagMap(backup.tags);
+        var incTags = tagRules.normalizeTagMap(backup.tags);
         if (mode === 'replace') {
           await setRaw(makeObj(K_TAGS, incTags));
         } else {
           var curTags = await getTagsRaw();
           var mergedTags = Object.assign({}, curTags);
           Object.keys(incTags).forEach(function (k) {
-            mergedTags[k] = HL.tags.sanitizeTagList((curTags[k] || []).concat(incTags[k]));
+            mergedTags[k] = tagRules.sanitizeTagList((curTags[k] || []).concat(incTags[k]));
           });
           await setRaw(makeObj(K_TAGS, mergedTags));
         }
@@ -699,3 +702,4 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
 /* identity export (7c-1): read the namespace the IIFE above assigned —
    same instance every classic/module consumer shares. */
 export const createStore = (globalThis as unknown as { HL: { createStore: unknown } }).HL.createStore;
+export const createStoreReader = (globalThis as unknown as { HL: { createStoreReader: unknown } }).HL.createStoreReader;

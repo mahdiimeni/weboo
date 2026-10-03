@@ -7,6 +7,8 @@
  * that page's own concern (the platform-awareness boundary).
  * All methods safely no-op/degrade when chrome is absent.
  */
+import { VERSION } from "./constants.js"; /* 7c-2 */
+
 (function () {
   'use strict';
   var HL = (globalThis.HL = globalThis.HL || {});
@@ -21,13 +23,13 @@
     return {
       available: !!rt,
 
-      /** Manifest version (fallback: HL.VERSION) */
+      /** Manifest version (fallback: VERSION) */
       manifestVersion: function () {
         if (rt && rt.getManifest) {
-          try { return (rt.getManifest() || {}).version || HL.VERSION; }
+          try { return (rt.getManifest() || {}).version || VERSION; }
           catch (e) { /* noop */ }
         }
-        return HL.VERSION;
+        return VERSION;
       },
 
       /** In-extension-package URL (fallback: the same relative path) */
