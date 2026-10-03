@@ -43,6 +43,11 @@ for (const f of srcFiles) {
 const outM_pre = JSON.parse(readFileSync(join(OUT, "manifest.json"), "utf-8"));
 const referenced = new Set();
 if (outM_pre.background && outM_pre.background.service_worker) referenced.add(outM_pre.background.service_worker);
+/* manifest-referenced PAGES are output-owned too (Phase 8: the dashboard page
+   becomes a WXT entrypoint and stops being byte-copied from extension/).
+   options_ui.page / action.default_popup count as expected files. */
+if (outM_pre.options_ui && outM_pre.options_ui.page) referenced.add(outM_pre.options_ui.page);
+if (outM_pre.action && outM_pre.action.default_popup) referenced.add(outM_pre.action.default_popup);
 for (const cs of outM_pre.content_scripts || []) {
   (cs.js || []).forEach((p) => referenced.add(p));
   (cs.css || []).forEach((p) => referenced.add(p));
@@ -61,6 +66,24 @@ for (const f of srcFiles) {
   const a = readFileSync(join(SRC, f));
   const b = readFileSync(join(OUT, f));
   if (!a.equals(b)) problems.push(`content differs: ${f}`);
+}
+
+/* 3b) page-shape contract (Phase 8): whether byte-copied or generated, the
+      options page must keep the anti-flash shape — classic theme-boot FIRST,
+      exactly ONE module entry script (the entry bundle). Mirrors the unit
+      page-shape test at build level (fail-loud at packaging time). */
+const dashPage = outM_pre.options_ui && outM_pre.options_ui.page;
+if (dashPage && outFiles.has(dashPage)) {
+  const html = readFileSync(join(OUT, dashPage), "utf-8");
+  const tags = [...html.matchAll(/<script\b([^>]*)\/?\s*>/gi)].map((m) => m[1]);
+  if (tags.length === 0) problems.push(`page contract: ${dashPage} has no <script> tags`);
+  else if (/type\s*=\s*["']module["']/.test(tags[0])) {
+    problems.push(`page contract: ${dashPage} first <script> must be classic theme-boot (anti-flash), got type=module`);
+  } else if (!/theme-boot/.test(tags[0])) {
+    problems.push(`page contract: ${dashPage} first <script> must be theme-boot, got:${tags[0].slice(0, 90)}`);
+  }
+  const mods = tags.filter((t) => /type\s*=\s*["']module["']/.test(t));
+  if (mods.length !== 1) problems.push(`page contract: ${dashPage} must have exactly 1 module entry script, got ${mods.length}`);
 }
 
 // 4) manifest deep-equality (JSON)
