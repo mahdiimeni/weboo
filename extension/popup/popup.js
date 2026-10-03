@@ -45,7 +45,7 @@ import { popView as view } from "./popup-view.js";
 
   /* ---------- Composition root ---------- */
 
-  globalThis.HL.store = globalThis.HL.store || createStore(backends.chromeStorage()); /* dynamic slot — kept on the namespace (read across worlds) */
+  const store = createStore(backends.chromeStorage()); /* DI: local instance — no namespace slot */
   var HL = globalThis.HL;
   /* Module guard — same convention as the rest of the core: HL rides on globalThis
      (in a real page window === globalThis; globalThis also works in unit tests) */
@@ -147,7 +147,7 @@ import { popView as view } from "./popup-view.js";
   els.btnTheme.addEventListener('click', async function () {
     var next = THEME_KEYS[(THEME_KEYS.indexOf(pop.validTheme(state.settings)) + 1) % THEME_KEYS.length];
     try {
-      state.settings = await HL.store.setSettings({ theme: next });
+      state.settings = await store.setSettings({ theme: next });
     } catch (e) {
       toast('ذخیره تنظیمات ناموفق بود', 'error');
       return;
@@ -161,7 +161,7 @@ import { popView as view } from "./popup-view.js";
   async function renderGeneric() {
     view.showGeneric(els);
     let n = 0;
-    try { n = (await HL.store.getAllRecords()).size; }
+    try { n = (await store.getAllRecords()).size; }
     catch (e) { n = 0; }
     view.setGenericTotal(els, n);
   }
@@ -175,18 +175,18 @@ import { popView as view } from "./popup-view.js";
     /* Real favicon — dataURL captured from the page itself (hlx:f:<host>);
        without it the first letter stays (fallback) */
     var favIcon = null;
-    try { var fm = await HL.store.getFavicon(host); favIcon = (fm && fm.icon) || null; }
+    try { var fm = await store.getFavicon(host); favIcon = (fm && fm.icon) || null; }
     catch (e) { favIcon = null; }
     view.fillPageCard(els, { title: state.tab.title || hostLabel, host: host, favicon: favIcon });
 
-    try { state.settings = await HL.store.getSettings(); }
+    try { state.settings = await store.getSettings(); }
     catch (e) { state.settings = Object.assign({}, DEFAULT_SETTINGS); }
 
     const hosts = (state.settings && state.settings.disabledHosts) || [];
     setSwitch(hosts.indexOf(host) === -1);
     els.toggleHost.textContent = hostLabel;
 
-    try { state.recs = await HL.store.getForUrl(state.nu.norm, host); }
+    try { state.recs = await store.getForUrl(state.nu.norm, host); }
     catch (e) { state.recs = new Map(); }
     if (!state.recs) state.recs = new Map();
 
@@ -218,7 +218,7 @@ import { popView as view } from "./popup-view.js";
     const next = !state.on;
     const list = pop.nextDisabledHosts((state.settings && state.settings.disabledHosts) || [], host, next);
     try {
-      state.settings = await HL.store.setSettings({ disabledHosts: list });
+      state.settings = await store.setSettings({ disabledHosts: list });
       setSwitch(next);
       showApplied();
     } catch (e) {
@@ -230,7 +230,7 @@ import { popView as view } from "./popup-view.js";
 
   async function doExport() {
     try {
-      const b = await HL.store.exportData();
+      const b = await store.exportData();
       exportTools.saveBackup(b);
       toast('فایل بک‌آپ دانلود شد');
     } catch (e) {
@@ -246,13 +246,13 @@ import { popView as view } from "./popup-view.js";
 
     /* Theme: applied before any rendering (theme-boot.js's anti-flash has already
        put the forced theme on <html>; here we sync it with the real settings) */
-    try { state.settings = await HL.store.getSettings(); }
+    try { state.settings = await store.getSettings(); }
     catch (e) { state.settings = Object.assign({}, DEFAULT_SETTINGS); }
     HL.applyThemeNow(state.settings.theme);
     view.renderThemeBtn(els, pop.validTheme(state.settings));
 
     /* Live sync: settings changes (e.g. theme) from another tab's dashboard */
-    HL.store.onSettingsChanged(function (s) {
+    store.onSettingsChanged(function (s) {
       state.settings = s || Object.assign({}, DEFAULT_SETTINGS);
       HL.applyThemeNow(state.settings.theme);
       view.renderThemeBtn(els, pop.validTheme(state.settings));

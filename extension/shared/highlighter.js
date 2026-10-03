@@ -8,13 +8,13 @@
  *   - text-selection/click/Escape events
  *
  * DIP: no platform dependency (chrome.*) here; everything is injected via cfg:
- * (module imports: text/dom/util/clipboard/ui/anchor — HL.store stays a dynamic slot)
+ * (module imports: text/dom/util/clipboard/ui/anchor — store is injected (cfg.store) — no HL.store slot anymore)
  * Since v1.2.9 the record set is encapsulated behind count/has/get/each +
  * adoptRecord/forgetRecord/resetRecords (was: the raw recs Map leaked to callers).
  *   cfg.page      { url, norm, site, host, title? }  — page context (title optional)
  *   cfg.scope     root element (document.body or any scoped container)
  *   cfg.eventRoot event root (document or the same scope)
- *   cfg.store     an HL.createStore instance (default HL.store)
+ *   cfg.store     an HL.createStore instance (required — composition root injects)
  *   cfg.hooks     optional hooks:
  *     canShowToolbar() → bool    (content: settings/site disabled; default: always true)
  *     defaultColor()   → key     (content: user setting; default: 'yellow')
@@ -30,7 +30,7 @@
 import { text as textIndex } from "./textindex.js"; /* alias: selectionCtx has a local `text` string */
 import { anchor } from "./anchor.js";
 import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine — 16 HL.dom reads collapse to this binding */
-/* 7c-1: shared-file wave — util/clipboard/ui bindings (call-time HL.store kept: dynamic singleton) */
+/* 7c-1: shared-file wave — util/clipboard/ui bindings (store via cfg injection) */
 import { util } from "./utils.js";
 import { clipboard } from "./clipboard.js";
 import { ui } from "./ui/base.js";
@@ -43,8 +43,8 @@ import { ui } from "./ui/base.js";
     var page = cfg.page || { url: '', norm: '', site: '', host: '' };
     var scope = cfg.scope || document.body;
     var eventRoot = cfg.eventRoot || document;
-    var store = cfg.store || HL.store;
-    if (!store) throw new Error('HL.createHighlighter: store تزریق نشده است (HL.store یا cfg.store).');
+    var store = cfg.store; /* injected by the composition root — no namespace lookup */
+    if (!store) throw new Error('HL.createHighlighter: store تزریق نشده است (cfg.store).');
 
     var hooks = cfg.hooks || {};
     var onError = hooks.onError || function () { /* silent */ };

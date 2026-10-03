@@ -61,7 +61,7 @@ import { dashView as view } from "./dashboard-view.js";
  * on CARDS; a collapsed section simply hides everything inside it).
  * Article tags (v1.2.15): tag state (tagMap) + the onAddTag/onRemoveTag
  * handlers live here; the row is built by the view, the rules come from
- * HL.tags (shared/tags.js) and the persistence from HL.store (hlx:tags).
+ * HL.tags (shared/tags.js) and the persistence from the injected store (hlx:tags).
  * Lifecycle: delete-group cleans tags eagerly; item-by-item emptying is
  * swept by the orphan pruning on every successful reload (a FAILED records
  * read never prunes — recordsOk guard).
@@ -85,7 +85,7 @@ import { dashView as view } from "./dashboard-view.js";
 
   /* ---------- Composition root ---------- */
 
-  globalThis.HL.store = globalThis.HL.store || createStore(backends.chromeStorage()); /* dynamic slot — kept on the namespace */
+  const store = createStore(backends.chromeStorage()); /* DI: local instance — no namespace slot */
   var HL = globalThis.HL;
       
   function $(id) { return document.getElementById(id); }
@@ -167,7 +167,7 @@ import { dashView as view } from "./dashboard-view.js";
   async function reload(hard) {
     let recordsOk = true;
     try {
-      const m = await HL.store.getAllRecords();
+      const m = await store.getAllRecords();
       records = Array.from(m.values());
     } catch (e) {
       records = [];
@@ -175,13 +175,13 @@ import { dashView as view } from "./dashboard-view.js";
       toast('خواندن داده‌ها ناموفق بود', 'error');
     }
     /* Captured favicons (hlx:f:<host>) — without them the first letter stays */
-    try { favicons = await HL.store.getFaviconMap() || {}; }
+    try { favicons = await store.getFaviconMap() || {}; }
     catch (e) { favicons = {}; }
     /* Article tags (hlx:tags, v1.2.15) — a read failure degrades to “no tags”, never blocks the list */
-    try { tagMap = await HL.store.getTags() || {}; }
+    try { tagMap = await store.getTags() || {}; }
     catch (e) { tagMap = {}; }
     if (hard) {
-      try { settings = await HL.store.getSettings(); }
+      try { settings = await store.getSettings(); }
       catch (e) { settings = Object.assign({}, DEFAULT_SETTINGS); }
       HL.applyThemeNow(settings.theme);
       renderSettingsPanel();
@@ -203,7 +203,7 @@ import { dashView as view } from "./dashboard-view.js";
   }
 
   function renderSize() {
-    HL.store.getBytesInUse().then(function (b) {
+    store.getBytesInUse().then(function (b) {
       els.sizeBadge.textContent = dash.fmtBytes(b);
     }).catch(function () { els.sizeBadge.textContent = '—'; });
   }
@@ -218,9 +218,9 @@ import { dashView as view } from "./dashboard-view.js";
       catch (e) { toast('بازکردن صفحه ناموفق بود', 'error'); }
     },
     onDeleteGroup: function (g) {
-      HL.store.removeForUrl(g.key, g.host).then(function () {
+      store.removeForUrl(g.key, g.host).then(function () {
         /* Tags are article-scoped: deleting the article's highlights takes its tags too */
-        HL.store.removeArticleTags(g.key).catch(function () { /* best-effort cleanup */ });
+        store.removeArticleTags(g.key).catch(function () { /* best-effort cleanup */ });
         toast('هایلایت‌های این صفحه حذف شد', 'success');
         reload(false);
       }).catch(function () {
@@ -257,7 +257,7 @@ import { dashView as view } from "./dashboard-view.js";
       copyText(rec.text || '');
     },
     onDelete: function (rec) {
-      HL.store.remove(rec.id, rec.host).then(function () {
+      store.remove(rec.id, rec.host).then(function () {
         toast('هایلایت حذف شد', 'success');
         reload(false);
       }).catch(function () {
@@ -283,7 +283,7 @@ import { dashView as view } from "./dashboard-view.js";
       var cur = tagMap[g.key] || [];
       if (tags.hasTag(cur, tag)) { toast('این برچسب روی این مقاله هست', 'info'); return; }
       if (cur.length >= TAG_MAX_PER_ARTICLE) { toast('حداکثر ' + dash.faNum(TAG_MAX_PER_ARTICLE) + ' برچسب برای هر مقاله', 'error'); return; }
-      HL.store.setArticleTags(g.key, cur.concat([tag])).then(function () {
+      store.setArticleTags(g.key, cur.concat([tag])).then(function () {
         toast('برچسب «' + tag + '» اضافه شد', 'success');
         reload(false);
       }).catch(function () {
@@ -292,7 +292,7 @@ import { dashView as view } from "./dashboard-view.js";
     },
     onRemoveTag: function (g, tag) {
       var next = (tagMap[g.key] || []).filter(function (t) { return t !== tag; });
-      HL.store.setArticleTags(g.key, next).then(function () {
+      store.setArticleTags(g.key, next).then(function () {
         toast('برچسب حذف شد', 'success');
         reload(false);
       }).catch(function () {
@@ -417,7 +417,7 @@ import { dashView as view } from "./dashboard-view.js";
   function pruneOrphanTags(recordsOk) {
     if (!recordsOk) return; /* a failed records read must never wipe tags */
     dash.orphanTagKeys(tagMap, records).forEach(function (k) {
-      HL.store.removeArticleTags(k).catch(function () { /* best-effort */ });
+      store.removeArticleTags(k).catch(function () { /* best-effort */ });
     });
   }
 
@@ -475,7 +475,7 @@ import { dashView as view } from "./dashboard-view.js";
 
   els.btnExport.addEventListener('click', async function () {
     try {
-      const b = await HL.store.exportData();
+      const b = await store.exportData();
       const n = (b.meta && b.meta.count) || 0;
       exportTools.saveBackup(b);
       toast('فایل بک‌آپ با ' + dash.faNum(n) + ' هایلایت دانلود شد', 'success');
@@ -612,7 +612,7 @@ import { dashView as view } from "./dashboard-view.js";
     const mode = checked ? checked.value : 'merge';
     els.impGo.disabled = true;
     try {
-      const r = await HL.store.importData(pendingBackup, mode);
+      const r = await store.importData(pendingBackup, mode);
       toast(dash.faNum(r.added) + ' مورد اضافه، ' + dash.faNum(r.updated) + ' به‌روزرسانی، ' + dash.faNum(r.skipped) + ' رد شد', 'success');
       closeModal();
       await reload(true);
@@ -675,7 +675,7 @@ import { dashView as view } from "./dashboard-view.js";
     /* Besides being saved, the theme also takes immediate visual effect (optimistic — rolled back on failure) */
     if (patch.theme !== undefined) HL.applyThemeNow(settings.theme);
     try {
-      await HL.store.setSettings(patch);
+      await store.setSettings(patch);
       return true;
     } catch (e) {
       settings = prev;
@@ -757,9 +757,9 @@ import { dashView as view } from "./dashboard-view.js";
     if (els.dangerInput.value.trim() !== 'حذف') return;
     els.dangerGo.disabled = true;
     try {
-      await HL.store.clearAll();
+      await store.clearAll();
       /* User settings must survive (clearAll wipes every hlx key) */
-      await HL.store.setSettings(settings);
+      await store.setSettings(settings);
       toast('همه‌ی هایلایت‌ها و یادداشت‌ها حذف شد', 'success');
       resetDanger();
       await reload(true);
@@ -796,9 +796,9 @@ import { dashView as view } from "./dashboard-view.js";
     /* Live sync: data changes in another tab → re-read with a 400ms debounce.
        Article tags (v1.2.15) sync the same way — hlx:tags changes re-read the
        whole view (records+tags) so cards and the filter row stay consistent. */
-    HL.store.onRecordsChanged(util.debounce(function () { reload(false); }, 400));
-    HL.store.onTagsChanged(util.debounce(function () { reload(false); }, 400));
-    HL.store.onSettingsChanged(function (s) {
+    store.onRecordsChanged(util.debounce(function () { reload(false); }, 400));
+    store.onTagsChanged(util.debounce(function () { reload(false); }, 400));
+    store.onSettingsChanged(function (s) {
       settings = s || Object.assign({}, DEFAULT_SETTINGS);
       renderSettingsPanel();
       HL.applyThemeNow(settings.theme);

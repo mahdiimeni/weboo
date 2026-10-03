@@ -23,7 +23,7 @@ import { dom } from "../shared/domwrap.js";
 import { createHighlighter } from "../shared/highlighter.js";
 import { favicon } from "./favicon.js";
 /* 7c-1: shared-file wave — the orchestrator's remaining HL.* reads collapse to bindings.
-   HL.store stays a namespace slot (dynamic singleton assigned below, read across worlds). */
+   store is a local instance injected into the highlighter — no namespace slot. */
 import { MSG, GOTO_HASH_PREFIX } from "../shared/constants.js";
 import { backends } from "../shared/backends/chrome-storage.js";
 import { url } from "../shared/url.js";
@@ -42,7 +42,7 @@ import { ui } from "../shared/ui/base.js";
 
   /* ---------- Composition root ---------- */
 
-  HL.store = HL.store || createStore(backends.chromeStorage());
+  const store = createStore(backends.chromeStorage()); /* DI: local instance — no namespace slot */
 
   var state = {
     settings: null,
@@ -61,7 +61,7 @@ import { ui } from "../shared/ui/base.js";
     page: page,
     scope: document.body,
     eventRoot: document,
-    store: HL.store,
+    store, /* DI */
     hooks: {
       canShowToolbar: function () {
         return !state.disabled && !!(state.settings && state.settings.showToolbar);
@@ -87,7 +87,7 @@ import { ui } from "../shared/ui/base.js";
   function captureSiteFavicon() {
     if (state.disabled || state.faviconDone || !page.host) return;
     if (location.protocol !== 'http:' && location.protocol !== 'https:') { state.faviconDone = true; return; }
-    favicon.captureSiteFavicon(HL.store, page.host, document, location)
+    favicon.captureSiteFavicon(store, page.host, document, location)
       .then(function () { state.faviconDone = true; }); /* failures too — this page load won't retry */
   }
 
@@ -128,7 +128,7 @@ import { ui } from "../shared/ui/base.js";
 
   /* Load the records of the CURRENT page key and apply them (boot + SPA nav). */
   async function loadPageRecords(seq) {
-    var fresh = await HL.store.getForUrl(page.norm, page.host);
+    var fresh = await store.getForUrl(page.norm, page.host);
     if (seq !== navSeq) return; /* a newer navigation won the race */
     fresh.forEach(function (rec) { hl.adoptRecord(rec); });
     applyAllRecords();
@@ -223,7 +223,7 @@ import { ui } from "../shared/ui/base.js";
 
   /* ---------- Live sync with storage ---------- */
 
-  HL.store.onSettingsChanged(function (s) {
+  store.onSettingsChanged(function (s) {
     ui.setTheme(s && s.theme); /* floating widgets get the same extension UI theme */
     var wasDisabled = state.disabled;
     state.settings = s;
@@ -243,7 +243,7 @@ import { ui } from "../shared/ui/base.js";
     }
   });
 
-  HL.store.onRecordsChanged(function () { syncFromStorage(); });
+  store.onRecordsChanged(function () { syncFromStorage(); });
 
   var syncing = false;
   async function syncFromStorage() {
@@ -251,7 +251,7 @@ import { ui } from "../shared/ui/base.js";
     syncing = true;
     try {
       var seq = navSeq;
-      var fresh = await HL.store.getForUrl(page.norm, page.host);
+      var fresh = await store.getForUrl(page.norm, page.host);
       if (seq !== navSeq) return; /* SPA navigation happened mid-read — that data belongs to the old key */
       /* Removed ones (e.g. from the dashboard) */
       hl.each(function (rec, id) {
@@ -318,7 +318,7 @@ import { ui } from "../shared/ui/base.js";
       setTimeout(boot, 300);
       return;
     }
-    state.settings = await HL.store.getSettings();
+    state.settings = await store.getSettings();
     var here = url.normalizeUrl(location.href);
     if (here && (here.norm !== page.norm || here.host !== page.host)) hl.setPage(here); /* navigated while settings loaded */
     state.disabled = !!((state.settings.disabledHosts || []).indexOf(page.host) !== -1);

@@ -5,7 +5,7 @@
  * already-grouped, already-ordered articles (groupRecords output with the
  * controller's readingOrderItems order and tag enrichment) and renders the
  * export document. Where the data comes from and how the file is delivered
- * (filename/download) are other modules' concerns (HL.store / HL.export);
+ * (filename/download) are other modules' concerns (the injected store / HL.export);
  * the ordering decision is the data layer's (dash.readingOrderItems) — this
  * builder is order-agnostic and renders the items array exactly as given.
  *

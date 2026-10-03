@@ -60,8 +60,10 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
  *
  * DIP: this module is a factory — HL.createStore(backend) — and instead of a
  * direct chrome.storage dependency it accepts any backend implementing the
- * port contract (chrome-storage / in-memory). Wiring HL.store happens in the
- * "composition root" of each entry point (content/popup/dashboard/SW).
+ * port contract (chrome-storage / in-memory). Wiring happens in the
+ * "composition root" of each entry point: content/popup/dashboard build a
+ * LOCAL store and inject it (cfg.store for the highlighter — no namespace
+ * slot); the SW wires the read-only reader.
  *
  * Write/read consistency:
  *  - writes are read-modify-write; to prevent data being swallowed by
