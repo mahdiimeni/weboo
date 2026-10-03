@@ -13,3 +13,5 @@ src/**/*.js
 # WXT (Phase 6) build artifacts
 .output/
 .wxt/
+# workspace meta (agent plans/scratch) — not extension content
+.hermes/
