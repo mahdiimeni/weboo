@@ -2087,3 +2087,21 @@ Stage Summary:
 - Both pages are now one classic anti-flash script + one ES module entry; the MVC trios and page-only shared files are real modules with explicit deps
 - Page-side live HL reads = HL.store slot (28) + HL.applyThemeNow (5) + doc comments — everything else imported
 - Remaining: optional HL.store -> DI at composition roots (content.js + both entries share the slot pattern — deliberate, needs a design decision); theme-boot stays classic by design (anti-flash); orphan tests/e2e/popover-page.html still classic-tagged (zero references)
+
+---
+Task ID: 80
+Agent: main (Hermes)
+Task: Modernization Phase 7c-4 — store leaves the namespace (DI at composition roots) + orphan fixture removed
+
+Done:
+- HL.store namespace slot eliminated ENTIRELY (grep-verified zero code references left): the three composition roots now hold a LOCAL instance — content.js `const store = createStore(backends.chromeStorage())` (5 reads collapsed, highlighter gets `store,` via cfg), popup.js (9), dashboard.js (19). The `HL.store || createStore(...)` double-init guard is gone: each page creates exactly once by construction.
+- highlighter.js: `var store = cfg.store` — the namespace fallback is removed and the wiring error now names only cfg.store. Verified every createHighlighter caller (content + all test sites) passes `store:` explicitly; no test asserts the old error string.
+- Stale comments fixed where they asserted the slot (store.ts DIP paragraph now documents local-instance + cfg.store injection; markdown-export header; highlighter header). store.js re-emitted (0 HL.store occurrences).
+- Deleted tests/e2e/popover-page.html — orphan fixture (zero code references anywhere; only worklog history mentions it). It loaded extension shared files via classic tags from file://, which cannot work since 7b anyway.
+- E2E rig truth-hardening follow-up: next-compat's extension-load probe raced its own 40x600ms window once right after a real-theme run (false "extension did not load"; same build passed 16/16 on immediate re-run). Budget extended to ~48s and the failure path now logs every chrome-extension target it saw — diagnosable instead of a bare verdict.
+- Gates: unit 646/0/2497 · lint 0 · typecheck 0 · parity OK (44 byte-identical, manifest 13 keys) · zip 54 / 179,676 B · real-theme exit 0 (contentScriptInjected true, popup cycle -> light -> dark) · next-compat 16/16 (hardened probe) · dashboard smoke 0 exceptions · SW smoke: HL wired, 0 exceptions.
+
+Stage Summary:
+- The only globalThis.HL state left is: namespace ASSIGNMENTS serving page readers (HL.ui.X, HL.backends.X, HL.pop/dash/markdown/booklet facades), HL.applyThemeNow (theme-boot classic contract), identity export tails, and doc comments — no dynamic cross-context slots
+- Phase 12 (remove globalThis.HL entirely) now has a concrete path: roots already inject; remaining work is turning namespace assigns into imports at their reader sites + retiring identity tails
+- Next per plan (docs/migration-baseline.md §8): Phase 7 formalize dashboard selectors (verify/no-op audit), Phase 8 dashboard React view layer, Phase 9 popup React decision, Phase 11 benchmarks, Phase 12 HL removal
