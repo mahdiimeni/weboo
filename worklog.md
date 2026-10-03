@@ -2046,3 +2046,24 @@ Stage Summary:
 - content/highlighter orchestrators are now import-driven for every shared file they touch; the HL namespace remains only for page glue (HL.store slot, popup/dashboard page files, SW-side reads) and not-yet-imported shared files (format, detect-dir, tags, ui-toast/toolbar/popover keep HL reads — they load before their readers in both bundle and pages)
 - popup/dashboard are real module pages; theme-boot is the deliberate classic anchor
 - Remaining shrink surface: format/detect-dir/tags + ui internal reads (importers arrive with the popup/dashboard single module entry), page files (popup-*/dashboard-*/domkit/export/*) as importable modules, SW named imports
+
+---
+Task ID: 78
+Agent: main (Hermes)
+Task: Modernization Phase 7c-2 — content side fully import-driven (format/detect-dir/tags + ui internals + SW named imports)
+
+Done:
+- constants.js exports grew 2 -> 12 (MSG, GOTO_HASH_PREFIX, APP_NAME, APP_ID, BACKUP_FORMAT, VERSION, COLORS, COLOR_KEYS, THEME_KEYS, TAG_MAX_LEN, TAG_MAX_PER_ARTICLE, DEFAULT_SETTINGS — all assigned once at load, static bindings safe). New src/shared/constants.d.ts types the seam for TS consumers (domwrap.d.ts precedent; loose members, tighten per importer).
+- Converted the last three emitted shared files: format.ts imports COLORS + export format; tags.ts imports TAG_MAX_LEN/TAG_MAX_PER_ARTICLE + export tags (typed surface: normalizeTagMap/sanitizeTagList — store.ts consumes these); detect-dir.ts export detectDir (no internal reads).
+- store.ts fully import-driven: imports {APP_ID, APP_NAME, BACKUP_FORMAT, VERSION, COLORS, DEFAULT_SETTINGS} from constants + {tags as tagRules} — alias avoids shadowing by the setArticleTagsRaw(urlNorm, tags) param and the exportData local. 11 read sites collapsed; createStoreReader exported for the SW. Kept: HL.createStore/HL.createStoreReader assignments (page glue), error-message strings verbatim.
+- ui internals collapsed: base imports THEME_KEYS (+ exports uiBase); toast imports uiBase (2); toolbar imports uiBase + COLORS/COLOR_KEYS (6); popover imports uiBase/detectDir/format/util/COLORS/COLOR_KEYS (16 code reads -> 6 bindings). Every ui file keeps its HL.ui.X = X line — page readers (popup/dashboard) resolve widgets through the namespace; one mutated object, identity holds.
+- stragglers: domwrap imports util (cssEscape); runtime-bridge imports VERSION (2 code + 1 doc mention).
+- SW composition root: named imports {backends} + {createStoreReader}, side-effect imports kept for constants/tags (IIFE reads HL.MSG/DEFAULT_SETTINGS, reader paths normalize via HL.tags); stale "shared/*.js have no exports" comment fixed. One-line root: HL.reader = createStoreReader(backends.chromeStorage()).
+- Tripwires final-form: emitted test = ALL 8 emitted files must contain module syntax (classic branch retired); converted+classic describes replaced by ONE manifest-driven invariant — all 20 content_scripts files must carry module syntax (bundle must carry ZERO, asserted separately). 646 tests (net -1: two describes merged into one).
+- Content-side live HL reads after this wave: 9 x HL.store (the dynamic singleton slot — assigned by content, read across worlds; import impossible without DI refactor) + 1 comment. Namespace ASSIGNMENTS (HL.ui.X, HL.backends.X) stay by design for page readers.
+- Gates: unit 646/0/2505 · lint 0 · typecheck 0 · parity OK (44 byte-identical, manifest 13 keys) · zip 54 / 178,721 B · real-theme exit 0 (popup cycle -> light -> dark, storage.theme = dark) · next-compat 16/16 · SW smoke 0 (target registers, HL wired: VERSION/reader/MSG/tags/createStore/backends, 0 exceptions) · dashboard smoke clean.
+
+Stage Summary:
+- The content path (manifest 20 files) is now 100% ES modules with real import edges; remaining HL.* are the intentional HL.store slot and namespace assignments that serve page consumers
+- SW shows its real deps (backends, createStoreReader) as named imports; constants/tags remain side-effect imports by design
+- Remaining shrink surface: page files (popup-*/dashboard-*/domkit/export/markdown-export/booklet-export/theme-boot) toward a single module entry per page; utils/export layering reads if any importer needs them; optional HL.store -> DI at composition root (bigger, deliberate)
