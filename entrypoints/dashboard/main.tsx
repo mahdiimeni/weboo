@@ -1,26 +1,23 @@
 /**
  * Phase 8 Task 4 — switchover bridge + React mounts.
  *
- * Two owners share the page during the transition:
- *  1. the imperative controller (dashboard.js) boots as a side-effect import
- *     and keeps every NOT-yet-ported region (list, modals, drawer, theme…);
- *  2. React owns the ported regions slice-by-slice — one createRoot per
- *     region host (createRoot takes over the host's children; the markup
- *     contract is byte-equal, ids/classes are load-bearing).
+ * Phase 8 Task 5 — the controller is RETIRED: React owns every region (one
+ * createRoot per region host; createRoot takes over the host's children —
+ * the markup contracts are byte-equal, ids/classes are load-bearing), the
+ * drawer frame chrome lives in chrome.ts (imperative over the static shell),
+ * and data.ts is the single data + action layer.
  *
- * Data: data.ts starts once (store instance + subscriptions) and feeds the
- * region roots via useSyncExternalStore.
- *
- * Slices ported: 1 (stats) · 2 (hosts) · 3 (bulk) · 7 (settings) · 6
- * (empty/load-more) · 4 (toolbar + the whole list). Since slice 4 the
- * controller holds no list state and renders no list DOM.
+ * Ported: 1 (stats) · 2 (hosts) · 3 (bulk) · 7 (settings) · 6
+ * (empty/load-more) · 4 (toolbar + list) · 5 (modals) · Task 5 (topbar,
+ * restore/drawer sections, danger zone).
  */
 import { createRoot } from "react-dom/client";
-import "../../extension/dashboard/dashboard.js";
-import { StatsRegion, HostsRegion, BulkRegion, ThemeRegion, DotsRegion, SwitchesRegion, EmptyRegion, MoreRegion, ToolbarRegion, ListRegion, PreviewModalRegion, RestoreModalRegion, BookletModalRegion } from "../../src/dashboard/App";
+import { StatsRegion, HostsRegion, BulkRegion, ThemeRegion, DotsRegion, SwitchesRegion, EmptyRegion, MoreRegion, ToolbarRegion, ListRegion, PreviewModalRegion, RestoreModalRegion, BookletModalRegion, TopbarActionsRegion, RestoreSectionRegion, DangerSectionRegion } from "../../src/dashboard/App";
 import { startData } from "../../src/dashboard/data";
+import { initDrawerChrome } from "../../src/dashboard/chrome";
 
 startData();
+initDrawerChrome();
 
 const mounts: Array<[Element, React.ReactElement]> = [];
 
@@ -62,5 +59,14 @@ if (restoreModalHost) mounts.push([restoreModalHost, <RestoreModalRegion />]);
 
 const bookletModalHost = document.getElementById("booklet-modal-host");
 if (bookletModalHost) mounts.push([bookletModalHost, <BookletModalRegion />]);
+
+const topbarHost = document.querySelector(".topbar-actions");
+if (topbarHost) mounts.push([topbarHost, <TopbarActionsRegion />]);
+
+const restoreSecHost = document.getElementById("restore-sec-host");
+if (restoreSecHost) mounts.push([restoreSecHost, <RestoreSectionRegion />]);
+
+const dangerSecHost = document.getElementById("danger-sec-host");
+if (dangerSecHost) mounts.push([dangerSecHost, <DangerSectionRegion />]);
 
 mounts.forEach(([host, el]) => { createRoot(host).render(el); });

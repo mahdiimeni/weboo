@@ -41,6 +41,7 @@ import { tags as tagRules } from "../../extension/shared/tags.js";
 import { util } from "../../extension/shared/utils.js";
 import { clipboard } from "../../extension/shared/clipboard.js";
 import { GOTO_HASH_PREFIX, TAG_MAX_LEN, TAG_MAX_PER_ARTICLE } from "../../extension/shared/constants.js";
+import { APP_ID } from "../../extension/shared/constants.js";
 import { exportTools } from "../../extension/shared/export.js";
 import { markdown } from "../../extension/shared/markdown-export.js";
 import { booklet } from "../../extension/shared/booklet-export.js";
@@ -76,6 +77,13 @@ export interface DashboardData {
   visibleLimit: number;
   /** the highlight preview window's record (v0.6.1) — session state */
   preview: HighlightRecord | null;
+  /** the settings drawer + booklet modal open states — session chrome */
+  drawerOpen: boolean;
+  bookletOpen: boolean;
+  /** the validated backup awaiting the restore modal's mode choice */
+  stagedBackup: Record<string, unknown> | null;
+  /** storage size for the topbar badge (bytes; null until first read) */
+  bytesInUse: number | null;
 }
 
 let state: DashboardData = {
@@ -89,6 +97,10 @@ let state: DashboardData = {
   collapsedSections: new Set(),
   visibleLimit: 50,
   preview: null,
+  drawerOpen: false,
+  bookletOpen: false,
+  stagedBackup: null,
+  bytesInUse: null,
 };
 const listeners = new Set<() => void>();
 let started = false;
@@ -118,9 +130,18 @@ function mergeFilters(patch: Partial<Filters>, resetLimit: boolean): void {
   });
 }
 
+/** The theme-boot contract: the classic first script defines HL.applyThemeNow
+ *  (anti-flash window) — every theme change re-applies it immediately. */
+function applyThemeNow(theme: string | undefined): void {
+  const HL = (globalThis as unknown as { HL?: { applyThemeNow?: (t: string) => void } }).HL;
+  try { HL?.applyThemeNow?.(theme || "auto"); } catch (e) { /* best-effort */ }
+}
+
 async function reloadSettings(): Promise<void> {
   try {
-    setState({ settings: (await store.getSettings()) as Settings });
+    const s = (await store.getSettings()) as Settings;
+    setState({ settings: s });
+    applyThemeNow(s.theme);
   } catch (e) { /* keep the previous snapshot */ }
 }
 
@@ -142,6 +163,8 @@ async function refreshAll(): Promise<void> {
   }
   try { favicons = (await store.getFaviconMap()) || {}; } catch (e) { /* degrade to no favicons */ }
   try { tagMap = (await store.getTags()) || {}; } catch (e) { /* degrade to no tags */ }
+  let bytesInUse = state.bytesInUse;
+  try { bytesInUse = await store.getBytesInUse(); } catch (e) { /* keep the previous badge */ }
 
   /* syncTagSelection (v1.2.15): a selected tag that no longer exists anywhere
      can't stay active — otherwise the list would show a phantom empty state
@@ -160,7 +183,7 @@ async function refreshAll(): Promise<void> {
     if (changed) filters = { ...filters, tags: next };
   }
 
-  setState({ records, favicons, tagMap, filters });
+  setState({ records, favicons, tagMap, filters, bytesInUse });
 
   /* boot collapse policy (v1.2.14): the first pass that has groups seeds the
      collapse set — an empty first render leaves the flag unset (same contract
@@ -196,7 +219,12 @@ export function startData(): void {
      (the controller's exact policy). Settings ride their own lighter path. */
   store.onRecordsChanged(util.debounce(() => { void refreshAll(); }, 400));
   store.onTagsChanged(util.debounce(() => { void refreshAll(); }, 400));
-  store.onSettingsChanged((s) => { setState({ settings: s as Settings }); });
+  store.onSettingsChanged((s) => {
+    setState({ settings: s as Settings });
+    /* the controller's live re-apply contract: a theme change from another
+       context (or the replace-mode import) takes effect here immediately */
+    applyThemeNow((s as Settings).theme);
+  });
 }
 
 /* ---------- actions (optimistic + rollback, see header) ---------- */
@@ -345,6 +373,55 @@ export function openPreview(rec: HighlightRecord): void {
 
 export function closePreview(): void {
   setState({ preview: null });
+}
+
+/* ---------- page chrome states (drawer, booklet modal) ---------- */
+
+export function setDrawerOpen(open: boolean): void {
+  setState({ drawerOpen: open });
+}
+
+export function setBookletOpen(open: boolean): void {
+  setState({ bookletOpen: open });
+}
+
+/* ---------- topbar export + the restore file flow ---------- */
+
+export async function exportBackup(): Promise<void> {
+  try {
+    const b = await store.exportData();
+    const n = (b.meta && b.meta.count) || 0;
+    exportTools.saveBackup(b);
+    toast("فایل بک‌آپ با " + dash.faNum(n) + " هایلایت دانلود شد", "success");
+  } catch (e) {
+    toast("خروجی گرفتن ناموفق بود", "error");
+  }
+}
+
+/** The restore flow's file stage: read + parse + validate, then stage for
+ *  the modal (the old fileInput change handler, verbatim toasts). */
+export function acceptBackupFile(file: File): void {
+  const reader = new FileReader();
+  reader.onerror = () => { toast("خواندن فایل ناموفق بود", "error"); };
+  reader.onload = () => {
+    let data: Record<string, unknown> | null = null;
+    try { data = JSON.parse(String(reader.result)); } catch (e) { data = null; }
+    if (!data || data.app !== APP_ID || !data.highlights || typeof data.highlights !== "object") {
+      toast("فایل معتبر نیست", "error");
+      return;
+    }
+    setState({ stagedBackup: data });
+  };
+  try { reader.readAsText(file, "utf-8"); }
+  catch (e) { toast("خواندن فایل ناموفق بود", "error"); }
+}
+
+export function clearStagedBackup(): void {
+  setState({ stagedBackup: null });
+}
+
+export async function clearAll(): Promise<void> {
+  await store.clearAll();
 }
 
 /* ---------- backup import (the restore modal's action) ---------- */

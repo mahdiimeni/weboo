@@ -14,8 +14,9 @@ import { createElement } from "react";
 import { StatsStrip } from "../../src/dashboard/components/StatsStrip";
 import { DisabledHosts } from "../../src/dashboard/components/DisabledHosts";
 import { BulkToggle } from "../../src/dashboard/components/BulkToggle";
-import { dashView } from "../../extension/dashboard/dashboard-view.js";
 import { THEME_KEYS, THEMES, COLORS } from "../../extension/shared/constants.js";
+import { BULK_ACTION_META } from "../../src/dashboard/components/BulkToggle";
+import { THEME_HINTS } from "../../src/dashboard/components/ThemeRadios";
 import { ThemeRadios } from "../../src/dashboard/components/ThemeRadios";
 import { ColorDots } from "../../src/dashboard/components/ColorDots";
 import { BehaviorSwitches } from "../../src/dashboard/components/BehaviorSwitches";
@@ -255,7 +256,7 @@ describe("BulkToggle (Phase 8 slice 3)", () => {
     const { root } = mount(<BulkToggle action="expand" onApply={() => {}} />, bar);
     await tick();
     const btn = bar.querySelector("button#btn-bulk") as HTMLElement;
-    const meta = dashView.BULK_ACTION_META.expand;
+    const meta = BULK_ACTION_META.expand;
     expect(btn.getAttribute("title")).toBe(meta.title);
     expect(btn.querySelector(".bt-lbl")?.textContent).toBe(meta.label);
     expect(btn.querySelector(".bt-ic")?.getAttribute("aria-hidden")).toBe("true");
@@ -268,7 +269,7 @@ describe("BulkToggle (Phase 8 slice 3)", () => {
     const { root } = mount(<BulkToggle action="collapse" onApply={() => {}} />, bar);
     await tick();
     const btn = bar.querySelector("button#btn-bulk") as HTMLElement;
-    const meta = dashView.BULK_ACTION_META.collapse;
+    const meta = BULK_ACTION_META.collapse;
     expect(btn.getAttribute("title")).toBe(meta.title);
     expect(btn.querySelector(".bt-lbl")?.textContent).toBe(meta.label);
     expect(btn.querySelectorAll(".bt-ic polyline").length).toBe(2);
@@ -307,7 +308,7 @@ describe("ThemeRadios + ColorDots + BehaviorSwitches (Phase 8 slice 7)", () => {
       const key = THEME_KEYS[i];
       expect(lab.querySelector("input")?.getAttribute("value")).toBe(key);
       expect(lab.querySelector("strong")?.textContent).toBe(THEMES[key].label);
-      expect(lab.querySelector(".muted.small")?.textContent).toBe(dashView.THEME_HINTS[key]);
+      expect(lab.querySelector(".muted.small")?.textContent).toBe(THEME_HINTS[key]);
       expect((lab.querySelector("input") as HTMLInputElement).checked).toBe(key === "auto");
     });
     root.unmount();

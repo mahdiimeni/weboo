@@ -31,19 +31,9 @@
            (the .set-sec.restore-sec below — data management lives with data
            management). One explicit action-row height keeps every control
            aligned (CSS .topbar-actions). -->
-      <div class="topbar-actions">
-        <button type="button" class="btn btn-ghost" id="btn-booklet">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-          کتابچه
-        </button>
-        <button type="button" class="btn btn-primary btn-icon" id="btn-export" aria-label="خروجی پشتیبان" title="خروجی پشتیبان">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        </button>
-        <button type="button" class="btn btn-ghost btn-icon" id="btn-settings" aria-label="تنظیمات" title="تنظیمات" aria-haspopup="dialog" aria-controls="drawer">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
-        </button>
-        <span class="size-badge" id="size-badge" title="حجم داده‌های ذخیره‌شده روی دستگاه">—</span>
-      </div>
+      <!-- Phase 8 Task 5: React host — TopbarActionsRegion renders the exact
+           three buttons + size badge this container held -->
+      <div class="topbar-actions" id="topbar-actions-host"></div>
     </div>
   </header>
 
@@ -178,35 +168,14 @@
         </div>
       </section>
 
-      <!-- Backup restore (v0.6.3) — moved here from the topbar: data management
-           lives with data management (the danger zone below is the same family;
-           its advice already points at the header's «خروجی پشتیبان»). The
-           button keeps its id — the controller's wiring is position-blind
-           ($('btn-import') + the hidden #file-input flow are untouched). -->
-      <section class="set-sec restore-sec">
-        <h3>بازیابی بک‌آپ</h3>
-        <p class="muted small">فایل پشتیبان JSON را انتخاب کن؛ پیش از اجرا، حالت ادغام یا جایگزینی کامل پرسیده می‌شود.</p>
-        <button type="button" class="btn btn-ghost" id="btn-import">
-          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          بازیابی بک‌آپ
-        </button>
-      </section>
+      <!-- Phase 8 Task 5: React host — RestoreSectionRegion renders the exact
+           .set-sec.restore-sec this placeholder replaced (button + hidden
+           file input; the import modal opens from data.ts's stagedBackup) -->
+      <div id="restore-sec-host"></div>
 
-      <section class="set-sec danger-zone">
-        <h3>
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          منطقه‌ی خطر
-        </h3>
-        <p class="muted small">این عمل غیرقابل بازگشت است؛ پیشنهاد می‌کنیم ابتدا «خروجی پشتیبان» بگیرید.</p>
-        <div class="danger-flow">
-          <button type="button" class="btn btn-danger" id="danger-btn">حذف همه‌ی هایلایت‌ها و یادداشت‌ها</button>
-          <div class="danger-confirm" id="danger-confirm" hidden>
-            <input type="text" id="danger-input" placeholder="برای تایید، کلمه «حذف» را بنویس" aria-label="تایید حذف">
-            <button type="button" class="btn btn-danger" id="danger-go" disabled>تایید و حذف</button>
-            <button type="button" class="btn btn-ghost" id="danger-cancel">انصراف</button>
-          </div>
-        </div>
-      </section>
+      <!-- Phase 8 Task 5: React host — DangerSectionRegion renders the exact
+           .set-sec.danger-zone three-step confirmation this placeholder replaced -->
+      <div id="danger-sec-host"></div>
 
     </div>
   </aside>

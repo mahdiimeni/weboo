@@ -36,6 +36,8 @@ import {
   importBackup,
   buildMarkdownExport,
   buildBookletExport,
+  clearStagedBackup,
+  setBookletOpen,
   toggleCard,
   flipItemOrder,
   toggleSection,
@@ -52,7 +54,7 @@ import {
 import { toast } from "./toast";
 import type { ThemeKey } from "../types/settings";
 import type { HighlightColor } from "../types/highlight";
-import { modalBridge } from "../../extension/dashboard/dashboard.js";
+
 import { dash } from "../../extension/dashboard/dashboard-data.js";
 import type { Group, GroupCardHandlers } from "./components/GroupCard";
 import { StatsStrip } from "./components/StatsStrip";
@@ -65,7 +67,9 @@ import { ColorDots } from "./components/ColorDots";
 import { BehaviorSwitches } from "./components/BehaviorSwitches";
 import { Toolbar } from "./components/Toolbar";
 import { DirSection } from "./components/DirSection";
-import { PreviewModal, RestoreModal, BookletModal, useModalRequest } from "./components/Modals";
+import { PreviewModal, RestoreModal, BookletModal } from "./components/Modals";
+import { TopbarActionsRegion, RestoreSectionRegion, DangerSectionRegion } from "./components/PageChrome";
+export { TopbarActionsRegion, RestoreSectionRegion, DangerSectionRegion };
 
 /** Region root 1 — mounted into <section class="stats"> (slice 1). */
 export function StatsRegion() {
@@ -195,17 +199,22 @@ export function PreviewModalRegion() {
 }
 
 export function RestoreModalRegion() {
-  const [req, close] = useModalRequest("restore", modalBridge);
-  return <RestoreModal req={req} onClose={close} onImport={importBackup} />;
+  const { stagedBackup } = useSyncExternalStore(subscribeData, getData);
+  return (
+    <RestoreModal
+      req={{ open: !!stagedBackup, payload: stagedBackup ? { kind: "restore", backup: stagedBackup } : null }}
+      onClose={clearStagedBackup}
+      onImport={async (backup, mode) => { await importBackup(backup, mode); }}
+    />
+  );
 }
 
 export function BookletModalRegion() {
-  const [req, close] = useModalRequest("booklet", modalBridge);
-  const { records } = useSyncExternalStore(subscribeData, getData);
+  const { bookletOpen, records } = useSyncExternalStore(subscribeData, getData);
   return (
     <BookletModal
-      req={req}
-      onClose={close}
+      req={{ open: bookletOpen, payload: { kind: "booklet" } }}
+      onClose={() => setBookletOpen(false)}
       stats={dash.computeStats(records)}
       onMarkdown={buildMarkdownExport}
       onBooklet={buildBookletExport}

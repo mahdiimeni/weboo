@@ -73,32 +73,23 @@ describe("یکپارچگی بسته (packaging)", () => {
   });
 
   test("هر اسکریپت ارجاع‌شده در dashboard.html وجود دارد", () => {
-    /* Phase 8 switchover: the page is the WXT entrypoint TEMPLATE
-       (entrypoints/dashboard/index.html — subdir index.html is WXT's
-       convention; it emits dashboard.html at the package root) — output-rooted
-       asset paths + one module entry that bridges to the still-byte-copied
-       controller. The load-order contract keeps living in the controller's
-       import list (parsed below). */
+    /* Phase 8 Task 5: the controller is retired — the page's module graph is
+       the React entry's (ESM imports carry no load-order contract anymore;
+       every dep is statically reachable). The template carries theme-boot
+       (classic, anti-flash) + the one module entry; the entry bridges to the
+       React regions + data layer directly. */
     const html = readFile(ext("..", "entrypoints", "dashboard", "index.html"));
     const srcs = [...html.matchAll(/<script[^>]*src="([^"]+)"><\/script>/g)].map((m) => m[1]);
     expect(srcs).toEqual(["/shared/theme-boot.js", "./main.tsx"]);
     expect(exists(ext("shared", "theme-boot.js"))).toBe(true);
     const entry = readFile(ext("..", "entrypoints", "dashboard", "main.tsx"));
-    expect(entry).toContain('import "../../extension/dashboard/dashboard.js"');
-    const names = [...readFile(ext("dashboard", "dashboard.js")).matchAll(/^import\s+(?:[^"']*?from\s+)?["']([^"']+)["']/gm)].map((m) => m[1]);
-    /* slice 4: the controller is the platform+modal layer — no list state, no
-       list DOM; the tags/format/detect-dir/domkit/clipboard imports moved to
-       the data layer (src/dashboard/data.ts) and the React regions. */
-    expect(names.length).toBeGreaterThanOrEqual(9);
-    for (const sp of names) expect(exists(ext("dashboard", sp))).toBe(true);
-    expect(names.indexOf("../shared/constants.js")).toBeLessThan(names.indexOf("../shared/backends/chrome-storage.js"));
-    expect(names.indexOf("../shared/backends/chrome-storage.js")).toBeLessThan(names.indexOf("../shared/store.js"));
-    expect(names.indexOf("../shared/store.js")).toBeLessThan(names.indexOf("./dashboard-data.js"));
-    expect(names.indexOf("./dashboard-data.js")).toBeLessThan(names.indexOf("./dashboard-view.js"));
-    /* reading exports (v0.6.0): both document builders are imported before
-       their consumer (dashboard-data's facade feeds exportGroups) */
-    expect(names.indexOf("../shared/markdown-export.js")).toBeLessThan(names.indexOf("./dashboard-data.js"));
-    expect(names.indexOf("../shared/booklet-export.js")).toBeLessThan(names.indexOf("./dashboard-data.js"));
+    expect(entry).toContain('from "../../src/dashboard/App"');
+    expect(entry).toContain('from "../../src/dashboard/data"');
+    expect(entry).toContain('from "../../src/dashboard/chrome"');
+    /* the retired controller leaves no dangling references */
+    expect(exists(ext("dashboard", "dashboard.js"))).toBe(false);
+    expect(exists(ext("dashboard", "dashboard-view.js"))).toBe(false);
+    expect(entry).not.toContain("dashboard.js");
   });
 });
 

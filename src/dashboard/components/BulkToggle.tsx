@@ -8,10 +8,22 @@
  * byte-equal: button#btn-bulk.btn.btn-ghost.bulk-toggle (hidden when there
  * is no action) > .bt-ic[aria-hidden] (chevrons) + .bt-lbl (label).
  *
- * The meta (label/title/icon choice) stays the single source in
- * dashboard-view.js until Task 5 retires the view with it.
+ * The meta lives with the component (the view retired with Task 5).
  */
-import { dashView } from "../../../extension/dashboard/dashboard-view.js";
+/* Persian presentation of the two bulk modes (ex-dashView.BULK_ACTION_META —
+   the view retired with Task 5; the component owns its labels now). */
+export const BULK_ACTION_META: Record<string, { icon: string; label: string; title: string }> = {
+  expand: {
+    icon: "chevsDown",
+    label: "باز کردن همه‌ی مقاله‌ها",
+    title: "همه‌ی کارت مقاله‌ها باز می‌شوند و همه‌ی هایلایت‌های بارگذاری‌نشده هم بارگذاری می‌شوند",
+  },
+  collapse: {
+    icon: "chevsUp",
+    label: "بستن همه‌ی مقاله‌ها",
+    title: "همه‌ی کارت مقاله‌ها بسته می‌شوند و همه‌ی هایلایت‌های بارگذاری‌نشده هم بارگذاری می‌شوند؛ با باز کردن هر مقاله، هایلایت‌هایش کامل نمایش داده می‌شوند",
+  },
+};
 
 const CHEVS = {
   expand: (
@@ -31,7 +43,7 @@ const CHEVS = {
 };
 
 export function BulkToggle({ action, onApply }: { action: string; onApply: () => void }) {
-  const meta = action ? dashView.BULK_ACTION_META[action] : null;
+  const meta = action ? BULK_ACTION_META[action] : null;
   return (
     <button
       type="button"
