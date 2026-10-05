@@ -16,7 +16,8 @@
  */
 import { createRoot } from "react-dom/client";
 import "../../extension/dashboard/dashboard.js";
-import { StatsRegion, HostsRegion } from "../../src/dashboard/App";
+import { bulkBridge } from "../../extension/dashboard/dashboard.js";
+import { StatsRegion, HostsRegion, BulkRegion } from "../../src/dashboard/App";
 import { startData } from "../../src/dashboard/data";
 
 startData();
@@ -28,5 +29,8 @@ if (statsHost) mounts.push([statsHost, <StatsRegion />]);
 
 const hostsHost = document.getElementById("host-chips")?.closest(".set-sec");
 if (hostsHost) mounts.push([hostsHost, <HostsRegion />]);
+
+const bulkHost = document.querySelector(".list-bar");
+if (bulkHost) mounts.push([bulkHost, <BulkRegion />]);
 
 mounts.forEach(([host, el]) => { createRoot(host).render(el); });

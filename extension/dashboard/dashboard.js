@@ -37,7 +37,7 @@ import { dashView as view } from "./dashboard-view.js";
  * to Infinity through the UNTOUCHED paginate (remaining/overflow become 0
  * everywhere, load-more hides). The decision is the data layer's (dash.
  * bulkAction — recomputed fresh at click time, never a stale snapshot) and
- * the presentation is the view's (view.renderBulkToggle); this controller
+ * the presentation is React's (slice 3, BulkToggle); this controller
  * only owns the two state containers they read/write: collapsedGroups and
  * the module-level `groups` (the same single groupRecords computation
  * renderList already performed — now also readable by the click handler).
@@ -124,7 +124,6 @@ import { dashView as view } from "./dashboard-view.js";
     fNotes: $('f-notes'),
     fSort: $('f-sort'),
     groups: $('groups'),
-    btnBulk: $('btn-bulk'),
     loadMore: $('load-more'),
     empty: $('empty'),
     emptyTitle: $('empty-title'),
@@ -297,8 +296,9 @@ import { dashView as view } from "./dashboard-view.js";
     if (!filtered.length) {
       groups = [];
       els.loadMore.hidden = true;
-      view.renderBulkToggle(els.btnBulk, ''); /* no cards → no bulk toggle (v0.3.0) */
+      bulkState = ''; /* no cards → no bulk toggle (v0.3.0) */
       view.renderEmptyState(els.empty, els.emptyTitle, els.emptySub, records.length > 0);
+      publishBulk();
       return;
     }
     els.empty.hidden = true;
@@ -360,8 +360,11 @@ import { dashView as view } from "./dashboard-view.js";
     });
     view.renderLoadMore(els.loadMore, page.overflow);
     /* The bulk button presents its NEXT action — dash.bulkAction's fresh
-       decision over the filtered groups + the user-owned collapse set. */
-    view.renderBulkToggle(els.btnBulk, dash.bulkAction(groups, collapsedGroups));
+       decision over the filtered groups + the user-owned collapse set.
+       Phase 8 slice 3: published to the React region instead of written to
+       the DOM. */
+    bulkState = dash.bulkAction(groups, collapsedGroups);
+    publishBulk();
   }
 
   /* ---------- Copy (single implementation in HL.clipboard — dashboard-specific toast) ---------- */
@@ -450,15 +453,33 @@ import { dashView as view } from "./dashboard-view.js";
        complete list — remaining=0 everywhere (no "…N مورد دیگر" placeholders)
        and overflow=0 (load-more hides). A later filter change resets the limit
        to 50 exactly as before. */
-    els.btnBulk.addEventListener('click', function () {
+  }
+
+  /* ---------- Bulk bar bridge (Phase 8 slice 3) ----------
+     The button itself is a React region now (main.tsx → BulkRegion →
+     BulkToggle); the authoritative list state stays here until slice 4
+     moves the list render into React — then this bridge retires into
+     data.ts. apply() keeps the click handler's exact logic. */
+  const bulkListeners = new Set();
+  let bulkState = ''; /* '' = hidden */
+  function publishBulk() {
+    bulkListeners.forEach(function (l) { l(); });
+  }
+  HL.bulkBridge = {
+    subscribe: function (cb) {
+      bulkListeners.add(cb);
+      return function () { bulkListeners.delete(cb); };
+    },
+    getSnapshot: function () { return bulkState; },
+    apply: function () {
       const action = dash.bulkAction(groups, collapsedGroups);
       if (action !== 'expand' && action !== 'collapse') return;
       if (action === 'expand') collapsedGroups.clear();
       else groups.forEach(function (g) { collapsedGroups.add(g.key); });
       visibleLimit = Infinity;
       renderList();
-    });
-  }
+    }
+  };
 
   /* ---------- Export / restore ---------- */
 
@@ -784,3 +805,6 @@ import { dashView as view } from "./dashboard-view.js";
 
   init();
 })();
+
+/* Phase 8 slice 3: identity tail — the React region imports the bridge */
+export const bulkBridge = globalThis.HL.bulkBridge;

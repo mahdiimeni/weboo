@@ -1136,7 +1136,10 @@ import { dash } from "./dashboard-data.js"; /* 7c-3 */
     fillHighlightPreview: fillHighlightPreview,
     renderEmptyState: renderEmptyState,
     renderLoadMore: renderLoadMore,
-    renderBulkToggle: renderBulkToggle
+    renderBulkToggle: renderBulkToggle,
+    /* Phase 8 slice 3: the React BulkToggle reads the same meta until the
+       view retires (Task 5) — one source for the labels/titles/icons. */
+    BULK_ACTION_META: BULK_ACTION_META
   };
 })();
 

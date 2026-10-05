@@ -13,6 +13,8 @@ import { createRoot } from "react-dom/client";
 import { createElement } from "react";
 import { StatsStrip } from "../../src/dashboard/components/StatsStrip";
 import { DisabledHosts } from "../../src/dashboard/components/DisabledHosts";
+import { BulkToggle } from "../../src/dashboard/components/BulkToggle";
+import { dashView } from "../../extension/dashboard/dashboard-view.js";
 import { dash } from "../../extension/dashboard/dashboard-data.js";
 
 beforeEach(() => { setupDom(); });
@@ -208,6 +210,72 @@ describe("DisabledHosts (Phase 8 slice 2)", () => {
     await tick();
     expect(toasts()[0].className).toContain("error");
     expect(toasts()[0].textContent).toBe("ذخیره تنظیمات ناموفق بود");
+    root.unmount();
+  });
+});
+
+describe("BulkToggle (Phase 8 slice 3)", () => {
+  /* the region host is .list-bar — React owns its children (the button) */
+  function listBar(): HTMLElement {
+    const bar = document.createElement("div");
+    bar.className = "list-bar";
+    document.body.appendChild(bar);
+    return bar;
+  }
+
+  test("static shell contract: #btn-bulk keeps id + classes", async () => {
+    const bar = listBar();
+    const { root } = mount(<BulkToggle action="expand" onApply={() => {}} />, bar);
+    await tick();
+    const btn = bar.querySelector("button#btn-bulk") as HTMLElement;
+    expect(btn.className).toBe("btn btn-ghost bulk-toggle");
+    expect(btn.hidden).toBe(false);
+    root.unmount();
+  });
+
+  test("no action ('') → button hidden, shell empty", async () => {
+    const bar = listBar();
+    const { root } = mount(<BulkToggle action="" onApply={() => {}} />, bar);
+    await tick();
+    const btn = bar.querySelector("button#btn-bulk") as HTMLElement;
+    expect(btn.hidden).toBe(true);
+    expect(btn.textContent).toBe("");
+    root.unmount();
+  });
+
+  test("expand: label + title + chevrons-down icon (meta from the single source)", async () => {
+    const bar = listBar();
+    const { root } = mount(<BulkToggle action="expand" onApply={() => {}} />, bar);
+    await tick();
+    const btn = bar.querySelector("button#btn-bulk") as HTMLElement;
+    const meta = dashView.BULK_ACTION_META.expand;
+    expect(btn.getAttribute("title")).toBe(meta.title);
+    expect(btn.querySelector(".bt-lbl")?.textContent).toBe(meta.label);
+    expect(btn.querySelector(".bt-ic")?.getAttribute("aria-hidden")).toBe("true");
+    expect(btn.querySelectorAll(".bt-ic polyline").length).toBe(2); /* two chevrons */
+    root.unmount();
+  });
+
+  test("collapse: label + title + chevrons-up icon", async () => {
+    const bar = listBar();
+    const { root } = mount(<BulkToggle action="collapse" onApply={() => {}} />, bar);
+    await tick();
+    const btn = bar.querySelector("button#btn-bulk") as HTMLElement;
+    const meta = dashView.BULK_ACTION_META.collapse;
+    expect(btn.getAttribute("title")).toBe(meta.title);
+    expect(btn.querySelector(".bt-lbl")?.textContent).toBe(meta.label);
+    expect(btn.querySelectorAll(".bt-ic polyline").length).toBe(2);
+    root.unmount();
+  });
+
+  test("click applies the action exactly once", async () => {
+    const bar = listBar();
+    let applied = 0;
+    const { root } = mount(<BulkToggle action="expand" onApply={() => { applied++; }} />, bar);
+    await tick();
+    (bar.querySelector("button#btn-bulk") as HTMLElement).click();
+    await tick();
+    expect(applied).toBe(1);
     root.unmount();
   });
 });
