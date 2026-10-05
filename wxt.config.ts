@@ -16,15 +16,19 @@ import { defineConfig } from "wxt";
 const manifest = JSON.parse(readFileSync("extension/manifest.json", "utf-8"));
 delete manifest.background; /* owned by entrypoints/background.ts (entry #1) */
 delete manifest.content_scripts; /* owned by entrypoints/content.ts (entry #2, 6b) — the file's js list stays the CANONICAL ORDER, pinned to the entrypoint imports by wxt-parity */
-/* action + options_ui: CONFIG-owned by design (6c). WXT's html entrypoint types
-   cannot preserve the shipped paths: entrypoints/popup.html would emit
+/* action: CONFIG-owned by design (6c) — popup stays byte-copied (publicDir)
+   behind the manifest pointer: a WXT popup.html entrypoint would emit
    default_popup "popup.html" at the root, where the page's relative
-   ../shared/* refs break; options.html/options/index.html would emit an
-   options page path that is not dashboard/dashboard.html. Both pages stay
-   byte-copied (publicDir) behind the config pointers — the output is
-   behavior-identical (parity proves file bytes + manifest values). Revisit
-   when popup/dashboard migrate to React: fresh entrypoints are written WITH
-   that rewrite, and WXT owns the manifest keys then. */
+   ../shared/* refs break. Phase 9 decides whether popup follows the
+   dashboard's path (fresh entrypoint written WITH the React rewrite).
+   options_ui: since Phase 8 Task 3 the dashboard IS a real entrypoint
+   (entrypoints/dashboard/index.html — subdir index.html is WXT's html
+   convention; a non-conventional name is SILENTLY ignored as an entrypoint,
+   which shipped a manifest pointing at a missing file and broke unpacked
+   loads). WXT flattens it to dashboard.html at the package root — the
+   manifest's copied options_ui.page carries exactly that value, so the key
+   needs no ownership transfer; wxt-parity §3b (existence + anti-flash
+   shape) and the packaging page-shape test own the generated page. */
 
 export default defineConfig({
   publicDir: "extension",

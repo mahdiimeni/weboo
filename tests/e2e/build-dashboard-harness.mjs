@@ -3,20 +3,29 @@
  * Web Highlighter — dashboard E2E harness builder
  *
  * The extension dashboard depends on chrome.* and won't open in a regular
- * browser; this script builds a copy of dashboard.html with a full chrome
+ * browser; this script builds a copy of the dashboard page with a full chrome
  * mock (storage.local + onChanged + runtime.getManifest) and sample data
  * injected before the shared scripts + window.open calls are recorded.
  *
  * Usage:   node tests/e2e/build-dashboard-harness.mjs
- * Output:  extension/dashboard/_e2e_harness.html  (open with file://)
- * ⚠️ Must be deleted before zip packaging (tests/e2e/run does exactly that at the end).
+ * Input:   entrypoints/dashboard/index.html  (Phase 8 WXT entrypoint template —
+ *          subdir index.html is WXT's convention; emitted as dashboard.html at root)
+ * Output:  extension/dashboard/_e2e_harness.html  (byte-copied into .output by
+ *          publicDir; load via chrome-extension://<id>/dashboard/_e2e_harness.html
+ *          — file:// cannot load the module graph since Phase 7b)
+ * ⚠️ Must be deleted before zip packaging (build-zip.mjs EXCLUDES it).
+ *
+ * The template's module entry (./main.tsx) is REPLACED by the byte-copied
+ * controller entry (dashboard.js): the bundle filename is hashed/unstable,
+ * while dashboard.js + its relative import graph ship verbatim in .output —
+ * identical behavior, stable anchor.
  */
 import { readFileSync, writeFileSync, rmSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-const SRC = join(ROOT, "extension", "dashboard", "dashboard.html");
+const SRC = join(ROOT, "entrypoints", "dashboard", "index.html");
 const OUT = join(ROOT, "extension", "dashboard", "_e2e_harness.html");
 
 /* version from the real manifest — the mock never hardcodes the version (single source) */
@@ -183,13 +192,14 @@ const MOCK = `<script>
 })();
 </script>`;
 
-if (!html.includes('<script type="module" src="dashboard.js"></script>')) {
-  console.error("anchor script tag not found in dashboard.html");
+const TEMPLATE_ENTRY = '<script type="module" src="./main.tsx"></script>';
+if (!html.includes(TEMPLATE_ENTRY)) {
+  console.error("anchor script tag not found in entrypoints/dashboard/index.html");
   process.exit(1);
 }
 
 const out = html.replace(
-  '<script type="module" src="dashboard.js"></script>',
+  TEMPLATE_ENTRY,
   MOCK + '\n  <script type="module" src="dashboard.js"></script>'
 );
 

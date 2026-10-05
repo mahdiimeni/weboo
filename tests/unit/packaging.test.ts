@@ -22,11 +22,17 @@ describe("یکپارچگی بسته (packaging)", () => {
       ...(manifest.content_scripts?.[0]?.js || []),
       manifest.background?.service_worker,
       manifest.action?.default_popup,
-      manifest.options_ui?.page,
     ];
     for (const f of files) {
       expect(exists(ext(f))).toBe(true);
     }
+    /* Phase 8 switchover: the options page is a WXT entrypoint
+       (entrypoints/dashboard/index.html) — GENERATED into .output at build
+       time, no longer byte-copied from extension/. WXT flattens subdir
+       index.html entrypoints to the package root, so the manifest pointer
+       is dashboard.html. Its existence + anti-flash shape in the OUTPUT are
+       owned by scripts/wxt-parity.mjs (§3b) and the page-shape test below. */
+    expect(manifest.options_ui?.page).toBe("dashboard.html");
     for (const icon of Object.values<any>(manifest.icons || {})) {
       expect(exists(ext(icon))).toBe(true);
     }
@@ -67,10 +73,18 @@ describe("یکپارچگی بسته (packaging)", () => {
   });
 
   test("هر اسکریپت ارجاع‌شده در dashboard.html وجود دارد", () => {
-    const html = readFile(ext("dashboard", "dashboard.html"));
+    /* Phase 8 switchover: the page is the WXT entrypoint TEMPLATE
+       (entrypoints/dashboard/index.html — subdir index.html is WXT's
+       convention; it emits dashboard.html at the package root) — output-rooted
+       asset paths + one module entry that bridges to the still-byte-copied
+       controller. The load-order contract keeps living in the controller's
+       import list (parsed below). */
+    const html = readFile(ext("..", "entrypoints", "dashboard", "index.html"));
     const srcs = [...html.matchAll(/<script[^>]*src="([^"]+)"><\/script>/g)].map((m) => m[1]);
-    expect(srcs).toEqual(["../shared/theme-boot.js", "dashboard.js"]);
-    for (const s of srcs) expect(exists(ext(s.startsWith("../") ? s.slice(3) : "dashboard/" + s))).toBe(true);
+    expect(srcs).toEqual(["/shared/theme-boot.js", "./main.tsx"]);
+    expect(exists(ext("shared", "theme-boot.js"))).toBe(true);
+    const entry = readFile(ext("..", "entrypoints", "dashboard", "main.tsx"));
+    expect(entry).toContain('import "../../extension/dashboard/dashboard.js"');
     const names = [...readFile(ext("dashboard", "dashboard.js")).matchAll(/^import\s+(?:[^"']*?from\s+)?["']([^"']+)["']/gm)].map((m) => m[1]);
     expect(names.length).toBeGreaterThanOrEqual(13);
     for (const sp of names) expect(exists(ext("dashboard", sp))).toBe(true);
@@ -132,11 +146,17 @@ describe("صفحات ماژولی (7c-1/7c-3)", () => {
        exclusively first. Everything else is ONE module entry whose import list
        is the page's load-order contract (7c-3). A classic tag on any converted
        file would SyntaxError it. */
-    const cases: Array<[string, string]> = [["popup/popup.html", "popup.js"], ["dashboard/dashboard.html", "dashboard.js"]];
-    for (const [page, entry] of cases) {
+    /* Phase 8: the dashboard side reads the WXT entrypoint template — same
+       anti-flash shape, output-rooted theme-boot path, module entry = the
+       main.tsx bridge. */
+    const cases: Array<[string, string, string]> = [
+      ["popup/popup.html", `src="../shared/theme-boot.js"`, `type="module" src="popup.js"`],
+      ["../entrypoints/dashboard/index.html", `src="/shared/theme-boot.js"`, `type="module" src="./main.tsx"`],
+    ];
+    for (const [page, boot, entry] of cases) {
       const html = readFile(ext(page));
       const tags = [...html.matchAll(/<script([^>]*)><\/script>/g)].map((m) => m[1].trim());
-      expect(tags).toEqual([`src="../shared/theme-boot.js"`, `type="module" src="${entry}"`]);
+      expect(tags).toEqual([boot, entry]);
     }
   });
 });
@@ -153,7 +173,8 @@ describe("نسخه‌ی واحد در کل افزونه", () => {
   test("popup.html و dashboard.html (لیبل استاتیک fallback)", () => {
     const popup = readFile(ext("popup", "popup.html"));
     expect(popup).toContain(`v${V}`);
-    const dash = readFile(ext("dashboard", "dashboard.html"));
+    /* Phase 8: the dashboard template lives in the WXT entrypoint now */
+    const dash = readFile(ext("..", "entrypoints", "dashboard", "index.html"));
     expect(dash).toContain(`v${V}`);
   });
 });

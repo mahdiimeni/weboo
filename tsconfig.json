@@ -19,11 +19,13 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "incremental": true
+    "incremental": true,
+    "jsx": "react-jsx"
   },
   "include": [
     "tests/**/*.ts",
     "entrypoints/**/*.ts",
+    "entrypoints/**/*.tsx",
     "src/**/*.ts"
   ],
   "exclude": [

@@ -137,8 +137,10 @@ import { popView as view } from "./popup-view.js";
    * Without a hash: previous behavior — just the dashboard page.
    */
   function openDashboard(hash) {
-    let url = 'dashboard/dashboard.html';
-    try { url = runtime.getURL('dashboard/dashboard.html'); } catch (e) { /* keep the default value */ }
+    /* Phase 8: the dashboard is a WXT entrypoint — emitted as dashboard.html
+       at the package root (WXT flattens subdir index.html entrypoints). */
+    let url = 'dashboard.html';
+    try { url = runtime.getURL('dashboard.html'); } catch (e) { /* keep the default value */ }
     createTab(url + (hash || '')).then(function () { window.close(); });
   }
 

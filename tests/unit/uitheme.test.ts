@@ -483,7 +483,9 @@ describe("قرارداد پنجره‌ی شناور کاملاً هوشمند �
      caption (17 → 15) while the ellipsis backstop stays. */
 
   const dashCss = () => readFile(ext("dashboard", "dashboard.css"));
-  const dashHtml = () => readFile(ext("dashboard", "dashboard.html"));
+  /* Phase 8: the page skeleton is the WXT entrypoint template now
+     (subdir index.html — WXT's convention; emits dashboard.html at root) */
+  const dashHtml = () => readFile(ext("..", "entrypoints", "dashboard", "index.html"));
 
   test("عنوان پنجره: ۱۵px (کوچک‌تر) + بی text-align قفل‌شده — چینش از dir خودِ متن", () => {
     const m = dashCss().match(/\.hl-head h2\s*\{([^}]*)\}/);

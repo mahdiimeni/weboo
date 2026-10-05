@@ -69,7 +69,7 @@ describe("runtime bridge — پل chrome.runtime", () => {
     const HL = await loadEngine({ chrome });
     expect(HL.runtime.available).toBe(true);
     expect(HL.runtime.manifestVersion()).toBe(HL.VERSION); /* mock reads from the real manifest (engine.ts) */
-    expect(HL.runtime.getURL("dashboard/dashboard.html")).toContain("dashboard");
+    expect(HL.runtime.getURL("dashboard.html")).toContain("dashboard"); /* Phase 8: entrypoint emitted at package root */
     let got: any = null;
     HL.runtime.onMessage((msg: any) => { got = msg; });
     (chrome as any).__msgListener({ type: "ping" }, {}, () => {});

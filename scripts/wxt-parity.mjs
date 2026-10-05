@@ -39,7 +39,7 @@ for (const f of srcFiles) {
 }
 
 // 2) extras: only files the output manifest itself references (entrypoint
-//    bundles) or anything under assets/, never stray files
+//    bundles) or bundle chunks/assets of GENERATED pages, never stray files
 const outM_pre = JSON.parse(readFileSync(join(OUT, "manifest.json"), "utf-8"));
 const referenced = new Set();
 if (outM_pre.background && outM_pre.background.service_worker) referenced.add(outM_pre.background.service_worker);
@@ -56,6 +56,7 @@ for (const f of outFiles) {
   if (f === "manifest.json") continue;
   if (referenced.has(f)) continue;
   if (f.startsWith("assets/")) continue;
+  if (f.startsWith("chunks/")) continue; /* WXT 0.21 emits entry-bundle chunks here (referenced from generated pages) */
   if (!srcFiles.includes(f)) problems.push(`unexpected extra in output: ${f}`);
 }
 
@@ -71,8 +72,15 @@ for (const f of srcFiles) {
 /* 3b) page-shape contract (Phase 8): whether byte-copied or generated, the
       options page must keep the anti-flash shape — classic theme-boot FIRST,
       exactly ONE module entry script (the entry bundle). Mirrors the unit
-      page-shape test at build level (fail-loud at packaging time). */
+      page-shape test at build level (fail-loud at packaging time).
+      Phase 8 finding: a missing page was previously skipped SILENTLY here
+      (WXT ignored the non-conventional entrypoints/dashboard/dashboard.html
+      name → no page emitted → Chrome rejected the whole unpacked load).
+      Existence is now a hard check. */
 const dashPage = outM_pre.options_ui && outM_pre.options_ui.page;
+if (dashPage && !outFiles.has(dashPage)) {
+  problems.push(`page contract: manifest options_ui.page ${dashPage} missing in output — entrypoint not emitted?`);
+}
 if (dashPage && outFiles.has(dashPage)) {
   const html = readFileSync(join(OUT, dashPage), "utf-8");
   const tags = [...html.matchAll(/<script\b([^>]*)\/?\s*>/gi)].map((m) => m[1]);
