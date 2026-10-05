@@ -41,6 +41,9 @@ import { tags as tagRules } from "../../extension/shared/tags.js";
 import { util } from "../../extension/shared/utils.js";
 import { clipboard } from "../../extension/shared/clipboard.js";
 import { GOTO_HASH_PREFIX, TAG_MAX_LEN, TAG_MAX_PER_ARTICLE } from "../../extension/shared/constants.js";
+import { exportTools } from "../../extension/shared/export.js";
+import { markdown } from "../../extension/shared/markdown-export.js";
+import { booklet } from "../../extension/shared/booklet-export.js";
 import type { HighlightRecord } from "../types/highlight";
 import type { Settings, ThemeKey } from "../types/settings";
 import { toast } from "./toast";
@@ -71,6 +74,8 @@ export interface DashboardData {
   collapsedSections: Set<string>;
   /** pagination window (50 → +50 per load-more → Infinity after bulk) */
   visibleLimit: number;
+  /** the highlight preview window's record (v0.6.1) — session state */
+  preview: HighlightRecord | null;
 }
 
 let state: DashboardData = {
@@ -83,6 +88,7 @@ let state: DashboardData = {
   reversedGroups: new Set(),
   collapsedSections: new Set(),
   visibleLimit: 50,
+  preview: null,
 };
 const listeners = new Set<() => void>();
 let started = false;
@@ -329,6 +335,80 @@ export function bulkApply(): void {
 
 export function loadMore(): void {
   setState({ visibleLimit: state.visibleLimit + 50 });
+}
+
+/* ---------- preview window (v0.6.1) ---------- */
+
+export function openPreview(rec: HighlightRecord): void {
+  setState({ preview: rec });
+}
+
+export function closePreview(): void {
+  setState({ preview: null });
+}
+
+/* ---------- backup import (the restore modal's action) ---------- */
+
+export async function importBackup(backup: Record<string, unknown>, mode: string): Promise<void> {
+  try {
+    const r = await store.importData(backup, mode);
+    toast(dash.faNum(r.added) + " مورد اضافه، " + dash.faNum(r.updated) + " به‌روزرسانی، " + dash.faNum(r.skipped) + " رد شد", "success");
+    void refreshAll();
+  } catch (e) {
+    /* the old imp-go contract: the modal stays open, the failure is toasted */
+    toast("بازیابی ناموفق بود" + (e && (e as Error).message ? ": " + (e as Error).message : ""), "error");
+    throw e;
+  }
+}
+
+/* ---------- reading exports (v0.6.0) — fresh at click time ---------- */
+
+async function exportGroups() {
+  const m = await store.getAllRecords();
+  const records = Array.from(m.values());
+  const tagMap = (await store.getTags()) || {};
+  const gs = dash.groupRecords(records, "newest");
+  gs.forEach((g: { key: string; items: never; tags?: string[] }) => {
+    (g as unknown as { items: unknown[] }).items = dash.readingOrderItems(g);
+    g.tags = tagMap[g.key] || [];
+  });
+  return gs;
+}
+
+export async function buildMarkdownExport(): Promise<void> {
+  const gs = await exportGroups();
+  if (!gs.length) { toast("هایلایتی برای خروجی وجود ندارد", "error"); return; }
+  let total = 0;
+  gs.forEach((g: { items: unknown[] }) => { total += g.items.length; });
+  try {
+    exportTools.downloadText(
+      exportTools.markdownFileName(),
+      markdown.buildLibraryMarkdown({ groups: gs, exportedAt: Date.now() }),
+      "text/markdown"
+    );
+    toast("فایل Markdown با " + dash.faNum(total) + " هایلایت دانلود شد", "success");
+  } catch (e) {
+    toast("خروجی Markdown ناموفق بود", "error");
+  }
+}
+
+export async function buildBookletExport(format: string, mode: string): Promise<void> {
+  const gs = await exportGroups();
+  if (!gs.length) { toast("هایلایتی برای خروجی وجود ندارد", "error"); return; }
+  let total = 0;
+  gs.forEach((g: { items: unknown[] }) => { total += g.items.length; });
+  try {
+    const html = booklet.buildBookletHtml({ groups: gs, mode: mode, exportedAt: Date.now() });
+    if (format === "pdf") {
+      exportTools.printHtml(html);
+      toast("پنجره‌ی چاپ باز شد — برای PDF گزینه‌ی «Save as PDF» را انتخاب کن", "info");
+    } else {
+      exportTools.downloadText(exportTools.bookletFileName(), html, "text/html");
+      toast("کتابچه HTML با " + dash.faNum(total) + " هایلایت دانلود شد", "success");
+    }
+  } catch (e) {
+    toast("ساخت کتابچه ناموفق بود", "error");
+  }
 }
 
 /* ---------- article tags (v1.2.15) — validation + persistence ---------- */

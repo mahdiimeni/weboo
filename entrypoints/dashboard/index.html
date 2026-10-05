@@ -211,91 +211,13 @@
     </div>
   </aside>
 
-  <!-- Backup restore modal -->
-  <div class="modal" id="modal" hidden>
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <h2 id="modal-title">بازیابی بک‌آپ</h2>
-      <div class="modal-summary" id="modal-summary"></div>
-      <div class="radio-list">
-        <label class="radio">
-          <input type="radio" name="imp-mode" value="merge" checked>
-          <span class="radio-txt">
-            <strong>ادغام (merge)</strong>
-            <span class="muted small">رکوردهای جدیدتر برنده می‌شوند؛ داده‌های فعلی حفظ می‌شوند.</span>
-          </span>
-        </label>
-        <label class="radio radio-danger">
-          <input type="radio" name="imp-mode" value="replace">
-          <span class="radio-txt">
-            <strong>جایگزینی کامل (replace)</strong>
-            <span class="warn small">همه‌ی داده‌های فعلی حذف می‌شوند!</span>
-          </span>
-        </label>
-      </div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" id="imp-cancel">انصراف</button>
-        <button type="button" class="btn btn-primary" id="imp-go">شروع بازیابی</button>
-      </div>
-    </div>
-  </div>
+  <!-- Phase 8 slice 5: React host — RestoreModal renders the exact
+       .modal#modal tree this placeholder replaced -->
+  <div id="restore-modal-host"></div>
 
-  <!-- Booklet & Markdown export modal (v0.6.0) — the reading-exports dialog:
-       same overlay/modal pattern as the restore modal, two format sections,
-       radios read at click time (the imp-mode contract) -->
-  <div class="modal" id="booklet-modal" hidden>
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="booklet-title">
-      <h2 id="booklet-title">کتابچه و Markdown</h2>
-      <div class="modal-summary" id="booklet-summary"></div>
-
-      <section class="exp-sec">
-        <h3>Markdown</h3>
-        <p class="muted small">برای Obsidian و هر ویرایشگر Markdown — کل کتابخانه در یک فایل، هر مقاله یک بخش.</p>
-        <button type="button" class="btn btn-primary" id="md-go">دریافت فایل Markdown</button>
-      </section>
-
-      <section class="exp-sec">
-        <h3>کتابچه چاپی</h3>
-        <p class="muted small">طراحی‌شده برای چاپ A4 — جلد، فهرست و هر مقاله در صفحه‌ای جدا.</p>
-        <div class="radio-list" role="radiogroup" aria-label="قالب کتابچه">
-          <label class="radio">
-            <input type="radio" name="bk-format" value="html" checked>
-            <span class="radio-txt">
-              <strong>فایل HTML</strong>
-              <span class="muted small">یک فایل آماده‌ی چاپ — در مرورگر باز کن و Ctrl+P بزن.</span>
-            </span>
-          </label>
-          <label class="radio">
-            <input type="radio" name="bk-format" value="pdf">
-            <span class="radio-txt">
-              <strong>PDF</strong>
-              <span class="muted small">پنجره‌ی چاپ مرورگر باز می‌شود — «Save as PDF» را انتخاب کن.</span>
-            </span>
-          </label>
-        </div>
-        <div class="radio-list" role="radiogroup" aria-label="حالت رنگ کتابچه">
-          <label class="radio">
-            <input type="radio" name="bk-color" value="color" checked>
-            <span class="radio-txt">
-              <strong>رنگی</strong>
-              <span class="muted small">با رنگ اصلی هایلایت‌ها</span>
-            </span>
-          </label>
-          <label class="radio">
-            <input type="radio" name="bk-color" value="bw">
-            <span class="radio-txt">
-              <strong>سیاه‌وسفید</strong>
-              <span class="muted small">جوهر کمتر — مناسب چاپگر معمولی</span>
-            </span>
-          </label>
-        </div>
-        <button type="button" class="btn btn-primary" id="bk-go">ساخت کتابچه</button>
-      </section>
-
-      <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" id="bk-cancel">بستن</button>
-      </div>
-    </div>
-  </div>
+  <!-- Phase 8 slice 5: React host — BookletModal renders the exact
+       .modal#booklet-modal tree this placeholder replaced -->
+  <div id="booklet-modal-host"></div>
 
   <!-- Highlight preview modal (v0.6.1) — the full-text floating window: the
        card excerpts (200/300 chars); clicking a highlight opens its WHOLE text
@@ -312,14 +234,7 @@
        owner's call): a click on the overlay OUTSIDE the card and Escape close
        the window; the card itself (tabindex="-1") is the programmatic focus
        anchor that keeps the keyboard context inside the dialog. -->
-  <div class="modal" id="hl-modal" hidden>
-    <div class="modal-card hl-card" id="hl-card" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="hl-title">
-      <div class="hl-head">
-        <h2 id="hl-title">متن کامل هایلایت</h2>
-      </div>
-      <div class="hl-body" id="hl-body"></div>
-    </div>
-  </div>
+  <div id="hl-modal-host"></div>
 
   <!-- Toasts -->
   <div class="toasts" id="toasts" aria-live="polite"></div>

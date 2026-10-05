@@ -17,7 +17,7 @@
  */
 import { createRoot } from "react-dom/client";
 import "../../extension/dashboard/dashboard.js";
-import { StatsRegion, HostsRegion, BulkRegion, ThemeRegion, DotsRegion, SwitchesRegion, EmptyRegion, MoreRegion, ToolbarRegion, ListRegion } from "../../src/dashboard/App";
+import { StatsRegion, HostsRegion, BulkRegion, ThemeRegion, DotsRegion, SwitchesRegion, EmptyRegion, MoreRegion, ToolbarRegion, ListRegion, PreviewModalRegion, RestoreModalRegion, BookletModalRegion } from "../../src/dashboard/App";
 import { startData } from "../../src/dashboard/data";
 
 startData();
@@ -53,5 +53,14 @@ if (emptyHost) mounts.push([emptyHost, <EmptyRegion />]);
 
 const moreHost = document.getElementById("load-more-host");
 if (moreHost) mounts.push([moreHost, <MoreRegion />]);
+
+const hlModalHost = document.getElementById("hl-modal-host");
+if (hlModalHost) mounts.push([hlModalHost, <PreviewModalRegion />]);
+
+const restoreModalHost = document.getElementById("restore-modal-host");
+if (restoreModalHost) mounts.push([restoreModalHost, <RestoreModalRegion />]);
+
+const bookletModalHost = document.getElementById("booklet-modal-host");
+if (bookletModalHost) mounts.push([bookletModalHost, <BookletModalRegion />]);
 
 mounts.forEach(([host, el]) => { createRoot(host).render(el); });

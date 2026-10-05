@@ -20,6 +20,7 @@ import { ThemeRadios } from "../../src/dashboard/components/ThemeRadios";
 import { ColorDots } from "../../src/dashboard/components/ColorDots";
 import { BehaviorSwitches } from "../../src/dashboard/components/BehaviorSwitches";
 import { EmptyState } from "../../src/dashboard/components/EmptyState";
+import { PreviewModal, RestoreModal, BookletModal } from "../../src/dashboard/components/Modals";
 import { LoadMore } from "../../src/dashboard/components/LoadMore";
 import { dash } from "../../extension/dashboard/dashboard-data.js";
 
@@ -444,5 +445,144 @@ describe("EmptyState + LoadMore (Phase 8 slice 6)", () => {
     await tick();
     expect(applied).toEqual([1]);
     root2.unmount();
+  });
+});
+
+describe("Modals (Phase 8 slice 5)", () => {
+  const REC = {
+    id: "w1", host: "fa.wikipedia.org", url: "https://fa.wikipedia.org/wiki/Persian",
+    urlNorm: "https://fa.wikipedia.org/wiki/Persian", title: "دانشنامه‌ی فارسی",
+    text: "مغز ما هنگام خواندن وارد گفت‌وگو می‌شود",
+    note: "ایده‌ی کلیدی: خواندن یعنی گفت‌وگو", color: "yellow", createdAt: 1700000000000, updatedAt: 1700000001000,
+  } as any;
+
+  test("PreviewModal: the v0.6.4 fully-smart skeleton — no X, card is the focus anchor", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const { root } = mount(<PreviewModal rec={REC} onClose={() => {}} />, host);
+    await tick();
+    const modal = host.querySelector("#hl-modal") as HTMLElement;
+    expect(modal.hidden).toBe(false);
+    const card = host.querySelector("#hl-card")!;
+    expect(card.getAttribute("tabindex")).toBe("-1"); /* the programmatic focus anchor */
+    expect(card.getAttribute("role")).toBe("dialog");
+    expect(card.getAttribute("aria-modal")).toBe("true");
+    expect(card.getAttribute("aria-labelledby")).toBe("hl-title");
+    expect(card.getAttribute("dir")).toBe("rtl"); /* frame follows the text's direction */
+    expect(host.querySelectorAll("#hl-card button").length).toBe(0); /* the X is GONE */
+    expect(host.querySelector("#hl-title")?.getAttribute("dir")).toBe("rtl");
+    expect(host.querySelector("#hl-title")?.textContent).toContain("دانشنامه‌ی فارسی");
+    expect(host.querySelector(".hl-quote-t")?.textContent).toBe(REC.text); /* FULL text, never excerpted */
+    expect(host.querySelector(".hl-quote")?.getAttribute("dir")).toBe("rtl");
+    expect(host.querySelector(".note")?.getAttribute("dir")).toBe("rtl"); /* note ROW direction */
+    expect(host.querySelector(".hl-meta-t")?.getAttribute("dir")).toBe("rtl"); /* date RTL island */
+    root.unmount();
+  });
+
+  test("PreviewModal: closed → hidden shell, no leftovers", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const { root } = mount(<PreviewModal rec={null} onClose={() => {}} />, host);
+    await tick();
+    expect((host.querySelector("#hl-modal") as HTMLElement).hidden).toBe(true);
+    expect(host.querySelector("#hl-card")).not.toBeNull(); /* skeleton stays, content empty */
+    expect(host.querySelector(".hl-quote-t")).toBeNull();
+    root.unmount();
+  });
+
+  test("PreviewModal: overlay click OUTSIDE the card closes; card clicks don't", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    let closed = 0;
+    const { root } = mount(<PreviewModal rec={REC} onClose={() => { closed++; }} />, host);
+    await tick();
+    (host.querySelector("#hl-modal") as HTMLElement).click();
+    await tick();
+    expect(closed).toBe(1);
+    (host.querySelector("#hl-card") as HTMLElement).click();
+    await tick();
+    expect(closed).toBe(1); /* clicks inside the card never count as the overlay */
+    root.unmount();
+  });
+
+  test("RestoreModal: byte-equal skeleton — title, summary rows, imp-mode radios, actions", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const backup = { name: "من", highlights: { a: {}, b: {}, c: {} }, exportedAt: 1700000000000, version: "0.6.7", meta: { count: 3 } };
+    const { root, host: h } = mount(<RestoreModal req={{ open: true, payload: { kind: "restore", backup } }} onClose={() => {}} onImport={async () => {}} />, host);
+    await tick();
+    expect((h.querySelector("#modal") as HTMLElement).hidden).toBe(false);
+    const rows = [...h.querySelectorAll("#modal-summary .sum-row")].map((r) => r.textContent);
+    expect(rows.length).toBe(4);
+    expect(rows[0]).toContain("نام مجموعه");
+    expect(rows[1]).toContain(dash.faNum(3));
+    expect(h.querySelectorAll('input[name="imp-mode"]').length).toBe(2);
+    expect((h.querySelector('input[name="imp-mode"][value="merge"]') as HTMLInputElement).checked).toBe(true);
+    expect(h.querySelector("#imp-cancel")?.textContent).toBe("انصراف");
+    expect((h.querySelector("#imp-go") as HTMLButtonElement).disabled).toBe(false);
+    root.unmount();
+  });
+
+  test("RestoreModal: import runs with the selected mode; success closes", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const calls: string[] = [];
+    const { root, host: h } = mount(
+      <RestoreModal
+        req={{ open: true, payload: { kind: "restore", backup: { highlights: {} } } }}
+        onClose={() => calls.push("close")}
+        onImport={async (b, mode) => { calls.push(mode); }}
+      />,
+      host
+    );
+    await tick();
+    (h.querySelector('input[name="imp-mode"][value="replace"]') as HTMLInputElement).click();
+    await tick();
+    (h.querySelector("#imp-go") as HTMLElement).click();
+    await tick();
+    expect(calls).toEqual(["replace", "close"]);
+    root.unmount();
+  });
+
+  test("BookletModal: summary from the SAME computeStats + radio groups read at click time", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const calls: Array<[string, string]> = [];
+    const { root, host: h } = mount(
+      <BookletModal
+        req={{ open: true, payload: { kind: "booklet" } }}
+        onClose={() => {}}
+        stats={{ total: 7, notes: 2, pages: 5, sites: 3 }}
+        onMarkdown={async () => { calls.push(["md", ""]); }}
+        onBooklet={async (f, m) => { calls.push([f, m]); }}
+      />,
+      host
+    );
+    await tick();
+    const rows = [...h.querySelectorAll("#booklet-summary .sum-row")].map((r) => r.textContent);
+    expect(rows.length).toBe(3);
+    expect(rows[0]).toContain(dash.faNum(7));
+    expect(h.querySelectorAll('input[name="bk-format"]').length).toBe(2);
+    expect(h.querySelectorAll('input[name="bk-color"]').length).toBe(2);
+    (h.querySelector('input[name="bk-format"][value="pdf"]') as HTMLInputElement).click();
+    await tick();
+    (h.querySelector("#bk-go") as HTMLElement).click();
+    await tick();
+    (h.querySelector("#md-go") as HTMLElement).click();
+    await tick();
+    expect(calls).toEqual([["pdf", "color"], ["md", ""]]);
+    root.unmount();
+  });
+
+  test("Escape closes an open modal", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    let closed = 0;
+    const { root } = mount(<PreviewModal rec={REC} onClose={() => { closed++; }} />, host);
+    await tick();
+    document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await tick();
+    expect(closed).toBe(1);
+    root.unmount();
   });
 });

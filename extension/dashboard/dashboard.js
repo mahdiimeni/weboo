@@ -12,15 +12,16 @@
  *   - the size badge (topbar) and the version label;
  *   - the settings drawer frame (open/close/hash deep-link) and its
  *     cross-context live theme re-apply (HL.applyThemeNow contract);
- *   - the three modals' chrome: restore (import), booklet/markdown export,
- *     and the highlight preview (v0.6.1) — opened by the React list through
- *     previewBridge;
+ *   - the modal OPEN REQUESTS: the restore flow (drawer button + file
+ *     picker + validation) and the booklet trigger open their React modals
+ *     through modalBridge (slice 5 — the modals themselves, their radio
+ *     groups and their export/import actions are React/data.ts now);
  *   - export/restore/danger flows, which read their data FRESH from the
  *     store at click time (no cached snapshot);
  *   - the Escape-key chain and the boot theme application.
  *
- * The view module (dashboard-view.js) survives only for the modal fill
- * builders + the shared toast until Task 5 retires it.
+ * The view module (dashboard-view.js) survives only for the shared toast
+ * until Task 5 retires it.
  */
 import { APP_ID, DEFAULT_SETTINGS, SETTINGS_HASH, VERSION } from "../shared/constants.js";
 import { backends } from "../shared/backends/chrome-storage.js";
@@ -49,11 +50,6 @@ import { dashView as view } from "./dashboard-view.js";
     btnExport: $('btn-export'),
     btnImport: $('btn-import'),
     btnBooklet: $('btn-booklet'),
-    bookletModal: $('booklet-modal'),
-    bookletSummary: $('booklet-summary'),
-    mdGo: $('md-go'),
-    bkGo: $('bk-go'),
-    bkCancel: $('bk-cancel'),
     btnSettings: $('btn-settings'),
     overlay: $('overlay'),
     drawer: $('drawer'),
@@ -63,20 +59,11 @@ import { dashView as view } from "./dashboard-view.js";
     dangerInput: $('danger-input'),
     dangerGo: $('danger-go'),
     dangerCancel: $('danger-cancel'),
-    modal: $('modal'),
-    modalSummary: $('modal-summary'),
-    impCancel: $('imp-cancel'),
-    impGo: $('imp-go'),
-    hlModal: $('hl-modal'),
-    hlCard: $('hl-card'),
-    hlTitle: $('hl-title'),
-    hlBody: $('hl-body'),
     toasts: $('toasts'),
     fileInput: $('file-input')
   };
 
   let settings = Object.assign({}, DEFAULT_SETTINGS);
-  let pendingBackup = null;
 
   function toast(msg, type) { view.toast(els.toasts, msg, type); }
 
@@ -118,143 +105,38 @@ import { dashView as view } from "./dashboard-view.js";
         toast('فایل معتبر نیست', 'error');
         return;
       }
-      pendingBackup = data;
-      view.fillModalSummary(els.modalSummary, data);
-      openModal();
+      modalBridge.openRestore(data);
     };
     try { reader.readAsText(f, 'utf-8'); }
     catch (e) { toast('خواندن فایل ناموفق بود', 'error'); }
   });
 
-  function openModal() { els.modal.hidden = false; }
-  function closeModal() {
-    els.modal.hidden = true;
-    pendingBackup = null;
+  /* ---------- Modal open requests (Phase 8 slice 5) ----------
+     The three modals are React regions now (main.tsx → PreviewModalRegion /
+     RestoreModalRegion / BookletModalRegion). The restore modal's DATA flow
+     stays here — the drawer's restore button + the file-picker + validation
+     are drawer chrome — and the booklet trigger is the topbar button; both
+     open their modal through this one-way request channel. The preview
+     window needs no bridge at all (the React list opens it through
+     data.ts's preview state). The exports' composition + the import write
+     live in data.ts; the modals call them directly. */
+  const modalListeners = new Set();
+  let modalRequest = null;
+  function requestModal(r) {
+    modalRequest = r;
+    modalListeners.forEach(function (l) { l(); });
   }
+  HL.modalBridge = {
+    subscribe: function (cb) {
+      modalListeners.add(cb);
+      return function () { modalListeners.delete(cb); };
+    },
+    getSnapshot: function () { return modalRequest; },
+    openRestore: function (backup) { requestModal({ kind: 'restore', backup: backup }); },
+    openBooklet: function () { requestModal({ kind: 'booklet' }); }
+  };
 
-  els.impCancel.addEventListener('click', closeModal);
-
-  /* ---------- Highlight preview modal wiring (v0.6.1) ----------
-     v0.6.4 — two ways out, the owner's contract: a click on the backdrop
-     OUTSIDE the card (ev.target === the overlay itself — clicks inside the
-     card never bubble up as the overlay) and Escape (the chain below).
-     Phase 8 slice 4: the React list opens this window through previewBridge
-     (the modal chrome stays here until slice 5 ports it). The body is
-     rebuilt from scratch on every open, so nothing from the previous
-     highlight survives (fillHighlightPreview clears) — and the frame's dir
-     is re-filled the same way (fillHighlightDir). */
-  function openPreview(rec) {
-    view.fillHighlightDir(els.hlCard, rec);
-    view.fillHighlightTitle(els.hlTitle, rec);
-    view.fillHighlightPreview(els.hlBody, rec);
-    els.hlModal.hidden = false;
-    try { els.hlCard.focus(); } catch (e) { /* noop */ }
-  }
-  function closeHlModal() { els.hlModal.hidden = true; }
-
-  els.hlModal.addEventListener('click', function (ev) {
-    if (ev.target === els.hlModal) closeHlModal();
-  });
-
-  /* ---------- Reading exports: Markdown + print booklet (v0.6.0) ---------- */
-
-  /** The export composition — the FULL library, fresh at click time:
-   *  groupRecords('newest') gives the article order (newest first) and each
-   *  group's dir (the same contentDir policy the cards render by);
-   *  readingOrderItems turns each article's highlights into reading order;
-   *  tags ride the groups exactly like they ride them into the cards.
-   *  Phase 8 slice 4: reads the store directly (the controller no longer
-   *  holds a records/tagMap snapshot). Pure inputs for pure builders. */
-  async function exportGroups() {
-    const m = await store.getAllRecords();
-    const records = Array.from(m.values());
-    const tagMap = (await store.getTags()) || {};
-    var gs = dash.groupRecords(records, 'newest');
-    gs.forEach(function (g) {
-      g.items = dash.readingOrderItems(g);
-      g.tags = tagMap[g.key] || [];
-    });
-    return gs;
-  }
-
-  /** The checked value of a named radio group — the imp-mode contract */
-  function radioValue(name) {
-    var checked = document.querySelector('input[name="' + name + '"]:checked');
-    return checked ? checked.value : '';
-  }
-
-  async function openBookletModal() {
-    const m = await store.getAllRecords();
-    view.fillBookletSummary(els.bookletSummary, dash.computeStats(Array.from(m.values())));
-    els.bookletModal.hidden = false;
-    try { els.bkCancel.focus(); } catch (e) { /* noop */ }
-  }
-
-  function closeBookletModal() { els.bookletModal.hidden = true; }
-
-  els.btnBooklet.addEventListener('click', function () { void openBookletModal(); });
-  els.bkCancel.addEventListener('click', closeBookletModal);
-
-  els.mdGo.addEventListener('click', async function () {
-    var gs = await exportGroups();
-    if (!gs.length) { toast('هایلایتی برای خروجی وجود ندارد', 'error'); return; }
-    var total = 0;
-    gs.forEach(function (g) { total += g.items.length; });
-    try {
-      exportTools.downloadText(
-        exportTools.markdownFileName(),
-        markdown.buildLibraryMarkdown({ groups: gs, exportedAt: Date.now() }),
-        'text/markdown'
-      );
-      toast('فایل Markdown با ' + dash.faNum(total) + ' هایلایت دانلود شد', 'success');
-    } catch (e) {
-      toast('خروجی Markdown ناموفق بود', 'error');
-    }
-  });
-
-  els.bkGo.addEventListener('click', async function () {
-    var gs = await exportGroups();
-    if (!gs.length) { toast('هایلایتی برای خروجی وجود ندارد', 'error'); return; }
-    var format = radioValue('bk-format') || 'html';
-    var mode = radioValue('bk-color') || 'color';
-    var total = 0;
-    gs.forEach(function (g) { total += g.items.length; });
-    try {
-      var html = booklet.buildBookletHtml({ groups: gs, mode: mode, exportedAt: Date.now() });
-      if (format === 'pdf') {
-        exportTools.printHtml(html);
-        toast('پنجره‌ی چاپ باز شد — برای PDF گزینه‌ی «Save as PDF» را انتخاب کن', 'info');
-      } else {
-        exportTools.downloadText(exportTools.bookletFileName(), html, 'text/html');
-        toast('کتابچه HTML با ' + dash.faNum(total) + ' هایلایت دانلود شد', 'success');
-      }
-    } catch (e) {
-      toast('ساخت کتابچه ناموفق بود', 'error');
-    }
-  });
-
-  els.impGo.addEventListener('click', async function () {
-    if (!pendingBackup) return;
-    const checked = document.querySelector('input[name="imp-mode"]:checked');
-    const mode = checked ? checked.value : 'merge';
-    els.impGo.disabled = true;
-    try {
-      const r = await store.importData(pendingBackup, mode);
-      toast(dash.faNum(r.added) + ' مورد اضافه، ' + dash.faNum(r.updated) + ' به‌روزرسانی، ' + dash.faNum(r.skipped) + ' رد شد', 'success');
-      closeModal();
-      /* the import may rewrite settings (merge keeps, replace overwrites) —
-         re-read + re-apply the theme; the list refresh rides the storage
-         change events (data.ts's debounced live sync) */
-      try {
-        settings = await store.getSettings();
-        HL.applyThemeNow(settings.theme);
-      } catch (e2) { /* theme re-apply is best-effort */ }
-    } catch (e) {
-      toast('بازیابی ناموفق بود' + (e && e.message ? ': ' + e.message : ''), 'error');
-    } finally {
-      els.impGo.disabled = false;
-    }
-  });
+  els.btnBooklet.addEventListener('click', function () { HL.modalBridge.openBooklet(); });
 
   /* ---------- Settings panel (drawer) ---------- */
 
@@ -355,10 +237,9 @@ import { dashView as view } from "./dashboard-view.js";
   /* ---------- Escape key ---------- */
 
   document.addEventListener('keydown', function (e) {
+    /* the modals handle their own Escape (slice 5) — this chain is the
+       drawer chrome's */
     if (e.key !== 'Escape') return;
-    if (!els.hlModal.hidden) { closeHlModal(); return; }
-    if (!els.modal.hidden) { closeModal(); return; }
-    if (!els.bookletModal.hidden) { closeBookletModal(); return; }
     if (els.drawer.classList.contains('open')) { closeDrawer(); return; }
     if (dangerArmed) resetDanger();
   });
@@ -395,11 +276,10 @@ import { dashView as view } from "./dashboard-view.js";
        the live sync — the React regions re-render from its snapshots */
   }
 
-  HL.previewBridge = { open: openPreview };
-
   init();
 })();
 
-/* Phase 8 slice 4: identity tail — the React list opens the preview modal
-   (controller chrome) through this bridge until slice 5 ports it. */
-export const previewBridge = globalThis.HL.previewBridge;
+/* Phase 8 slice 5: identity tail — the React modals subscribe to the
+   controller's open requests (restore/booklet; the preview needs no
+   bridge — it is data.ts state). */
+export const modalBridge = globalThis.HL.modalBridge;

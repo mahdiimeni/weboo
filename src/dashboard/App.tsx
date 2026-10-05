@@ -31,6 +31,11 @@ import {
   copyText,
   deleteRecord,
   deleteGroup,
+  openPreview,
+  closePreview,
+  importBackup,
+  buildMarkdownExport,
+  buildBookletExport,
   toggleCard,
   flipItemOrder,
   toggleSection,
@@ -47,7 +52,7 @@ import {
 import { toast } from "./toast";
 import type { ThemeKey } from "../types/settings";
 import type { HighlightColor } from "../types/highlight";
-import { previewBridge } from "../../extension/dashboard/dashboard.js";
+import { modalBridge } from "../../extension/dashboard/dashboard.js";
 import { dash } from "../../extension/dashboard/dashboard-data.js";
 import type { Group, GroupCardHandlers } from "./components/GroupCard";
 import { StatsStrip } from "./components/StatsStrip";
@@ -60,6 +65,7 @@ import { ColorDots } from "./components/ColorDots";
 import { BehaviorSwitches } from "./components/BehaviorSwitches";
 import { Toolbar } from "./components/Toolbar";
 import { DirSection } from "./components/DirSection";
+import { PreviewModal, RestoreModal, BookletModal, useModalRequest } from "./components/Modals";
 
 /** Region root 1 — mounted into <section class="stats"> (slice 1). */
 export function StatsRegion() {
@@ -178,6 +184,35 @@ export function MoreRegion() {
   return <LoadMore shown={page.overflow > 0} overflow={page.overflow} onLoadMore={loadMore} />;
 }
 
+/** Region roots 11-13 — the three modals (slice 5). The preview window is
+ *  fully React now (data.ts session state — previewBridge is gone); the
+ *  restore/booklet modals open through the controller's one-way modalBridge
+ *  (the topbar/drawer trigger buttons and the file-picker flow stay
+ *  controller chrome until Task 5). */
+export function PreviewModalRegion() {
+  const { preview } = useSyncExternalStore(subscribeData, getData);
+  return <PreviewModal rec={preview} onClose={closePreview} />;
+}
+
+export function RestoreModalRegion() {
+  const [req, close] = useModalRequest("restore", modalBridge);
+  return <RestoreModal req={req} onClose={close} onImport={importBackup} />;
+}
+
+export function BookletModalRegion() {
+  const [req, close] = useModalRequest("booklet", modalBridge);
+  const { records } = useSyncExternalStore(subscribeData, getData);
+  return (
+    <BookletModal
+      req={req}
+      onClose={close}
+      stats={dash.computeStats(records)}
+      onMarkdown={buildMarkdownExport}
+      onBooklet={buildBookletExport}
+    />
+  );
+}
+
 /** Region root 10 — mounted into #groups (slice 4): the direction-separated
  *  article cards. The handlers are the data layer's actions (the controller's
  *  exact logic); onPreview still rides the controller's previewBridge until
@@ -197,7 +232,7 @@ export function ListRegion() {
     onView: viewRecord,
     onCopy: (rec) => copyText(rec.text || ""),
     onDelete: deleteRecord,
-    onPreview: (rec) => previewBridge.open(rec),
+    onPreview: openPreview,
   };
 
   return (
