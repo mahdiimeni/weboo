@@ -124,10 +124,6 @@ import { dashView as view } from "./dashboard-view.js";
     fNotes: $('f-notes'),
     fSort: $('f-sort'),
     groups: $('groups'),
-    loadMore: $('load-more'),
-    empty: $('empty'),
-    emptyTitle: $('empty-title'),
-    emptySub: $('empty-sub'),
     overlay: $('overlay'),
     drawer: $('drawer'),
     drawerClose: $('drawer-close'),
@@ -290,13 +286,11 @@ import { dashView as view } from "./dashboard-view.js";
 
     if (!filtered.length) {
       groups = [];
-      els.loadMore.hidden = true;
       bulkState = ''; /* no cards → no bulk toggle (v0.3.0) */
-      view.renderEmptyState(els.empty, els.emptyTitle, els.emptySub, records.length > 0);
       publishBulk();
+      setListChrome({ emptyShown: true, emptyHasRecords: records.length > 0, moreShown: false, moreOverflow: 0 });
       return;
     }
-    els.empty.hidden = true;
 
     groups = dash.applyItemReversal(dash.groupRecords(filtered, filters.sort), reversedGroups);
 
@@ -353,13 +347,14 @@ import { dashView as view } from "./dashboard-view.js";
         }
       }, handlers));
     });
-    view.renderLoadMore(els.loadMore, page.overflow);
     /* The bulk button presents its NEXT action — dash.bulkAction's fresh
        decision over the filtered groups + the user-owned collapse set.
        Phase 8 slice 3: published to the React region instead of written to
-       the DOM. */
+       the DOM. renderLoadMore retired (slice 6): the load-more snapshot rides
+       the listChromeBridge below. */
     bulkState = dash.bulkAction(groups, collapsedGroups);
     publishBulk();
+    setListChrome({ emptyShown: false, emptyHasRecords: false, moreShown: page.overflow > 0, moreOverflow: page.overflow });
   }
 
   /* ---------- Copy (single implementation in HL.clipboard — dashboard-specific toast) ---------- */
@@ -431,11 +426,6 @@ import { dashView as view } from "./dashboard-view.js";
     els.fSort.addEventListener('change', function () {
       filters.sort = els.fSort.value || 'newest';
       visibleLimit = 50;
-      renderList();
-    });
-
-    els.loadMore.addEventListener('click', function () {
-      visibleLimit += 50;
       renderList();
     });
 
@@ -772,3 +762,31 @@ import { dashView as view } from "./dashboard-view.js";
 
 /* Phase 8 slice 3: identity tail — the React region imports the bridge */
 export const bulkBridge = globalThis.HL.bulkBridge;
+
+/* ---------- Empty + load-more bridge (Phase 8 slice 6) ----------
+   Same transitional pattern as bulkBridge: the controller's renderList is
+   still the authority over what the list region shows; the React regions
+   read the snapshot and call applyMore(). Retires with slice 4. */
+const chromeListeners = new Set();
+let chromeState = { emptyShown: false, emptyHasRecords: false, moreShown: false, moreOverflow: 0 };
+function setListChrome(next) {
+  if (chromeState.emptyShown !== next.emptyShown ||
+      chromeState.emptyHasRecords !== next.emptyHasRecords ||
+      chromeState.moreShown !== next.moreShown ||
+      chromeState.moreOverflow !== next.moreOverflow) {
+    chromeState = next;
+    chromeListeners.forEach(function (l) { l(); });
+  }
+}
+HL.listChromeBridge = {
+  subscribe: function (cb) {
+    chromeListeners.add(cb);
+    return function () { chromeListeners.delete(cb); };
+  },
+  getSnapshot: function () { return chromeState; },
+  applyMore: function () {
+    visibleLimit += 50;
+    renderList();
+  }
+};
+export const listChromeBridge = globalThis.HL.listChromeBridge;

@@ -17,7 +17,7 @@
 import { createRoot } from "react-dom/client";
 import "../../extension/dashboard/dashboard.js";
 import { bulkBridge } from "../../extension/dashboard/dashboard.js";
-import { StatsRegion, HostsRegion, BulkRegion, ThemeRegion, DotsRegion, SwitchesRegion } from "../../src/dashboard/App";
+import { StatsRegion, HostsRegion, BulkRegion, ThemeRegion, DotsRegion, SwitchesRegion, EmptyRegion, MoreRegion } from "../../src/dashboard/App";
 import { startData } from "../../src/dashboard/data";
 
 startData();
@@ -41,5 +41,11 @@ if (dotsHost) mounts.push([dotsHost, <DotsRegion />]);
 
 const switchesHost = document.getElementById("set-toolbar")?.closest(".set-sec");
 if (switchesHost) mounts.push([switchesHost, <SwitchesRegion />]);
+
+const emptyHost = document.getElementById("empty-host");
+if (emptyHost) mounts.push([emptyHost, <EmptyRegion />]);
+
+const moreHost = document.getElementById("load-more-host");
+if (moreHost) mounts.push([moreHost, <MoreRegion />]);
 
 mounts.forEach(([host, el]) => { createRoot(host).render(el); });

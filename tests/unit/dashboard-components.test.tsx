@@ -19,6 +19,8 @@ import { THEME_KEYS, THEMES, COLORS } from "../../extension/shared/constants.js"
 import { ThemeRadios } from "../../src/dashboard/components/ThemeRadios";
 import { ColorDots } from "../../src/dashboard/components/ColorDots";
 import { BehaviorSwitches } from "../../src/dashboard/components/BehaviorSwitches";
+import { EmptyState } from "../../src/dashboard/components/EmptyState";
+import { LoadMore } from "../../src/dashboard/components/LoadMore";
 import { dash } from "../../extension/dashboard/dashboard-data.js";
 
 beforeEach(() => { setupDom(); });
@@ -381,5 +383,66 @@ describe("ThemeRadios + ColorDots + BehaviorSwitches (Phase 8 slice 7)", () => {
     await tick();
     expect(calls).toEqual([["showToolbar", true], ["showBadge", true]]);
     root.unmount();
+  });
+});
+
+describe("EmptyState + LoadMore (Phase 8 slice 6)", () => {
+  test("EmptyState: hidden when shown=false, byte-equal skeleton otherwise", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const { root } = mount(<EmptyState shown={false} hasRecords={false} />, host);
+    await tick();
+    const empty = host.querySelector("#empty") as HTMLElement;
+    expect(empty.hidden).toBe(true);
+    expect(empty.className).toBe("empty");
+    root.unmount();
+  });
+
+  test("EmptyState: empty-store copy (hasRecords=false)", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const { root } = mount(<EmptyState shown={true} hasRecords={false} />, host);
+    await tick();
+    const empty = host.querySelector("#empty") as HTMLElement;
+    expect(empty.hidden).toBe(false);
+    expect(empty.querySelector("#empty-title")?.textContent).toBe("هنوز هایلایتی ثبت نشده — اولین متن را انتخاب کن!");
+    expect(empty.querySelector("#empty-sub")?.textContent).toBe("روی هر صفحه‌ی وب، متن را انتخاب کن و از نوار شناور افزونه استفاده کن.");
+    expect(empty.querySelector(".empty-ic svg")).not.toBeNull();
+    root.unmount();
+  });
+
+  test("EmptyState: filtered-out copy (hasRecords=true)", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const { root } = mount(<EmptyState shown={true} hasRecords={true} />, host);
+    await tick();
+    expect(host.querySelector("#empty-title")?.textContent).toBe("نتیجه‌ای پیدا نشد.");
+    expect(host.querySelector("#empty-sub")?.textContent).toBe("عبارت جست‌وجو یا فیلترهای رنگ و برچسب را تغییر بده.");
+    root.unmount();
+  });
+
+  test("LoadMore: hidden without overflow, Persian count label otherwise", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const { root } = mount(<LoadMore shown={false} overflow={0} onLoadMore={() => {}} />, host);
+    await tick();
+    const btn = host.querySelector("button#load-more") as HTMLElement;
+    expect(btn.hidden).toBe(true);
+    expect(btn.className).toBe("btn btn-ghost load-more");
+    root.unmount();
+
+    const host2 = document.createElement("div");
+    document.body.appendChild(host2);
+    const applied: number[] = [];
+    const root2 = createRoot(host2);
+    root2.render(<LoadMore shown={true} overflow={23} onLoadMore={() => applied.push(1)} />);
+    await tick();
+    const btn2 = host2.querySelector("button#load-more") as HTMLElement;
+    expect(btn2.hidden).toBe(false);
+    expect(btn2.textContent).toBe("بارگذاری بیشتر (" + dash.faNum(23) + " مورد باقی‌مانده)");
+    btn2.click();
+    await tick();
+    expect(applied).toEqual([1]);
+    root2.unmount();
   });
 });

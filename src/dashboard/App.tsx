@@ -18,11 +18,13 @@ import { getData, subscribeData, setDisabledHosts, setSettings } from "./data";
 import { toast } from "./toast";
 import type { ThemeKey } from "../types/settings";
 import type { HighlightColor } from "../types/highlight";
-import { bulkBridge } from "../../extension/dashboard/dashboard.js";
+import { bulkBridge, listChromeBridge } from "../../extension/dashboard/dashboard.js";
 import { dash } from "../../extension/dashboard/dashboard-data.js";
 import { StatsStrip } from "./components/StatsStrip";
 import { DisabledHosts } from "./components/DisabledHosts";
 import { BulkToggle } from "./components/BulkToggle";
+import { EmptyState } from "./components/EmptyState";
+import { LoadMore } from "./components/LoadMore";
 import { ThemeRadios } from "./components/ThemeRadios";
 import { ColorDots } from "./components/ColorDots";
 import { BehaviorSwitches } from "./components/BehaviorSwitches";
@@ -97,4 +99,23 @@ export function BulkRegion() {
   /* bulkBridge lives in the untyped controller module — pin the snapshot shape */
   const action = useSyncExternalStore(bulkBridge.subscribe, bulkBridge.getSnapshot as () => string);
   return <BulkToggle action={action} onApply={() => bulkBridge.apply()} />;
+}
+
+interface ListChrome {
+  emptyShown: boolean;
+  emptyHasRecords: boolean;
+  moreShown: boolean;
+  moreOverflow: number;
+}
+
+/** Region roots 7+8 — mounted into the #empty-host / #load-more-host slots
+ *  (slice 6). The controller's renderList publishes the snapshots. */
+export function EmptyRegion() {
+  const chrome = useSyncExternalStore(listChromeBridge.subscribe, listChromeBridge.getSnapshot as () => ListChrome);
+  return <EmptyState shown={chrome.emptyShown} hasRecords={chrome.emptyHasRecords} />;
+}
+
+export function MoreRegion() {
+  const chrome = useSyncExternalStore(listChromeBridge.subscribe, listChromeBridge.getSnapshot as () => ListChrome);
+  return <LoadMore shown={chrome.moreShown} overflow={chrome.moreOverflow} onLoadMore={() => listChromeBridge.applyMore()} />;
 }
