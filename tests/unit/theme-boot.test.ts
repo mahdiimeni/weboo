@@ -13,11 +13,15 @@ import { setupDom, loadEngine, evalClassic, ext } from "./helpers/engine";
 let HL: any;
 let win: any;
 
-/* the real page order: constants → domkit → theme-await boot (eval = script tag) */
+/* the real page order: constants → domkit → theme-await boot (eval = script tag).
+   Phase 12: loadEngine returns the HARVESTED namespace (module bindings) —
+   theme-boot is the one classic file and assigns globalThis.HL itself, so the
+   re-merge after evalClassic is the harness contract for a simulated script tag. */
 async function bootThemeBoot() {
   win = setupDom();
   HL = await loadEngine({ files: ["shared/constants.js", "shared/domkit.js"] });
   evalClassic(ext("shared", "theme-boot.js"));
+  Object.assign(HL, (globalThis as any).HL || {});
   return HL;
 }
 
