@@ -2142,3 +2142,23 @@ Verification:
 Stage Summary:
 - Phases 0-8 closed: the dashboard is a React application over a typed data layer; the extension/ tree ships only content+popup+shared+data; HL namespace reads on the dashboard page are theme-boot's applyThemeNow contract only.
 - Remaining per plan (docs/migration-baseline.md §8): Phase 9 (popup React decision — "may be a no-op, documented"), Phase 10 (storage migration-pipeline verification), Phase 11 (benchmarks), Phase 12 (remove globalThis.HL entirely — the dashboard page now has exactly one HL reader: theme-boot's applyThemeNow).
+
+---
+Task ID: 83
+Agent: ZCode
+Task: Modernization Phase 9 (popup React decision) + Phase 10 (storage migration-pipeline verification) — audits per plan §8
+
+Phase 9 — Decision: DOCUMENTED NO-OP (popup stays module MVC)
+- Size reality: the popup is 641 lines TOTAL (controller 287, view 244, data 110, html 127, css 300). The dashboard got React because its view was 1,137 lines of imperative builders + ~112 controller DOM lines over a complex render matrix (filter → group → paginate → direction sections → per-card state). The popup has none of that: flat sections, one theme cycle, no filter state, no per-item interaction surface.
+- Value test (plan: "only where valuable"): a rewrite adds a second React entry for zero user-visible gain, while the spec lives in real-theme's hard-gated popup probes (the theme cycle is the contract) and popup.test reads the sources directly — migration cost is real, benefit is nil. Behavior preservation outranks consistency (owner's priority order).
+- Phase 12 compatibility: the popup's only live HL reads are 3× HL.applyThemeNow — the theme-boot classic contract, which is a PERMANENT documented exception (theme-boot must stay the first classic script; applyThemeNow can never be an ESM import). The pop/popView facade assigns stay for the tests, same identity-tail pattern as dashboard-data.
+- Exit criterion "popup tests green": holds by construction (popup.test 8 + popup-data.test 20, suite green from Task 82).
+
+Phase 10 — Verification: the migration pipeline is COMPLETE and TESTED (built with the store's TS port, Phase 4-labeled in store.ts)
+- hlx:schemaVersion key; SCHEMA_VERSION = 1 (v1 = the explicit name for the pre-versioning shape — no data rewritten when versioning landed); forward-only MIGRATIONS; a memoized gate awaits migrateSchema on the FIRST store operation — reads and writes alike, nothing overtakes it, a backend error resets the memo and is retried (never stamped over).
+- Data-safety rules verified by the dedicated describe in store.test.ts (v1→N via injected chains): legacy-absent → stamped v1 with records/settings/tags byte-identical; stored newer (user downgrade) → never touched; a gap in the chain → NOTHING stamped; partial chain → stamped per completed step only; the migration serializes with the write queue (a save issued at boot lands after the stamp); clearAll preserves the stamp (schema metadata, not user data).
+- Import hardening (R6's other half): importData validates the envelope at the page (app === APP_ID, highlights object) and sanitizes every record through sanitizeRecord — the RECORD_FIELDS whitelist (unknown fields dropped by design, types coerced, color fallback to yellow, id/host/url/text defaults, createdAt/updatedAt defaults) — merge mode resolves duplicates by updatedAt (newer wins), replace mode rewrites wholesale.
+- Exit criterion "migration tests v1→N": met (the v1→3 injected-chain tests above). No code change needed — like Phase 7, the phase was already satisfied by earlier work; the record is the deliverable.
+
+Stage Summary:
+- Plan phases 0-10 all closed. Remaining: Phase 11 (benchmarks: small/medium/large × 0/10/100/500 highlights, measured before/after) and Phase 12 (remove globalThis.HL — remaining readers: the content bundle's internal namespace assigns + identity tails, the SW's side-effect imports, the pop/dash facade assigns serving tests, and the ONE permanent exception: theme-boot's applyThemeNow).
