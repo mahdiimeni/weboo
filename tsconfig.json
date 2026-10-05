@@ -24,9 +24,11 @@
   },
   "include": [
     "tests/**/*.ts",
+    "tests/**/*.tsx",
     "entrypoints/**/*.ts",
     "entrypoints/**/*.tsx",
-    "src/**/*.ts"
+    "src/**/*.ts",
+    "src/**/*.tsx"
   ],
   "exclude": [
     "node_modules",

@@ -117,10 +117,6 @@ import { dashView as view } from "./dashboard-view.js";
     bkGo: $('bk-go'),
     bkCancel: $('bk-cancel'),
     btnSettings: $('btn-settings'),
-    stTotal: $('st-total'),
-    stNotes: $('st-notes'),
-    stPages: $('st-pages'),
-    stSites: $('st-sites'),
     q: $('q'),
     colorChips: $('color-chips'),
     tagFilter: $('tag-filter'),
@@ -187,20 +183,16 @@ import { dashView as view } from "./dashboard-view.js";
       renderSettingsPanel();
     }
     syncTagSelection();
-    renderStats();
     renderSize();
     renderList();
     renderTagFilter();
     pruneOrphanTags(recordsOk);
   }
 
-  function renderStats() {
-    const s = dash.computeStats(records);
-    els.stTotal.textContent = dash.faNum(s.total);
-    els.stNotes.textContent = dash.faNum(s.notes);
-    els.stPages.textContent = dash.faNum(s.pages);
-    els.stSites.textContent = dash.faNum(s.sites);
-  }
+  /* renderStats retired (Phase 8 slice 1): the stats strip is a React region
+     now (entrypoints/dashboard/main.tsx → App → StatsStrip) with its own
+     store subscription; dash.computeStats + dash.faNum remain the single
+     source — the component calls the same functions. */
 
   function renderSize() {
     store.getBytesInUse().then(function (b) {
