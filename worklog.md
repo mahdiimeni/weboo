@@ -2162,3 +2162,19 @@ Phase 10 — Verification: the migration pipeline is COMPLETE and TESTED (built 
 
 Stage Summary:
 - Plan phases 0-10 all closed. Remaining: Phase 11 (benchmarks: small/medium/large × 0/10/100/500 highlights, measured before/after) and Phase 12 (remove globalThis.HL — remaining readers: the content bundle's internal namespace assigns + identity tails, the SW's side-effect imports, the pop/dash facade assigns serving tests, and the ONE permanent exception: theme-boot's applyThemeNow).
+
+---
+Task ID: 84
+Agent: ZCode
+Task: Modernization Phase 11 — engine benchmarks (docs/benchmarks.md), measured before/after
+
+Work Log:
+- scripts/benchmark.mjs: the SAME harness runs on both sides of the migration (it loads the engine via the shared test helper — classic eval on main, vm module graphs on the branch — and filters the file set by existence: main has no shared/anchor.js). Storage is the in-memory backend by design: engine+DOM cost isolated from chrome.storage I/O.
+- Matrix: {small ≈1.6k, medium ≈8k, large ≈40k words} × {0, 10, 100, 500} highlights. create = K × createFromRange with ranges pre-computed on the pristine doc applied in DESCENDING order (each mark splits its text node; the original keeps the prefix — descending keeps offsets valid; the ascending naive order IndexSizeErrors at K≥100). restore = fresh world, records adopted, applyAll() timed, applied == K asserted (visibility invariant).
+- Numbers (median of 3): before/after pair within ±3-5% run noise on EVERY cell — no regression, no speedup: behavior- and performance-preserving, exactly what §6 demanded. Shape notes: ~linear in K at fixed doc size; restore at K=0 = the fresh-index boot floor (0.5ms small → 4.4ms large); per-item cost grows with doc size — the known O(doc × marks) shape of the anchor engine, unchanged, a candidate for the text-index if it ever matters.
+- docs/benchmarks.md carries the methodology, both tables, the conclusion and the re-run command. happy-dom is slower than real Chrome — the numbers are RELATIVE (identical harness both sides), not user-facing absolutes.
+
+Verification: bun scripts/benchmark.mjs green on the branch AND in a main worktree · suite untouched (no product code in this phase).
+
+Stage Summary:
+- Plan phases 0-11 closed. Remaining: Phase 12 (remove globalThis.HL — the content bundle's internal namespace assigns + identity tails, the SW's side-effect imports, the pop/dash facade assigns; ONE permanent exception: theme-boot's applyThemeNow).
