@@ -15,6 +15,10 @@ import { StatsStrip } from "../../src/dashboard/components/StatsStrip";
 import { DisabledHosts } from "../../src/dashboard/components/DisabledHosts";
 import { BulkToggle } from "../../src/dashboard/components/BulkToggle";
 import { dashView } from "../../extension/dashboard/dashboard-view.js";
+import { THEME_KEYS, THEMES, COLORS } from "../../extension/shared/constants.js";
+import { ThemeRadios } from "../../src/dashboard/components/ThemeRadios";
+import { ColorDots } from "../../src/dashboard/components/ColorDots";
+import { BehaviorSwitches } from "../../src/dashboard/components/BehaviorSwitches";
 import { dash } from "../../extension/dashboard/dashboard-data.js";
 
 beforeEach(() => { setupDom(); });
@@ -276,6 +280,106 @@ describe("BulkToggle (Phase 8 slice 3)", () => {
     (bar.querySelector("button#btn-bulk") as HTMLElement).click();
     await tick();
     expect(applied).toBe(1);
+    root.unmount();
+  });
+});
+
+describe("ThemeRadios + ColorDots + BehaviorSwitches (Phase 8 slice 7)", () => {
+  function setSec(id: string): HTMLElement {
+    const sec = document.createElement("section");
+    sec.className = "set-sec";
+    sec.dataset.probe = id;
+    document.body.appendChild(sec);
+    return sec;
+  }
+
+  test("ThemeRadios: one radio per THEME_KEYS — labels from the registry, hints from the single source", async () => {
+    const sec = setSec("theme");
+    const { root } = mount(<ThemeRadios theme="auto" onSelect={() => {}} />, sec);
+    await tick();
+    const radios = sec.querySelectorAll('input[type="radio"][name="hlx-theme"]');
+    expect(radios.length).toBe(3);
+    const labels = [...sec.querySelectorAll("label.radio")];
+    labels.forEach((lab, i) => {
+      const key = THEME_KEYS[i];
+      expect(lab.querySelector("input")?.getAttribute("value")).toBe(key);
+      expect(lab.querySelector("strong")?.textContent).toBe(THEMES[key].label);
+      expect(lab.querySelector(".muted.small")?.textContent).toBe(dashView.THEME_HINTS[key]);
+      expect((lab.querySelector("input") as HTMLInputElement).checked).toBe(key === "auto");
+    });
+    root.unmount();
+  });
+
+  test("ThemeRadios: selecting a radio calls onSelect with its key", async () => {
+    const sec = setSec("theme2");
+    const picked: string[] = [];
+    const { root } = mount(<ThemeRadios theme="auto" onSelect={(k) => picked.push(k)} />, sec);
+    await tick();
+    const dark = sec.querySelector('input[value="dark"]') as HTMLInputElement;
+    dark.click();
+    await tick();
+    expect(picked).toEqual(["dark"]);
+    root.unmount();
+  });
+
+  test("ColorDots: one dot per COLOR_KEYS — registry colors, active + aria-checked on selected", async () => {
+    const sec = setSec("dots");
+    const { root } = mount(<ColorDots defaultColor="teal" onSelect={() => {}} />, sec);
+    await tick();
+    const dots = sec.querySelectorAll("button.cdot");
+    expect(dots.length).toBe(5);
+    const teal = sec.querySelector('button.cdot[data-key="teal"]')!;
+    expect(teal.classList.contains("active")).toBe(true);
+    expect(teal.getAttribute("aria-checked")).toBe("true");
+    expect(teal.getAttribute("title")).toBe("رنگ پیش‌فرض: " + (COLORS as any).teal.label);
+    expect(teal.querySelector(".dot")?.getAttribute("style")).toContain((COLORS as any).teal.dot);
+    const inactive = sec.querySelector('button.cdot[data-key="yellow"]')!;
+    expect(inactive.classList.contains("active")).toBe(false);
+    expect(inactive.getAttribute("aria-checked")).toBeNull();
+    root.unmount();
+  });
+
+  test("ColorDots: clicking a dot calls onSelect with its key", async () => {
+    const sec = setSec("dots2");
+    const picked: string[] = [];
+    const { root } = mount(<ColorDots defaultColor="yellow" onSelect={(k) => picked.push(k)} />, sec);
+    await tick();
+    (sec.querySelector('button.cdot[data-key="pink"]') as HTMLElement).click();
+    await tick();
+    expect(picked).toEqual(["pink"]);
+    root.unmount();
+  });
+
+  test("BehaviorSwitches: two switches — ids, labels, checked mirror settings", async () => {
+    const sec = setSec("switches");
+    const { root } = mount(<BehaviorSwitches showToolbar={true} showBadge={false} onToggle={() => {}} />, sec);
+    await tick();
+    const tb = sec.querySelector("#set-toolbar") as HTMLInputElement;
+    const bd = sec.querySelector("#set-badge") as HTMLInputElement;
+    expect(tb.checked).toBe(true);
+    expect(bd.checked).toBe(false);
+    expect(tb.closest("label")!.querySelector(".switch-lbl")?.textContent).toBe("نمایش نوار ابزار هنگام انتخاب متن");
+    expect(bd.closest("label")!.querySelector(".switch-lbl")?.textContent).toBe("نمایش شمارنده روی آیکون");
+    root.unmount();
+  });
+
+  test("BehaviorSwitches: toggling calls onToggle with the new boolean", async () => {
+    const sec = setSec("switches2");
+    const calls: Array<[string, boolean]> = [];
+    const { root } = mount(
+      <BehaviorSwitches
+        showToolbar={false}
+        showBadge={false}
+        onToggle={(key, v) => calls.push([key, v])}
+      />,
+      sec
+    );
+    await tick();
+    (sec.querySelector("#set-toolbar") as HTMLInputElement).click();
+    await tick();
+    (sec.querySelector("#set-badge") as HTMLInputElement).click();
+    await tick();
+    expect(calls).toEqual([["showToolbar", true], ["showBadge", true]]);
     root.unmount();
   });
 });

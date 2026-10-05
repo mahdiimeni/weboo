@@ -1139,7 +1139,9 @@ import { dash } from "./dashboard-data.js"; /* 7c-3 */
     renderBulkToggle: renderBulkToggle,
     /* Phase 8 slice 3: the React BulkToggle reads the same meta until the
        view retires (Task 5) — one source for the labels/titles/icons. */
-    BULK_ACTION_META: BULK_ACTION_META
+    BULK_ACTION_META: BULK_ACTION_META,
+    /* Phase 8 slice 7: same deal — the React ThemeRadios read the hints. */
+    THEME_HINTS: THEME_HINTS
   };
 })();
 

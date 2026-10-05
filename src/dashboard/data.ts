@@ -74,6 +74,17 @@ export function startData(): void {
 
 /* ---------- actions (optimistic + rollback, see header) ---------- */
 
+export async function setSettings(patch: Partial<Settings>): Promise<void> {
+  const prev = state.settings;
+  setState({ settings: { ...prev, ...patch } });
+  try {
+    await store.setSettings(patch);
+  } catch (e) {
+    await reloadSettings(); /* rollback to the stored truth */
+    throw e;
+  }
+}
+
 export async function setDisabledHosts(list: string[]): Promise<void> {
   const prev = state.settings;
   setState({ settings: { ...prev, disabledHosts: list } });

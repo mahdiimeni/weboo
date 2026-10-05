@@ -131,10 +131,6 @@ import { dashView as view } from "./dashboard-view.js";
     overlay: $('overlay'),
     drawer: $('drawer'),
     drawerClose: $('drawer-close'),
-    themeRadios: $('theme-radios'),
-    colorDots: $('color-dots'),
-    setToolbar: $('set-toolbar'),
-    setBadge: $('set-badge'),
     dangerBtn: $('danger-btn'),
     dangerConfirm: $('danger-confirm'),
     dangerInput: $('danger-input'),
@@ -176,7 +172,6 @@ import { dashView as view } from "./dashboard-view.js";
       try { settings = await store.getSettings(); }
       catch (e) { settings = Object.assign({}, DEFAULT_SETTINGS); }
       HL.applyThemeNow(settings.theme);
-      renderSettingsPanel();
     }
     syncTagSelection();
     renderSize();
@@ -664,44 +659,11 @@ import { dashView as view } from "./dashboard-view.js";
   }
   window.addEventListener('hashchange', checkSettingsHash);
 
-  function renderSettingsPanel() {
-    view.buildThemeRadios(els.themeRadios, settings.theme, function (k) {
-      setSetting({ theme: k });
-    });
-    view.buildColorDots(els.colorDots, settings.defaultColor, function (k) {
-      setSetting({ defaultColor: k });
-    });
-    if (els.setToolbar) els.setToolbar.checked = !!settings.showToolbar;
-    if (els.setBadge) els.setBadge.checked = !!settings.showBadge;
-    /* renderHostChips retired (Phase 8 slice 2): the disabled-hosts section
-       is a React region now (main.tsx → HostsRegion → DisabledHosts) with
-       its own store subscription and the same optimistic-write semantics. */
-  }
-
-  async function setSetting(patch) {
-    const prev = settings;
-    settings = Object.assign({}, settings, patch);
-    renderSettingsPanel();
-    /* Besides being saved, the theme also takes immediate visual effect (optimistic — rolled back on failure) */
-    if (patch.theme !== undefined) HL.applyThemeNow(settings.theme);
-    try {
-      await store.setSettings(patch);
-      return true;
-    } catch (e) {
-      settings = prev;
-      renderSettingsPanel();
-      if (patch.theme !== undefined) HL.applyThemeNow(settings.theme);
-      toast('ذخیره تنظیمات ناموفق بود', 'error');
-      return false;
-    }
-  }
-
-  els.setToolbar.addEventListener('change', function () {
-    setSetting({ showToolbar: !!els.setToolbar.checked });
-  });
-  els.setBadge.addEventListener('change', function () {
-    setSetting({ showBadge: !!els.setBadge.checked });
-  });
+  /* renderSettingsPanel + setSetting retired (Phase 8 slices 2 + 7): the
+     whole settings drawer is React regions now (HostsRegion, ThemeRegion,
+     DotsRegion, SwitchesRegion) reading/writing data.ts, which mirrors the
+     same optimistic-write + rollback semantics (theme's immediate visual
+     effect included). reload(hard) still applies the boot theme. */
 
   /* Add/remove a disabled site — retired (Phase 8 slice 2): the whole flow
      (sanitize → duplicate check → optimistic write → toasts) lives in the
@@ -795,8 +757,10 @@ import { dashView as view } from "./dashboard-view.js";
     store.onRecordsChanged(util.debounce(function () { reload(false); }, 400));
     store.onTagsChanged(util.debounce(function () { reload(false); }, 400));
     store.onSettingsChanged(function (s) {
+      /* settings panel re-render retired (Phase 8 slice 7 — React regions
+         subscribe via data.ts); the live theme re-apply stays: a theme
+         change from another context takes effect here immediately. */
       settings = s || Object.assign({}, DEFAULT_SETTINGS);
-      renderSettingsPanel();
       HL.applyThemeNow(settings.theme);
     });
 

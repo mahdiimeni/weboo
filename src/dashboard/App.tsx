@@ -14,12 +14,18 @@
  * and the imperative controller retires.
  */
 import { useSyncExternalStore } from "react";
-import { getData, subscribeData, setDisabledHosts } from "./data";
+import { getData, subscribeData, setDisabledHosts, setSettings } from "./data";
+import { toast } from "./toast";
+import type { ThemeKey } from "../types/settings";
+import type { HighlightColor } from "../types/highlight";
 import { bulkBridge } from "../../extension/dashboard/dashboard.js";
 import { dash } from "../../extension/dashboard/dashboard-data.js";
 import { StatsStrip } from "./components/StatsStrip";
 import { DisabledHosts } from "./components/DisabledHosts";
 import { BulkToggle } from "./components/BulkToggle";
+import { ThemeRadios } from "./components/ThemeRadios";
+import { ColorDots } from "./components/ColorDots";
+import { BehaviorSwitches } from "./components/BehaviorSwitches";
 
 /** Region root 1 — mounted into <section class="stats"> (slice 1). */
 export function StatsRegion() {
@@ -40,7 +46,51 @@ export function HostsRegion() {
   );
 }
 
-/** Region root 3 — mounted into .list-bar (slice 3). The bulk decision is
+/** Region root 3 — mounted into the «ظاهر» .set-sec (slice 7). The theme's
+ *  immediate visual effect (HL.applyThemeNow — the classic theme-boot
+ *  contract) mirrors the controller's optimistic setSetting: apply now,
+ *  re-apply the previous theme when the storage write fails. */
+export function ThemeRegion() {
+  const { settings } = useSyncExternalStore(subscribeData, getData);
+  return (
+    <ThemeRadios
+      theme={settings.theme}
+      onSelect={(k: ThemeKey) => {
+        const prev = settings.theme;
+        if (k !== prev) (globalThis as unknown as { HL: { applyThemeNow: (t: string) => void } }).HL.applyThemeNow(k);
+        setSettings({ theme: k }).catch(() => {
+          (globalThis as unknown as { HL: { applyThemeNow: (t: string) => void } }).HL.applyThemeNow(prev);
+          toast("ذخیره تنظیمات ناموفق بود", "error");
+        });
+      }}
+    />
+  );
+}
+
+/** Region root 4 — mounted into the «رنگ پیش‌فرض هایلایت» .set-sec (slice 7). */
+export function DotsRegion() {
+  const { settings } = useSyncExternalStore(subscribeData, getData);
+  return (
+    <ColorDots
+      defaultColor={settings.defaultColor}
+      onSelect={(k: HighlightColor) => setSettings({ defaultColor: k }).catch(() => toast("ذخیره تنظیمات ناموفق بود", "error"))}
+    />
+  );
+}
+
+/** Region root 5 — mounted into the «رفتار» .set-sec (slice 7). */
+export function SwitchesRegion() {
+  const { settings } = useSyncExternalStore(subscribeData, getData);
+  return (
+    <BehaviorSwitches
+      showToolbar={!!settings.showToolbar}
+      showBadge={!!settings.showBadge}
+      onToggle={(key, value) => setSettings({ [key]: value }).catch(() => toast("ذخیره تنظیمات ناموفق بود", "error"))}
+    />
+  );
+}
+
+/** Region root 6 — mounted into .list-bar (slice 3). The bulk decision is
  *  published by the controller's bulkBridge (authoritative list state still
  *  lives there); apply() runs the exact click-handler logic. */
 export function BulkRegion() {
