@@ -11,7 +11,8 @@ import { describe, test, expect, beforeEach } from "bun:test";
 import { setupDom, loadEngine } from "./helpers/engine";
 import type { HighlightRecord, HighlightAnchor } from "../../src/types/highlight";
 import type { Settings } from "../../src/types/settings";
-import type { StorageBackend as PortBackend } from "../../src/types/storage"; /* aliased: bare `StorageBackend` below = the GLOBAL mirror declared in src/shared/store.ts */
+import type { StorageBackend as PortBackend } from "../../src/types/storage";
+import type { StorageBackend as MirrorBackend } from "../../src/shared/store"; /* aliased: store.ts cannot import src/types (rootDir src/shared), so it keeps a duplicate port — the assignability test below is the drift tripwire */
 import {
   EXTENSION_MESSAGE_TYPES,
   type ExtensionMessage,
@@ -71,12 +72,13 @@ describe("types ↔ runtime contract parity (Phase 1)", () => {
     expect((bad as { color?: string }).color).toBe("orange");
   });
 
-  test("port mirror: store.ts global ⇄ src/types/storage.ts (compile-time)", () => {
-    /* src/shared/store.ts declares a GLOBAL StorageBackend (script file — it may
-       not import). Both directions must be assignable or `bun run typecheck`
-       fails — the two declarations can never drift apart. */
-    const mirrorToPort: PortBackend = null as unknown as StorageBackend;
-    const portToMirror: StorageBackend = null as unknown as PortBackend;
+  test("port mirror: store.ts mirror ⇄ src/types/storage.ts (compile-time)", () => {
+    /* src/shared/store.ts cannot import src/types (tsc rootDir is src/shared),
+       so it duplicates the port and EXPORTS the mirror type (7c-2 made the file
+       a module; the old script-era global name is gone). Both directions must
+       be assignable or `bun run typecheck` fails — the two can never drift. */
+    const mirrorToPort: PortBackend = null as unknown as MirrorBackend;
+    const portToMirror: MirrorBackend = null as unknown as PortBackend;
     expect(typeof mirrorToPort).toBe("object"); /* the assignability itself is compile-time */
     expect(typeof portToMirror).toBe("object");
   });

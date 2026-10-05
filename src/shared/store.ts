@@ -15,8 +15,10 @@ interface StorageChange {
 }
 type StorageChanges = Record<string, StorageChange>;
 
-/** The storage backend port — exact mirror of src/types/storage.ts StorageBackend. */
-interface StorageBackend {
+/** The storage backend port — exact mirror of src/types/storage.ts StorageBackend.
+ *  Exported (type-only — erased at emit) so tests/unit/types-contract.test.ts can
+ *  import the mirror: this file cannot import src/types (outside rootDir src/shared). */
+export interface StorageBackend {
   get(key: string | null): Promise<Record<string, unknown>>;
   set(items: Record<string, unknown>): Promise<void>;
   remove(keys: string[]): Promise<void>;
