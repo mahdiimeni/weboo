@@ -1,47 +1,37 @@
 /**
- * Phase 8 Task 4 — the React region's composition root.
+ * Phase 8 Task 4 — the React region roots.
  *
- * Owns a SECOND store instance (the same DI-at-composition-root pattern as
- * content.js/popup.js/dashboard.js since 7c-4): reads chrome.storage through
- * the same backend, subscribes with onRecordsChanged, and hands computed
- * slices to the ported components. During the transition the imperative
- * controller (dashboard.js) keeps owning the NOT-yet-ported regions with its
- * own instance — the store's read-your-writes + onChanged semantics are
- * already cross-context (content page + dashboard write the same way).
+ * One region per ported dashboard area; each mounts via createRoot into the
+ * static shell's host element (createRoot takes over the host's children —
+ * the ownership handoff). Data flows from the external store (data.ts)
+ * through useSyncExternalStore; the components themselves are pure
+ * presentation under src/dashboard/components/.
  *
- * Slices ported so far: 1 (StatsStrip). Each later slice moves one region
- * from controller-owned DOM to a component here; Task 5 retires the
- * controller when the last region lands.
+ * Slices ported so far: 1 (stats strip), 2 (disabled-hosts section).
+ * Task 5 collapses these roots into a single App when the last region lands
+ * and the imperative controller retires.
  */
-import { useEffect, useState } from "react";
-import { backends } from "../../extension/shared/backends/chrome-storage.js";
-import { createStore } from "../../extension/shared/store.js";
+import { useSyncExternalStore } from "react";
+import { getData, subscribeData, setDisabledHosts } from "./data";
 import { dash } from "../../extension/dashboard/dashboard-data.js";
-import type { HighlightRecord } from "../types/highlight";
-import { StatsStrip, type Stats } from "./components/StatsStrip";
+import { StatsStrip } from "./components/StatsStrip";
+import { DisabledHosts } from "./components/DisabledHosts";
 
-const store = createStore(backends.chromeStorage());
-
-/** The records slice — loads once, then follows store changes (both this
- *  region's future writes and the controller's/cross-context ones). */
-function useRecords(): HighlightRecord[] {
-  const [records, setRecords] = useState<HighlightRecord[]>([]);
-  useEffect(() => {
-    let alive = true;
-    const load = () => {
-      store.getAllRecords().then((m) => {
-        if (alive) setRecords(Array.from(m.values()));
-      }).catch(() => { if (alive) setRecords([]); });
-    };
-    load();
-    const off = store.onRecordsChanged(load);
-    return () => { alive = false; off(); };
-  }, []);
-  return records;
+/** Region root 1 — mounted into <section class="stats"> (slice 1). */
+export function StatsRegion() {
+  const { records } = useSyncExternalStore(subscribeData, getData);
+  return <StatsStrip stats={dash.computeStats(records)} />;
 }
 
-export function App() {
-  const records = useRecords();
-  const stats: Stats = dash.computeStats(records);
-  return <StatsStrip stats={stats} />;
+/** Region root 2 — mounted into the disabled-hosts .set-sec (slice 2). */
+export function HostsRegion() {
+  const { settings } = useSyncExternalStore(subscribeData, getData);
+  const hosts = settings.disabledHosts || [];
+  return (
+    <DisabledHosts
+      hosts={hosts}
+      onRemove={(h) => setDisabledHosts(hosts.filter((v) => v !== h))}
+      onAdd={(h) => setDisabledHosts([...hosts, h])}
+    />
+  );
 }

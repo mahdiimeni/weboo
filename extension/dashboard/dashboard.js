@@ -136,9 +136,6 @@ import { dashView as view } from "./dashboard-view.js";
     colorDots: $('color-dots'),
     setToolbar: $('set-toolbar'),
     setBadge: $('set-badge'),
-    hostChips: $('host-chips'),
-    hostInput: $('host-input'),
-    hostAdd: $('host-add'),
     dangerBtn: $('danger-btn'),
     dangerConfirm: $('danger-confirm'),
     dangerInput: $('danger-input'),
@@ -655,9 +652,9 @@ import { dashView as view } from "./dashboard-view.js";
     });
     if (els.setToolbar) els.setToolbar.checked = !!settings.showToolbar;
     if (els.setBadge) els.setBadge.checked = !!settings.showBadge;
-    view.renderHostChips(els.hostChips, settings.disabledHosts || [], function (h) {
-      setSetting({ disabledHosts: (settings.disabledHosts || []).filter(function (v) { return v !== h; }) });
-    });
+    /* renderHostChips retired (Phase 8 slice 2): the disabled-hosts section
+       is a React region now (main.tsx → HostsRegion → DisabledHosts) with
+       its own store subscription and the same optimistic-write semantics. */
   }
 
   async function setSetting(patch) {
@@ -685,23 +682,9 @@ import { dashView as view } from "./dashboard-view.js";
     setSetting({ showBadge: !!els.setBadge.checked });
   });
 
-  /* Add/remove a disabled site */
-
-  async function addHost() {
-    const h = dash.sanitizeHost(els.hostInput.value);
-    if (!h) { toast('دامنه‌ی معتبر وارد کن (مثل example.com)', 'error'); return; }
-    const list = (settings.disabledHosts || []).slice();
-    if (list.indexOf(h) !== -1) { toast('این دامنه قبلاً اضافه شده است', 'info'); return; }
-    list.push(h);
-    els.hostInput.value = '';
-    const ok = await setSetting({ disabledHosts: list });
-    if (ok) toast('سایت ' + h + ' غیرفعال شد', 'success');
-  }
-
-  els.hostAdd.addEventListener('click', addHost);
-  els.hostInput.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') { e.preventDefault(); addHost(); }
-  });
+  /* Add/remove a disabled site — retired (Phase 8 slice 2): the whole flow
+     (sanitize → duplicate check → optimistic write → toasts) lives in the
+     React region (HostsRegion → DisabledHosts + data.setDisabledHosts). */
 
   /* ---------- Danger zone (three-step confirmation) ---------- */
 
