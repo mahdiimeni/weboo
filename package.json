@@ -10,7 +10,7 @@
     "zip": "bun run build:ext && bun run build:wxt && node scripts/build-zip.mjs",
     "icons": "node scripts/make-icons.mjs",
     "build:wxt": "wxt build && node scripts/wxt-parity.mjs",
-    "harness": "node tests/e2e/build-dashboard-harness.mjs && node tests/e2e/build-popup-harness.mjs"
+    "harness": "node tests/e2e/build-popup-harness.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

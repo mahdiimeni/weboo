@@ -11,13 +11,13 @@
  * Data: data.ts starts once (store instance + subscriptions) and feeds the
  * region roots via useSyncExternalStore.
  *
- * Slices ported: 1 (stats strip) · 2 (disabled-hosts section). Task 5
- * retires the controller when the last region lands.
+ * Slices ported: 1 (stats) · 2 (hosts) · 3 (bulk) · 7 (settings) · 6
+ * (empty/load-more) · 4 (toolbar + the whole list). Since slice 4 the
+ * controller holds no list state and renders no list DOM.
  */
 import { createRoot } from "react-dom/client";
 import "../../extension/dashboard/dashboard.js";
-import { bulkBridge } from "../../extension/dashboard/dashboard.js";
-import { StatsRegion, HostsRegion, BulkRegion, ThemeRegion, DotsRegion, SwitchesRegion, EmptyRegion, MoreRegion } from "../../src/dashboard/App";
+import { StatsRegion, HostsRegion, BulkRegion, ThemeRegion, DotsRegion, SwitchesRegion, EmptyRegion, MoreRegion, ToolbarRegion, ListRegion } from "../../src/dashboard/App";
 import { startData } from "../../src/dashboard/data";
 
 startData();
@@ -41,6 +41,12 @@ if (dotsHost) mounts.push([dotsHost, <DotsRegion />]);
 
 const switchesHost = document.getElementById("set-toolbar")?.closest(".set-sec");
 if (switchesHost) mounts.push([switchesHost, <SwitchesRegion />]);
+
+const toolbarHost = document.querySelector(".toolbar");
+if (toolbarHost) mounts.push([toolbarHost, <ToolbarRegion />]);
+
+const groupsHost = document.getElementById("groups");
+if (groupsHost) mounts.push([groupsHost, <ListRegion />]);
 
 const emptyHost = document.getElementById("empty-host");
 if (emptyHost) mounts.push([emptyHost, <EmptyRegion />]);

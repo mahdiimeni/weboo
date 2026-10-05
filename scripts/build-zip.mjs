@@ -12,9 +12,10 @@
  * must be byte-identical to extension/ + manifest equal) → this packer, so a
  * zip can never contain a stale or unverified output.
  *
- * The generated E2E harnesses (popup/_e2e_harness.html,
- * dashboard/_e2e_harness.html) are always excluded — they are test tooling,
- * never shipped.
+ * The generated E2E harness (popup/_e2e_harness.html) is always excluded —
+ * test tooling, never shipped. (The dashboard harness retired with Phase 8
+ * slice 4: the React list renders from real storage; a mocked static page
+ * has nothing left to exercise.)
  *
  * Version source of truth: extension/manifest.json (the single version source
  * — never hardcode a version here; parity proves the output manifest equal).
@@ -46,7 +47,7 @@ const DIST = join(ROOT, "dist");
 const OUT = join(DIST, `highlighter-extension-v${VERSION}.zip`);
 
 /* test tooling inside extension/ — never shipped */
-const EXCLUDES = ["popup/_e2e_harness.html", "dashboard/_e2e_harness.html"];
+const EXCLUDES = ["popup/_e2e_harness.html"];
 
 mkdirSync(DIST, { recursive: true });
 rmSync(OUT, { force: true });

@@ -7,19 +7,49 @@
  * through useSyncExternalStore; the components themselves are pure
  * presentation under src/dashboard/components/.
  *
- * Slices ported so far: 1 (stats strip), 2 (disabled-hosts section),
- * 3 (bulk bar — via the controller's publish/subscribe bulkBridge, which
- * retires when slice 4 moves the list state into data.ts).
+ * Slices ported: 1 (stats) · 2 (disabled hosts) · 7 (theme/color/switches) ·
+ * 6 (empty/load-more) · 4 (toolbar + the whole list region — since slice 4
+ * the list pipeline is computed HERE per render from the data snapshot via
+ * the pure dash.* functions, exactly as the controller's renderList did; the
+ * controller's renderList, handlers and the slice-3/6 bridges are retired).
+ *
+ * The only controller callback still consumed is the highlight preview
+ * (onPreview → previewBridge.open) — the hl-modal is still controller-owned
+ * until slice 5; the bridge then dies with it.
+ *
  * Task 5 collapses these roots into a single App when the last region lands
  * and the imperative controller retires.
  */
 import { useSyncExternalStore } from "react";
-import { getData, subscribeData, setDisabledHosts, setSettings } from "./data";
+import {
+  getData,
+  subscribeData,
+  setDisabledHosts,
+  setSettings,
+  openArticle,
+  viewRecord,
+  copyText,
+  deleteRecord,
+  deleteGroup,
+  toggleCard,
+  flipItemOrder,
+  toggleSection,
+  addTag,
+  removeTag,
+  setSearch,
+  toggleColorFilter,
+  setNotesOnly,
+  setSort,
+  toggleTagFilter,
+  bulkApply,
+  loadMore,
+} from "./data";
 import { toast } from "./toast";
 import type { ThemeKey } from "../types/settings";
 import type { HighlightColor } from "../types/highlight";
-import { bulkBridge, listChromeBridge } from "../../extension/dashboard/dashboard.js";
+import { previewBridge } from "../../extension/dashboard/dashboard.js";
 import { dash } from "../../extension/dashboard/dashboard-data.js";
+import type { Group, GroupCardHandlers } from "./components/GroupCard";
 import { StatsStrip } from "./components/StatsStrip";
 import { DisabledHosts } from "./components/DisabledHosts";
 import { BulkToggle } from "./components/BulkToggle";
@@ -28,6 +58,8 @@ import { LoadMore } from "./components/LoadMore";
 import { ThemeRadios } from "./components/ThemeRadios";
 import { ColorDots } from "./components/ColorDots";
 import { BehaviorSwitches } from "./components/BehaviorSwitches";
+import { Toolbar } from "./components/Toolbar";
+import { DirSection } from "./components/DirSection";
 
 /** Region root 1 — mounted into <section class="stats"> (slice 1). */
 export function StatsRegion() {
@@ -92,30 +124,97 @@ export function SwitchesRegion() {
   );
 }
 
-/** Region root 6 — mounted into .list-bar (slice 3). The bulk decision is
- *  published by the controller's bulkBridge (authoritative list state still
- *  lives there); apply() runs the exact click-handler logic. */
+/** The list pipeline — the exact computation the controller's renderList ran,
+ *  now per render from the snapshot (all steps are pure dash.* functions).
+ *  Boot collapse + tag pruning ride the data layer's refresh (data.ts). */
+function listModel(s: ReturnType<typeof getData>) {
+  const filtered = dash.applyFilters(s.records, s.filters, s.tagMap);
+  const groups = dash.applyItemReversal(dash.groupRecords(filtered, s.filters.sort), s.reversedGroups)
+    .map((g: Group) => ({
+      ...g,
+      favicon: (s.favicons[g.host] && s.favicons[g.host].icon) || null,
+      tags: s.tagMap[g.key] || [],
+    }));
+  const page = dash.paginate(groups, s.visibleLimit);
+  return { filtered, groups, page, lead: dash.leadDir(groups) };
+}
+
+/** Region root 6 — mounted into .toolbar (slice 4). */
+export function ToolbarRegion() {
+  const { filters, tagMap } = useSyncExternalStore(subscribeData, getData);
+  return (
+    <Toolbar
+      filters={filters}
+      tagMap={tagMap}
+      onSearch={setSearch}
+      onToggleColor={toggleColorFilter}
+      onToggleNotes={setNotesOnly}
+      onSort={setSort}
+      onToggleTag={toggleTagFilter}
+    />
+  );
+}
+
+/** Region root 7 — mounted into .list-bar (slice 3, now state-driven): the
+ *  bulk decision is computed fresh from the same state that renders the list
+ *  (dash.bulkAction over the FILTERED groups + the user-owned collapse set). */
 export function BulkRegion() {
-  /* bulkBridge lives in the untyped controller module — pin the snapshot shape */
-  const action = useSyncExternalStore(bulkBridge.subscribe, bulkBridge.getSnapshot as () => string);
-  return <BulkToggle action={action} onApply={() => bulkBridge.apply()} />;
+  const s = useSyncExternalStore(subscribeData, getData);
+  const { groups } = listModel(s);
+  return <BulkToggle action={dash.bulkAction(groups, s.collapsedGroups)} onApply={bulkApply} />;
 }
 
-interface ListChrome {
-  emptyShown: boolean;
-  emptyHasRecords: boolean;
-  moreShown: boolean;
-  moreOverflow: number;
-}
-
-/** Region roots 7+8 — mounted into the #empty-host / #load-more-host slots
- *  (slice 6). The controller's renderList publishes the snapshots. */
+/** Region roots 8+9 — mounted into #empty-host / #load-more-host (slice 6,
+ *  now state-driven: computed from the same pipeline the list renders). */
 export function EmptyRegion() {
-  const chrome = useSyncExternalStore(listChromeBridge.subscribe, listChromeBridge.getSnapshot as () => ListChrome);
-  return <EmptyState shown={chrome.emptyShown} hasRecords={chrome.emptyHasRecords} />;
+  const s = useSyncExternalStore(subscribeData, getData);
+  const { filtered } = listModel(s);
+  return <EmptyState shown={filtered.length === 0} hasRecords={s.records.length > 0} />;
 }
 
 export function MoreRegion() {
-  const chrome = useSyncExternalStore(listChromeBridge.subscribe, listChromeBridge.getSnapshot as () => ListChrome);
-  return <LoadMore shown={chrome.moreShown} overflow={chrome.moreOverflow} onLoadMore={() => listChromeBridge.applyMore()} />;
+  const s = useSyncExternalStore(subscribeData, getData);
+  const { page } = listModel(s);
+  return <LoadMore shown={page.overflow > 0} overflow={page.overflow} onLoadMore={loadMore} />;
+}
+
+/** Region root 10 — mounted into #groups (slice 4): the direction-separated
+ *  article cards. The handlers are the data layer's actions (the controller's
+ *  exact logic); onPreview still rides the controller's previewBridge until
+ *  slice 5 ports the hl-modal. */
+export function ListRegion() {
+  const s = useSyncExternalStore(subscribeData, getData);
+  const { groups, page, lead } = listModel(s);
+
+  const handlers: GroupCardHandlers = {
+    onOpen: openArticle,
+    onDeleteGroup: deleteGroup,
+    onToggle: (g, willCollapse) => toggleCard(g.key, willCollapse),
+    onItemOrder: (g) => flipItemOrder(g.key),
+    onSectionToggle: toggleSection,
+    onAddTag: addTag,
+    onRemoveTag: removeTag,
+    onView: viewRecord,
+    onCopy: (rec) => copyText(rec.text || ""),
+    onDelete: deleteRecord,
+    onPreview: (rec) => previewBridge.open(rec),
+  };
+
+  return (
+    <>
+      {dash.splitDirSections(page.visible, lead).map((sec) => (
+        <DirSection
+          key={sec.dir}
+          section={sec}
+          lead={sec.dir === lead}
+          collapsed={s.collapsedSections.has(sec.dir)}
+          cardState={(g) => ({
+            collapsed: s.collapsedGroups.has(g.key),
+            order: dash.itemOrder(s.filters.sort, s.reversedGroups.has(g.key)),
+          })}
+          handlers={handlers}
+        />
+      ))}
+    </>
+  );
 }

@@ -86,17 +86,19 @@ describe("یکپارچگی بسته (packaging)", () => {
     const entry = readFile(ext("..", "entrypoints", "dashboard", "main.tsx"));
     expect(entry).toContain('import "../../extension/dashboard/dashboard.js"');
     const names = [...readFile(ext("dashboard", "dashboard.js")).matchAll(/^import\s+(?:[^"']*?from\s+)?["']([^"']+)["']/gm)].map((m) => m[1]);
-    expect(names.length).toBeGreaterThanOrEqual(13);
+    /* slice 4: the controller is the platform+modal layer — no list state, no
+       list DOM; the tags/format/detect-dir/domkit/clipboard imports moved to
+       the data layer (src/dashboard/data.ts) and the React regions. */
+    expect(names.length).toBeGreaterThanOrEqual(9);
     for (const sp of names) expect(exists(ext("dashboard", sp))).toBe(true);
     expect(names.indexOf("../shared/constants.js")).toBeLessThan(names.indexOf("../shared/backends/chrome-storage.js"));
-    expect(names.indexOf("../shared/tags.js")).toBeLessThan(names.indexOf("../shared/store.js"));
+    expect(names.indexOf("../shared/backends/chrome-storage.js")).toBeLessThan(names.indexOf("../shared/store.js"));
     expect(names.indexOf("../shared/store.js")).toBeLessThan(names.indexOf("./dashboard-data.js"));
     expect(names.indexOf("./dashboard-data.js")).toBeLessThan(names.indexOf("./dashboard-view.js"));
-    /* reading exports (v0.6.0): both document builders consume format → imported
-       before them; the controller consumes both → later in the entry list */
-    expect(names.indexOf("../shared/format.js")).toBeLessThan(names.indexOf("../shared/markdown-export.js"));
-    expect(names.indexOf("../shared/format.js")).toBeLessThan(names.indexOf("../shared/booklet-export.js"));
+    /* reading exports (v0.6.0): both document builders are imported before
+       their consumer (dashboard-data's facade feeds exportGroups) */
     expect(names.indexOf("../shared/markdown-export.js")).toBeLessThan(names.indexOf("./dashboard-data.js"));
+    expect(names.indexOf("../shared/booklet-export.js")).toBeLessThan(names.indexOf("./dashboard-data.js"));
   });
 });
 
