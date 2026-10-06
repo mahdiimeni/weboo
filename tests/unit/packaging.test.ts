@@ -115,7 +115,7 @@ describe("emit کلاسیک (TypeScript → اسکریپت قابل تزریق)"
        + engine strip-path; manifest list = order data). The allowlist is
        explicit: a conversion outside it fails here until its classic loaders
        are removed first. */
-    const emitted = ["format", "detect-dir", "url", "utils", "tags", "textindex", "anchor", "store"];
+    const emitted = ["format", "detect-dir", "url", "utils", "tags", "textindex", "anchor", "store", "message-guard"];
     for (const name of emitted) {
       /* source of truth lives in src/shared (ext() is extension/-rooted — ".." climbs out) */
       expect(exists(ext("..", "src", "shared", name + ".ts"))).toBe(true);
@@ -134,7 +134,7 @@ describe("کل مسیر محتوا ماژولی است (7c-2)", () => {
        The opposite direction lives in the bundle test above: the emitted
        content-scripts/content.js must contain ZERO module statements. */
     const files = JSON.parse(readFile(ext("manifest.json"))).content_scripts[0].js;
-    expect(files.length).toBe(20);
+    expect(files.length).toBe(21);
     for (const f of files) {
       expect(/^\s*(import|export)\s/m.test(readFile(ext(f)))).toBe(true);
     }
