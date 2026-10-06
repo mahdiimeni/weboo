@@ -30,9 +30,6 @@
  */
 import { APP_NAME, VERSION, COLORS } from "./constants.js";
 import { format } from "./format.js"; /* 7c-3 */
-(function () {
-  'use strict';
-  var HL = (globalThis.HL = globalThis.HL || {});
   var fmt = format;
 
   /* ---------- Local pure helpers ---------- */
@@ -329,10 +326,7 @@ import { format } from "./format.js"; /* 7c-3 */
     ].join('\n');
   }
 
-  HL.booklet = {
+  export const booklet = {
     buildBookletHtml: buildBookletHtml
   };
-})();
 
-/* identity export (7c-3) */
-export const booklet = globalThis.HL.booklet;

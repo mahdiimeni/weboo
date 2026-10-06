@@ -42,15 +42,12 @@
  * .btn-p — the theme-invariant primary-button convention (amber on both
  * surfaces, exactly like the «ذخیره یادداشت» button in edit mode).
  */
-import { uiBase } from "./base.js";
+import { ui, uiBase } from "./base.js";
 import { detectDir } from "../detect-dir.js";
 import { format } from "../format.js";
 import { util } from "../utils.js";
 import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
 
-(function () {
-  'use strict';
-  const HL = (globalThis.HL = globalThis.HL || {});
   var svg = uiBase.svg;
   var ICON = uiBase.ICON;
 
@@ -497,6 +494,5 @@ import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
     el.addEventListener('pointercancel', end);
   }
 
-  HL.ui = HL.ui || {};
-  HL.ui.NotePopover = NotePopover;
-})();
+  ui.NotePopover = NotePopover;
+

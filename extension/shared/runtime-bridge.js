@@ -9,9 +9,6 @@
  */
 import { VERSION } from "./constants.js"; /* 7c-2 */
 
-(function () {
-  'use strict';
-  var HL = (globalThis.HL = globalThis.HL || {});
 
   function runtimeBridge() {
     var rt = (globalThis.chrome && globalThis.chrome.runtime) || null;
@@ -67,8 +64,5 @@ import { VERSION } from "./constants.js"; /* 7c-2 */
     };
   }
 
-  HL.runtime = runtimeBridge();
-})();
+  export const runtime = runtimeBridge();
 
-/* identity export (7c-1) */
-export const runtime = globalThis.HL.runtime;

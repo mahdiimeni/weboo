@@ -15,9 +15,6 @@
 import { THEME_KEYS } from "../shared/constants.js";
 import { format } from "../shared/format.js";
 import { detectDir } from "../shared/detect-dir.js"; /* 7c-3 */
-(function () {
-  'use strict';
-  var HL = (globalThis.HL = globalThis.HL || {});
   /* Module guard — same convention as the popup controller: HL rides on
      globalThis (in a real page window === globalThis; globalThis also works
      in unit tests) */
@@ -95,7 +92,7 @@ import { detectDir } from "../shared/detect-dir.js"; /* 7c-3 */
     return out;
   }
 
-  HL.pop = {
+  export const pop = {
     isSupportedSite: isSupportedSite,
     validTheme: validTheme,
     summarize: summarize,
@@ -104,7 +101,5 @@ import { detectDir } from "../shared/detect-dir.js"; /* 7c-3 */
     countLabel: countLabel,
     nextDisabledHosts: nextDisabledHosts
   };
-})();
 
-/* identity export (7c-3) */
-export const pop = globalThis.HL.pop;
+

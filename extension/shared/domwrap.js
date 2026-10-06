@@ -7,13 +7,10 @@
  * data-hl-noted is set only for highlights that have a note (the underline marker).
  */
 /* Phase 7b module: textindex is a real import (squash/acceptTextNode reads —
-   the old HL.text namespace seam shrinks). Identity via globalThis.HL; tail
+   the old HL.text namespace seam shrinks). Identity via the module binding.
    `export const dom` below. Consumers (anchor/highlighter/content) import dom. */
 import { util } from "./utils.js"; /* 7c-2: cssEscape */
 import { text as textIndex } from "./textindex.js"; /* alias: `text` is a common local name in DOM code */
-(function () {
-  'use strict';
-  const HL = (globalThis.HL = globalThis.HL || {});
 
   /** XPath relative to body for a node (element or text) */
   function xpathOf(node) {
@@ -222,7 +219,7 @@ import { text as textIndex } from "./textindex.js"; /* alias: `text` is a common
     return false;
   }
 
-  HL.dom = { /* the dom namespace — exported below (ES module identity) */
+  export const dom = { /* the dom namespace — one instance per world */
     xpathOf: xpathOf,
     evalXPath: evalXPath,
     serializeRange: serializeRange,
@@ -237,6 +234,4 @@ import { text as textIndex } from "./textindex.js"; /* alias: `text` is a common
     flash: flash,
     isHidden: isHidden
   };
-})();
 
-export const dom = globalThis.HL.dom; /* identity export (same instance classic consumers share) */

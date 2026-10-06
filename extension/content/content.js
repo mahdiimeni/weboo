@@ -22,7 +22,7 @@
 import { dom } from "../shared/domwrap.js";
 import { createHighlighter } from "../shared/highlighter.js";
 import { favicon } from "./favicon.js";
-/* 7c-1: shared-file wave — the orchestrator's remaining HL.* reads collapse to bindings.
+/* 7c-1: shared-file wave — the orchestrator's HL.* reads became direct imports.
    store is a local instance injected into the highlighter — no namespace slot. */
 import { MSG, GOTO_HASH_PREFIX } from "../shared/constants.js";
 import { backends } from "../shared/backends/chrome-storage.js";
@@ -36,7 +36,6 @@ import { ui } from "../shared/ui/base.js";
   if (window.__hlxContentInit) return;
   window.__hlxContentInit = true;
 
-  var HL = globalThis.HL;
   var page = url.normalizeUrl(location.href);
   if (!page) return; /* URL can't be normalized (e.g. about:blank) */
 
@@ -81,7 +80,7 @@ import { ui } from "../shared/ui/base.js";
 
   /* ---------- Site's real favicon (one-time capture on first save) ---------- */
 
-  /* Module: content/favicon.js (HL.favicon) — pick/fetch/validate/store.
+  /* Module: content/favicon.js — pick/fetch/validate/store.
      This side keeps only the page policy: disabled page, one attempt per load,
      http(s) pages only. */
   function captureSiteFavicon() {

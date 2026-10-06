@@ -33,9 +33,6 @@
 import { format } from "../shared/format.js";
 import { detectDir } from "../shared/detect-dir.js";
 import { tags } from "../shared/tags.js"; /* 7c-3 */
-(function () {
-  'use strict';
-  var HL = (globalThis.HL = globalThis.HL || {});
   var fmt = format;
 
   /* ---------- Domain validation for «سایت‌های غیرفعال» (disabled sites) ---------- */
@@ -69,7 +66,7 @@ import { tags } from "../shared/tags.js"; /* 7c-3 */
      have lived in shared/detect-dir.js since v1.2.7 so the popup consumes the same
      single source (an article's direction stays identical across all views);
      here groupDir only feeds the group's highlight texts into that policy, and the
-     legacy HL.dash.detectTextDir facade is kept for current consumers
+     dash.detectTextDir is the single decision source for current consumers
      (LSP — same contract, same behavior). */
   function groupDir(g) {
     var items = g.items || [];
@@ -413,8 +410,8 @@ import { tags } from "../shared/tags.js"; /* 7c-3 */
   }
 
   /* Shared display formats from the core (HL.format) — just delegated
-     so current HL.dash consumers keep working unchanged. */
-  HL.dash = {
+     exported directly. */
+  export const dash = {
     faNum: fmt.faNum,
     fmtBytes: fmt.fmtBytes,
     dotColorOf: fmt.dotColorOf,
@@ -437,7 +434,5 @@ import { tags } from "../shared/tags.js"; /* 7c-3 */
     computeStats: computeStats,
     paginate: paginate
   };
-})();
 
-/* identity export (7c-3) */
-export const dash = globalThis.HL.dash;
+

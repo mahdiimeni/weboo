@@ -13,15 +13,14 @@ import { setupDom, loadEngine, evalClassic, ext } from "./helpers/engine";
 let HL: any;
 let win: any;
 
-/* the real page order: constants → domkit → theme-await boot (eval = script tag).
-   Phase 12: loadEngine returns the HARVESTED namespace (module bindings) —
-   theme-boot is the one classic file and assigns globalThis.HL itself, so the
-   re-merge after evalClassic is the harness contract for a simulated script tag. */
+/* the real page order: theme-boot (classic head script) → the module core.
+   Phase 12: the write side lives on ui/base (ui.applyThemeNow) — the world
+   needs the full core + domkit; theme-boot is eval'd as the simulated script
+   tag (its read side only touches localStorage + the root attributes). */
 async function bootThemeBoot() {
   win = setupDom();
-  HL = await loadEngine({ files: ["shared/constants.js", "shared/domkit.js"] });
+  HL = await loadEngine({ extraFiles: [ext("shared", "domkit.js")] });
   evalClassic(ext("shared", "theme-boot.js"));
-  Object.assign(HL, (globalThis as any).HL || {});
   return HL;
 }
 
@@ -46,32 +45,23 @@ describe("anti-flash (read side)", () => {
   });
 });
 
-describe("HL.applyThemeNow (write side — shared)", () => {
+describe("ui.applyThemeNow (write side — shared; moved off theme-boot in Phase 12)", () => {
   test("light → اعمال + نوشتن آینه", () => {
-    expect(HL.applyThemeNow("light")).toBe("light");
+    expect(HL.ui.applyThemeNow("light")).toBe("light");
     expect(win.document.documentElement.getAttribute("data-theme")).toBe("light");
     expect(win.localStorage.getItem("hlx:theme")).toBe("light");
   });
 
   test("auto → اعمال + پاک‌کردن آینه", () => {
-    HL.applyThemeNow("dark");
-    expect(HL.applyThemeNow("auto")).toBe("auto");
+    HL.ui.applyThemeNow("dark");
+    expect(HL.ui.applyThemeNow("auto")).toBe("auto");
     expect(win.document.documentElement.getAttribute("data-theme")).toBeNull();
     expect(win.localStorage.getItem("hlx:theme")).toBeNull();
   });
 
   test("مقدار نامعتبر → auto (اعتبارسنجی در مرز UI — الگوی domkit)", () => {
-    expect(HL.applyThemeNow("blue")).toBe("auto");
-    expect(HL.applyThemeNow(null)).toBe("auto");
+    expect(HL.ui.applyThemeNow("blue")).toBe("auto");
+    expect(HL.ui.applyThemeNow(null)).toBe("auto");
   });
 
-  test("بدون HL.domkit (هسته لود نشده) → no-op امن و null", async () => {
-    win = setupDom();
-    await loadEngine({ files: [] });
-    evalClassic(ext("shared", "theme-boot.js"));
-    /* the classic script created the namespace itself — read it back from globalThis */
-    HL = (globalThis as any).HL;
-    expect(HL.applyThemeNow("dark")).toBeNull();
-    expect(win.document.documentElement.getAttribute("data-theme")).toBeNull();
-  });
 });

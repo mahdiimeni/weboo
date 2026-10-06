@@ -21,10 +21,13 @@ export const THEME_HINTS: Record<string, string> = {
 };
 
 export function ThemeRadios({ theme, onSelect }: { theme: ThemeKey; onSelect: (key: ThemeKey) => void }) {
-  const cur = (THEME_KEYS as string[]).indexOf(theme) !== -1 ? theme : "auto";
+  /* the registry keys are plain strings at runtime — the ThemeKey union
+     is the compile-time view (types-contract pins the parity) */
+  const KEYS = THEME_KEYS as ThemeKey[];
+  const cur = KEYS.indexOf(theme) !== -1 ? theme : "auto";
   return (
     <>
-      {THEME_KEYS.map((k) => (
+      {KEYS.map((k) => (
         <label className="radio" key={k}>
           <input
             type="radio"

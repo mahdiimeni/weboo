@@ -8,6 +8,16 @@
 import { describe, test, expect, beforeAll } from "bun:test";
 import { setupDom, loadEngine, readFile, ext, exists } from "./helpers/engine";
 
+function walkJs(dir: string): string[] {
+  const out: string[] = [];
+  for (const e of require("node:fs").readdirSync(dir, { withFileTypes: true })) {
+    const full = dir + "/" + e.name;
+    if (e.isDirectory()) out.push(...walkJs(full));
+    else if (e.name.endsWith(".js")) out.push(full);
+  }
+  return out;
+}
+
 let HL: any;
 
 beforeAll(async () => {
@@ -127,6 +137,23 @@ describe("کل مسیر محتوا ماژولی است (7c-2)", () => {
     expect(files.length).toBe(20);
     for (const f of files) {
       expect(/^\s*(import|export)\s/m.test(readFile(ext(f)))).toBe(true);
+    }
+  });
+});
+
+describe("بدون رجیستری سراسری (Phase 12)", () => {
+  test("هیچ فایل محصولی globalThis.HL نمی‌نویسد و نمی‌خواند", () => {
+    /* The migration's final form: no globalThis.HL ANYWHERE in the product —
+       every file is an ES module with real bindings; the theme write side
+       lives on ui.applyThemeNow (ui/base.js), the anti-flash read stays in
+       the classic theme-boot (which touches only localStorage + the root
+       attributes). The test harness harvests module bindings instead. */
+    const files = walkJs(ext("."));
+    expect(files.length).toBeGreaterThan(20);
+    for (const f of files) {
+      /* code only — doc comments may narrate the retired registry */
+      const code = readFile(f).replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+      expect(code).not.toMatch(/globalThis\.HL|\bHL\s*=\s*globalThis/);
     }
   });
 });

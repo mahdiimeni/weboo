@@ -8,9 +8,6 @@
  * The legacy path (textarea + execCommand) is kept for browsers without the
  * Clipboard permission (e.g. file:// pages or iframes without allow).
  */
-(function () {
-  'use strict';
-  const HL = (globalThis.HL = globalThis.HL || {});
 
   function legacyCopy(t) {
     var ok = false;
@@ -41,8 +38,5 @@
     });
   }
 
-  HL.clipboard = { copyText: copyText };
-})();
+  export const clipboard = { copyText: copyText };
 
-/* identity export (7c-1) */
-export const clipboard = globalThis.HL.clipboard;

@@ -6,7 +6,7 @@ import { backends } from "../shared/backends/chrome-storage.js";
 import { url as urlUtil } from "../shared/url.js"; /* aliased: local vars named `url` (tab/dashboard URLs) shadow the binding */
 import "../shared/format.js";
 import "../shared/detect-dir.js";
-import "../shared/domkit.js";
+import { ui } from "../shared/ui/base.js";
 import { exportTools } from "../shared/export.js";
 import "../shared/tags.js";
 import { createStore } from "../shared/store.js";
@@ -46,7 +46,6 @@ import { popView as view } from "./popup-view.js";
   /* ---------- Composition root ---------- */
 
   const store = createStore(backends.chromeStorage()); /* DI: local instance — no namespace slot */
-  var HL = globalThis.HL;
   /* Module guard — same convention as the rest of the core: HL rides on globalThis
      (in a real page window === globalThis; globalThis also works in unit tests) */
   
@@ -154,7 +153,7 @@ import { popView as view } from "./popup-view.js";
       toast('ذخیره تنظیمات ناموفق بود', 'error');
       return;
     }
-    HL.applyThemeNow(next);
+    ui.applyThemeNow(next);
     view.renderThemeBtn(els, pop.validTheme(state.settings));
   });
 
@@ -250,13 +249,13 @@ import { popView as view } from "./popup-view.js";
        put the forced theme on <html>; here we sync it with the real settings) */
     try { state.settings = await store.getSettings(); }
     catch (e) { state.settings = Object.assign({}, DEFAULT_SETTINGS); }
-    HL.applyThemeNow(state.settings.theme);
+    ui.applyThemeNow(state.settings.theme);
     view.renderThemeBtn(els, pop.validTheme(state.settings));
 
     /* Live sync: settings changes (e.g. theme) from another tab's dashboard */
     store.onSettingsChanged(function (s) {
       state.settings = s || Object.assign({}, DEFAULT_SETTINGS);
-      HL.applyThemeNow(state.settings.theme);
+      ui.applyThemeNow(state.settings.theme);
       view.renderThemeBtn(els, pop.validTheme(state.settings));
       if (state.nu && state.nu.host) {
         var hosts = (state.settings && state.settings.disabledHosts) || [];

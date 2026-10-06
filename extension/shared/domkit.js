@@ -6,9 +6,6 @@
  * builder belongs to the consumer's own view layer.
  */
 import { THEME_KEYS } from "./constants.js"; /* 7c-3 */
-(function () {
-  'use strict';
-  const HL = (globalThis.HL = globalThis.HL || {});
 
   function el(tag, cls) {
     var n = document.createElement(tag);
@@ -72,8 +69,5 @@ import { THEME_KEYS } from "./constants.js"; /* 7c-3 */
     return img;
   }
 
-  HL.domkit = { el: el, txtNode: txtNode, mountFavicon: mountFavicon, applyTheme: applyTheme };
-})();
+  export const domkit = { el: el, txtNode: txtNode, mountFavicon: mountFavicon, applyTheme: applyTheme };
 
-/* identity export (7c-3) */
-export const domkit = globalThis.HL.domkit;

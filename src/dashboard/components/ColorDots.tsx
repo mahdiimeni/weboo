@@ -11,9 +11,12 @@ import type { HighlightColor } from "../../types/highlight";
 import { COLOR_KEYS, COLORS } from "../../../extension/shared/constants.js";
 
 export function ColorDots({ defaultColor, onSelect }: { defaultColor: HighlightColor; onSelect: (key: HighlightColor) => void }) {
+  /* the registry keys are plain strings at runtime — the HighlightColor union
+     is the compile-time view (types-contract pins the parity) */
+  const KEYS = COLOR_KEYS as HighlightColor[];
   return (
     <>
-      {COLOR_KEYS.map((k) => {
+      {KEYS.map((k) => {
         const c = COLORS[k];
         const active = k === defaultColor;
         return (

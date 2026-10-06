@@ -155,7 +155,7 @@ async function shot(sessionId, file) {
 /* ---------- find the extension id (from its own SW target) ---------- */
 let extId = null;
 /* dev-tree layout (background/service-worker.js) AND WXT layout (background.js
-   — collides with the sandbox's foreign extensions, so CONFIRM via HL sentinel) */
+   — collides with the sandbox's foreign extensions, so CONFIRM via the app marker the SW sets on itself) */
 /* budget: 80 x 600ms (~48s) — a cold SW on a loaded box raced the old 40-iter
    window once (false "extension did not load" right after real-theme) */
 for (let i = 0; i < 80 && !extId; i++) {
@@ -165,7 +165,7 @@ for (let i = 0; i < 80 && !extId; i++) {
   for (const c of cands) {
     try {
       const { sessionId } = await browser.send('Target.attachToTarget', { targetId: c.targetId, flatten: true });
-      const r = await browser.send('Runtime.evaluate', { expression: 'typeof HL !== "undefined" && typeof HL.createStore === "function"', returnByValue: true }, sessionId);
+      const r = await browser.send('Runtime.evaluate', { expression: 'globalThis.__HLX_APP === "web-highlighter"', returnByValue: true }, sessionId);
       if (r.result && r.result.value === true) { extId = c.url.split('/')[2]; break; }
     } catch (e) { /* foreign */ }
   }

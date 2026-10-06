@@ -16,12 +16,9 @@
  * background the previous alphas were below the visibility threshold —
  * contrast contract in uitheme.test.ts). Dark palette untouched.
  */
-import { uiBase } from "./base.js";
+import { ui, uiBase } from "./base.js";
 import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
 
-(function () {
-  'use strict';
-  const HL = (globalThis.HL = globalThis.HL || {});
   var svg = uiBase.svg;
   var ICON = uiBase.ICON;
 
@@ -153,6 +150,5 @@ import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
     this.el.style.display = 'none';
   };
 
-  HL.ui = HL.ui || {};
-  HL.ui.FloatingToolbar = FloatingToolbar;
-})();
+  ui.FloatingToolbar = FloatingToolbar;
+

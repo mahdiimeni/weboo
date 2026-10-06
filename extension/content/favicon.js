@@ -11,9 +11,6 @@
  * fallback. Pure where possible: pickIconHref(doc, base) is unit-testable.
  * DIP: storage is injected (an HL.createStore instance).
  */
-(function () {
-  'use strict';
-  var HL = (globalThis.HL = globalThis.HL || {});
   var MAX_BYTES = 96 * 1024;
 
   function pickIconHref(doc, base) {
@@ -74,9 +71,7 @@
     }).then(function () { return true; }, function () { return false; });
   }
 
-HL.favicon = { MAX_BYTES: MAX_BYTES, pickIconHref: pickIconHref, captureSiteFavicon: captureSiteFavicon };
+export const favicon = { MAX_BYTES: MAX_BYTES, pickIconHref: pickIconHref, captureSiteFavicon: captureSiteFavicon };
 
-})();
 
-/* identity export (same instance content imports) */
-export const favicon = globalThis.HL.favicon;
+

@@ -14,9 +14,6 @@
  * spot to preserve the previous versions' graceful degradation (error at
  * composition time, not at runtime).
  */
-(function () {
-  'use strict';
-  var HL = (globalThis.HL = globalThis.HL || {});
 
   /* ---------- In-memory backend (fallback and test utility) ---------- */
 
@@ -143,10 +140,6 @@
     return { get: get, set: set, remove: remove, bytes: bytes, onChange: onChange };
   }
 
-  HL.backends = HL.backends || {};
-  HL.backends.chromeStorage = chromeStorage;
-  HL.backends.memoryArea = memoryArea;
-})();
+  export const backends = { chromeStorage: chromeStorage, memoryArea: memoryArea };
 
-/* identity export (7c-1) */
-export const backends = globalThis.HL.backends;
+

@@ -18,9 +18,6 @@
 import { THEMES } from "../shared/constants.js";
 import { format } from "../shared/format.js";
 import { domkit } from "../shared/domkit.js"; /* 7c-3 */
-(function () {
-  'use strict';
-  var HL = (globalThis.HL = globalThis.HL || {});
   /* Module guard — same convention as the popup controller: HL rides on
      globalThis (in a real page window === globalThis; globalThis also works
      in unit tests) */
@@ -222,7 +219,7 @@ import { domkit } from "../shared/domkit.js"; /* 7c-3 */
     els.btnTheme.innerHTML = THEME_ICON[key]; /* our own constant */
   }
 
-  HL.popView = {
+  export const popView = {
     setVersion: setVersion,
     showUnsupported: showUnsupported,
     showGeneric: showGeneric,
@@ -238,7 +235,5 @@ import { domkit } from "../shared/domkit.js"; /* 7c-3 */
     toast: toast,
     renderThemeBtn: renderThemeBtn
   };
-})();
 
-/* identity export (7c-3) */
-export const popView = globalThis.HL.popView;
+

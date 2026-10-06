@@ -108,10 +108,7 @@ async function loadGraph(file: string, cache: WorldCache): Promise<void> {
 type Harvest = (ns: any, HL: any) => void;
 
 const HARVEST: Record<string, Harvest> = {
-  "shared/ui/base.js": (ns, HL) => { HL.ui = HL.ui || {}; Object.assign(HL.ui, ns.uiBase); },
-  "shared/ui/toast.js": (ns, HL) => { HL.ui.toast = ns.toast; },
-  "shared/ui/toolbar.js": (ns, HL) => { HL.ui.toolbar = ns.toolbar; },
-  "shared/ui/popover.js": (ns, HL) => { HL.ui.popover = ns.popover; },
+  "shared/ui/base.js": (ns, HL) => { HL.ui = ns.ui; HL.uiBase = ns.uiBase; /* the widget files mutate `ui` in place */ },
   "shared/store.js": (ns, HL) => { HL.createStore = ns.createStore; HL.createStoreReader = ns.createStoreReader; },
   "shared/export.js": (ns, HL) => { HL.export = ns.exportTools; },
   "shared/backends/chrome-storage.js": (ns, HL) => { HL.backends = ns.backends; },

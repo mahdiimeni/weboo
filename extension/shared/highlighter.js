@@ -34,9 +34,6 @@ import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine — 16 HL.dom 
 import { util } from "./utils.js";
 import { clipboard } from "./clipboard.js";
 import { ui } from "./ui/base.js";
-(function () {
-  'use strict';
-  var HL = (globalThis.HL = globalThis.HL || {});
 
   function createHighlighter(cfg) {
     cfg = cfg || {};
@@ -524,8 +521,7 @@ import { ui } from "./ui/base.js";
     };
   }
 
-  HL.createHighlighter = createHighlighter;
-})();
 
-/* identity export (content imports this factory) */
-export const createHighlighter = globalThis.HL.createHighlighter;
+
+
+export { createHighlighter };

@@ -35,6 +35,7 @@
  *     gone are removed best-effort — never after a failed records read.
  */
 import { backends } from "../../extension/shared/backends/chrome-storage.js";
+import { ui } from "../../extension/shared/ui/base.js";
 import { createStore } from "../../extension/shared/store.js";
 import { dash } from "../../extension/dashboard/dashboard-data.js";
 import { tags as tagRules } from "../../extension/shared/tags.js";
@@ -130,11 +131,11 @@ function mergeFilters(patch: Partial<Filters>, resetLimit: boolean): void {
   });
 }
 
-/** The theme-boot contract: the classic first script defines HL.applyThemeNow
- *  (anti-flash window) — every theme change re-applies it immediately. */
+/** Theme application goes through the ui module (domkit root application +
+ *  Shadow-DOM host sync + the "hlx:theme" mirror — the write side that used
+ *  to live on the classic theme-boot script). */
 function applyThemeNow(theme: string | undefined): void {
-  const HL = (globalThis as unknown as { HL?: { applyThemeNow?: (t: string) => void } }).HL;
-  try { HL?.applyThemeNow?.(theme || "auto"); } catch (e) { /* best-effort */ }
+  try { ui.applyThemeNow(theme || "auto"); } catch (e) { /* best-effort */ }
 }
 
 async function reloadSettings(): Promise<void> {

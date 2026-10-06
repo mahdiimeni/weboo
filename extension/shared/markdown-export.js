@@ -23,9 +23,6 @@
  */
 import { APP_NAME, VERSION, COLORS } from "./constants.js";
 import { format } from "./format.js"; /* 7c-3 */
-(function () {
-  'use strict';
-  var HL = (globalThis.HL = globalThis.HL || {});
   var fmt = format;
 
   /* ---------- Local pure helpers ---------- */
@@ -165,10 +162,7 @@ import { format } from "./format.js"; /* 7c-3 */
     return out.join('\n') + '\n';
   }
 
-  HL.markdown = {
+  export const markdown = {
     buildLibraryMarkdown: buildLibraryMarkdown
   };
-})();
 
-/* identity export (7c-3) */
-export const markdown = globalThis.HL.markdown;

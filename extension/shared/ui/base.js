@@ -16,11 +16,9 @@
  * media (unless light is forced), forced dark via :host([data-theme="dark"])
  * — the popup.css pattern.
  */
-import { THEME_KEYS } from "../constants.js"; /* 7c-2: the theme allow-list */
+import { THEME_KEYS } from "../constants.js"; /* the theme allow-list */
+import { domkit } from "../domkit.js";
 
-(function () {
-  'use strict';
-  const HL = (globalThis.HL = globalThis.HL || {});
 
   var FONT = "Vazirmatn, 'Segoe UI', Tahoma, sans-serif";
 
@@ -138,21 +136,34 @@ import { THEME_KEYS } from "../constants.js"; /* 7c-2: the theme allow-list */
     grip: '<circle cx="9" cy="5" r="1"/><circle cx="9" cy="12" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="19" r="1"/>'
   };
 
-  /* Aggregation level HL.ui — widgets mount onto it from their own files */
-  HL.ui = HL.ui || {};
-  HL.ui.setTheme = setTheme;
-  HL.ui.getTheme = function () { return theme; };
+  /* ---------- Apply-now (write side — shared by popup + dashboard) ----------
+     Phase 12: this used to live on the classic theme-boot script (which cannot
+     import modules); as a module binding it composes domkit's root
+     application, the Shadow-DOM host sync and the "hlx:theme" mirror.
+     Returns the applied key ('auto' | 'light' | 'dark'). */
+  function applyThemeNow(t) {
+    var applied = domkit.applyTheme(document, t);
+    try {
+      if (applied === 'auto') localStorage.removeItem('hlx:theme');
+      else localStorage.setItem('hlx:theme', applied);
+    } catch (e) { /* localStorage unavailable — next boot stays automatic */ }
+    return setTheme(applied);
+  }
 
-  HL.uiBase = {
+  /* Aggregation level `ui` — the widget files mount onto it by importing it
+     (one object per world via module identity) */
+  export const ui = {
+    setTheme: setTheme,
+    getTheme: function () { return theme; },
+    applyThemeNow: applyThemeNow
+  };
+
+  export const uiBase = {
     FONT: FONT,
     BASE_CSS: BASE_CSS,
     makeHost: makeHost,
     svg: svg,
     ICON: ICON
   };
-})();
 
-/* identity export (7c-1): HL.ui is created here and MUTATED in place by toast/toolbar/popover
-   (HL.ui = HL.ui || {}) — one object for every world, so this binding stays valid */
-export const ui = globalThis.HL.ui;
-export const uiBase = globalThis.HL.uiBase;
+

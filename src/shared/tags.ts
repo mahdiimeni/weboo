@@ -18,8 +18,6 @@
  */
 import { TAG_MAX_LEN, TAG_MAX_PER_ARTICLE } from "./constants.js";
 
-(function () {
-  'use strict';
 
   interface TagCount { tag: string; count: number }
   interface TagsApi {
@@ -31,16 +29,7 @@ import { TAG_MAX_LEN, TAG_MAX_PER_ARTICLE } from "./constants.js";
     tagCounts: (tagMap: unknown) => TagCount[];
     hasActiveTag: (tags: unknown, active: Set<string> | null | undefined) => boolean;
   }
-  interface HlSlice {
-    TAG_MAX_LEN: number;
-    TAG_MAX_PER_ARTICLE: number;
-    tags?: TagsApi;
-  }
 
-  const g = globalThis as unknown as { HL?: HlSlice };
-  /* constants.js loads first everywhere (packaging-tested) — the empty
-     fallback is a formality it always fills */
-  const HL = (g.HL = g.HL || ({} as HlSlice)) as HlSlice;
 
   /** Comparison key (case-insensitive; identity for Persian text) */
   function fold(t: string): string { return String(t).toLowerCase(); }
@@ -155,7 +144,9 @@ import { TAG_MAX_LEN, TAG_MAX_PER_ARTICLE } from "./constants.js";
     });
   }
 
-  HL.tags = {
+  /* the namespace surface importers consume, typed where it lives
+     (store.ts reads normalizeTagMap/sanitizeTagList) */
+  export const tags = {
     sanitizeTag: sanitizeTag,
     sanitizeTagList: sanitizeTagList,
     normalizeTagMap: normalizeTagMap,
@@ -164,11 +155,5 @@ import { TAG_MAX_LEN, TAG_MAX_PER_ARTICLE } from "./constants.js";
     tagCounts: tagCounts,
     hasActiveTag: hasActiveTag
   };
-})();
 
-/* identity export (7c-2): the namespace surface importers consume, typed where
-   it lives (store.ts reads these two). Erased at emit — .js sees no interface. */
-export const tags: {
-  normalizeTagMap(obj: unknown): Record<string, string[]>;
-  sanitizeTagList(list: unknown): string[];
-} = (globalThis as unknown as { HL: { tags: Record<string, unknown> & { normalizeTagMap(obj: unknown): Record<string, string[]>; sanitizeTagList(list: unknown): string[]; } } }).HL.tags;
+

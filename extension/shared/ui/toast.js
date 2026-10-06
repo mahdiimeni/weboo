@@ -9,11 +9,8 @@
  * lightness-discrimination floor — contrast contract in uitheme.test.ts.
  * Consumers: the content script (lazily — built on first show).
  */
-import { uiBase } from "./base.js"; /* 7c-2 */
+import { ui, uiBase } from "./base.js";
 
-(function () {
-  'use strict';
-  const HL = (globalThis.HL = globalThis.HL || {});
 
   var LIGHT = [
     '--toast-bg: #ffffff;',
@@ -70,6 +67,5 @@ import { uiBase } from "./base.js"; /* 7c-2 */
     }
   };
 
-  HL.ui = HL.ui || {};
-  HL.ui.Toast = Toast;
-})();
+  ui.Toast = Toast;
+

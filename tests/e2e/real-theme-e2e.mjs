@@ -156,7 +156,8 @@ async function shot(sessionId, file) {
 let extId = null;
 /* candidate SWs: dev-tree layout (background/service-worker.js) and the
    WXT-bundled layout (background.js — collides with sandbox's foreign
-   extensions, so each candidate is CONFIRMED by evaluating an HL sentinel). */
+   extensions, so each candidate is CONFIRMED by evaluating the app marker
+   the SW sets on itself — module bindings are not reachable from outside). */
 for (let i = 0; i < 40 && !extId; i++) {
   const { targetInfos } = await browser.send('Target.getTargets');
   const cands = targetInfos.filter((t) => t.url.startsWith('chrome-extension://') &&
@@ -164,7 +165,7 @@ for (let i = 0; i < 40 && !extId; i++) {
   for (const c of cands) {
     try {
       const { sessionId } = await browser.send('Target.attachToTarget', { targetId: c.targetId, flatten: true });
-      const ours = await evalIn(sessionId, 'typeof HL !== "undefined" && typeof HL.createStore === "function"');
+      const ours = await evalIn(sessionId, 'globalThis.__HLX_APP === "web-highlighter"');
       if (ours === true) { extId = c.url.split('/')[2]; break; }
     } catch (e) { /* foreign extension — ignore */ }
   }

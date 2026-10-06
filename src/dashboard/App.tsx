@@ -65,6 +65,7 @@ import { LoadMore } from "./components/LoadMore";
 import { ThemeRadios } from "./components/ThemeRadios";
 import { ColorDots } from "./components/ColorDots";
 import { BehaviorSwitches } from "./components/BehaviorSwitches";
+import { ui } from "../../extension/shared/ui/base.js";
 import { Toolbar } from "./components/Toolbar";
 import { DirSection } from "./components/DirSection";
 import { PreviewModal, RestoreModal, BookletModal } from "./components/Modals";
@@ -101,9 +102,9 @@ export function ThemeRegion() {
       theme={settings.theme}
       onSelect={(k: ThemeKey) => {
         const prev = settings.theme;
-        if (k !== prev) (globalThis as unknown as { HL: { applyThemeNow: (t: string) => void } }).HL.applyThemeNow(k);
+        if (k !== prev) ui.applyThemeNow(k);
         setSettings({ theme: k }).catch(() => {
-          (globalThis as unknown as { HL: { applyThemeNow: (t: string) => void } }).HL.applyThemeNow(prev);
+          ui.applyThemeNow(prev);
           toast("ذخیره تنظیمات ناموفق بود", "error");
         });
       }}
