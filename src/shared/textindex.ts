@@ -19,8 +19,6 @@
  * classic until its loaders migrate — packaging.test's allowlist tripwire
  * enforces both directions.
  */
-(function () {
-  'use strict';
 
   interface TextChunk { node: Text; start: number }
   interface Located { node: Text; offset: number }
@@ -38,9 +36,6 @@
     dom?: { isHidden(el: Node): boolean };
     text?: unknown;
   }
-
-  const g = globalThis as unknown as { HL?: HlSlice };
-  const HL = (g.HL = g.HL || {}) as HlSlice;
 
   /** Tags whose text does not count as "document text" */
   var SKIP_TAGS: Record<string, 1> = {
@@ -238,7 +233,7 @@
     return range;
   }
 
-  HL.text = {
+  export const text: TextView = {
     build: buildTextIndex,
     normInfo: normInfo,
     squash: squash,
@@ -246,22 +241,15 @@
     normalizeRange: normalizeRange,
     boundaryToText: boundaryToText
   };
-})();
 
-/* ES-module surface (Phase 7b): the namespace above IS the public API.
-   Exported BY IDENTITY (same object reference) so bundler consumers can
-   `import { text }` while every unconverted HL.text consumer keeps working.
-   Consumers that import directly replace HL.text reads — that is the
-   globalThis.HL shrink, one file at a time. */
-/* Structural view of the namespace the IIFE above assigns — members typed
-   loosely at this global seam (DOM-heavy signatures); tighten per-member when
-   consumers import them directly. */
+/* Structural view of the exported namespace — members typed loosely
+   (DOM-heavy signatures); tighten per-member when consumers import them. */
 interface TextView {
   build: (scope: any) => any;
   normInfo: (t: string) => any;
   squash: (s: string) => string;
   acceptTextNode: (n: any) => number;
   normalizeRange: (r: any) => void;
-  boundaryToText: (c: any, o: number, preferEnd?: boolean) => any;
+  boundaryToText: (c: any, o: number, backward: boolean) => any;
 }
-export const text = (globalThis as unknown as { HL: { text: TextView } }).HL.text; /* the IIFE above assigned it */
+

@@ -29,9 +29,6 @@
 import { text } from "./textindex.js";
 import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine (resolveAnchor/isHidden) */
 
-(function () {
-  'use strict';
-
   /* ---------- Local structural views (script-mode: no imports) ---------- */
 
   /** Focused view of a highlight record as resolution consumes it (ISP —
@@ -63,22 +60,6 @@ import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine (resolveAnchor
     resolveStructural(rec: FindRec & { anchor?: unknown }): Range | null;
     resolve(ti: TextIndexView | null, rec: FindRec): FoundRange | null;
   }
-  interface HlSlice {
-    dom: {
-      resolveAnchor(anchor: unknown, expectText?: unknown): Range | null;
-      isHidden(el: Node): boolean;
-    };
-    text: {
-      normInfo(s: string): { norm: string; map: number[] };
-      squash(s: unknown): string;
-    };
-    anchor?: AnchorApi;
-  }
-
-  const g = globalThis as unknown as { HL?: HlSlice };
-  /* domwrap + textindex load before this file (manifest order, packaging-tested);
-     the empty fallback is a formality they fill */
-  const HL = (g.HL = g.HL || ({} as HlSlice)) as HlSlice;
 
   /* ---------- text comparison (moved with the scoring that owns it) ---------- */
 
@@ -196,14 +177,9 @@ import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine (resolveAnchor
 
   resolvers.push(offsetsSource, exactSource, normSource);
 
-  HL.anchor = {
+  export const anchor: AnchorApi = {
     resolvers: resolvers,
     resolveStructural: resolveStructural,
     resolve: resolve
   };
-})();
 
-/* ES-module surface (Phase 7b): exported by identity — HL.anchor === anchor —
-   so the ordered resolvers array stays the SINGLE instance every consumer
-   mutates (the OCP seam: append a resolver, it is picked up everywhere). */
-export const anchor = (globalThis as unknown as { HL: { anchor: unknown } }).HL.anchor; /* the IIFE above assigned it */

@@ -10,10 +10,7 @@
  * Phase 2 migration (TypeScript): compiled by `bun run build:ext` into
  * extension/shared/url.js — never edit the .js directly.
  */
-(function () {
-  'use strict';
 
-  interface HlSlice { url?: unknown }
   interface UrlInfo { url: string; norm: string; site: string; host: string }
 
   /** The slice of window the watcher needs — injected for tests (DIP). */
@@ -25,8 +22,6 @@
     removeEventListener(type: string, listener: () => void): void;
   }
 
-  const g = globalThis as unknown as { HL?: HlSlice };
-  const HL = (g.HL = g.HL || {}) as HlSlice;
 
   const TRACKING_PARAMS = ['fbclid', 'gclid', 'msclkid', 'igshid', 'mc_cid', 'mc_eid', 'yclid', 'vk_click_id', '_ga', '_gl', 'ref', 'source'];
 
@@ -63,7 +58,7 @@
     }
   }
 
-  HL.url = { normalizeUrl: normalizeUrl, watchHref: watchHref };
+  export const url = { normalizeUrl: normalizeUrl, watchHref: watchHref };
 
   /**
    * Watch for client-side (SPA) navigations — pushState/replaceState have no
@@ -89,8 +84,4 @@
       win.removeEventListener('hashchange', check);
     };
   }
-})();
 
-/* identity export (7c-1): read the namespace the IIFE above assigned —
-   same instance every classic/module consumer shares. */
-export const url = (globalThis as unknown as { HL: { url: unknown } }).HL.url;

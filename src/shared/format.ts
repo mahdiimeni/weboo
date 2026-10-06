@@ -11,8 +11,6 @@
  */
 import { COLORS } from "./constants.js";
 
-(function () {
-  'use strict';
 
   interface ColorEntry { label?: string; dot?: string }
   interface FormatApi {
@@ -28,10 +26,7 @@ import { COLORS } from "./constants.js";
     displayUrl: (url?: string | null) => string;
     displayHost: (url?: string | null) => string;
   }
-  interface HlSlice { COLORS?: Record<string, ColorEntry>; format?: FormatApi }
 
-  const g = globalThis as unknown as { HL?: HlSlice };
-  const HL = (g.HL = g.HL || {}) as HlSlice;
 
   /* ---------- Numbers and sizes ---------- */
 
@@ -125,7 +120,7 @@ import { COLORS } from "./constants.js";
     return h || '—';
   }
 
-  HL.format = {
+  export const format = {
     faNum: faNum,
     fmtBytes: fmtBytes,
     fmtDateTime: fmtDateTime,
@@ -138,7 +133,4 @@ import { COLORS } from "./constants.js";
     displayUrl: displayUrl,
     displayHost: displayHost
   };
-})();
 
-/* identity export (7c-2) */
-export const format = (globalThis as unknown as { HL: { format: unknown } }).HL.format;

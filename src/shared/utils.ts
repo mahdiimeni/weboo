@@ -12,13 +12,8 @@
  * Phase 2 migration (TypeScript): compiled by `bun run build:ext` into
  * extension/shared/utils.js — never edit the .js directly.
  */
-(function () {
-  'use strict';
 
-  interface HlSlice { util?: unknown }
 
-  const g = globalThis as unknown as { HL?: HlSlice };
-  const HL = (g.HL = g.HL || {}) as HlSlice;
 
   function newId(): string {
     return 'hlx_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
@@ -46,14 +41,10 @@
     }
   }
 
-  HL.util = {
+  export const util = {
     newId: newId,
     debounce: debounce,
     escapeHtml: escapeHtml,
     cssEscape: cssEscape
   };
-})();
 
-/* identity export (7c-1): read the namespace the IIFE above assigned —
-   same instance every classic/module consumer shares. */
-export const util = (globalThis as unknown as { HL: { util: unknown } }).HL.util;

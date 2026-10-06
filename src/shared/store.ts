@@ -84,9 +84,6 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
  * is pinned byte-for-byte to src/types/storage.ts by the compile-time
  * mutual-assignability tripwire in tests/unit/types-contract.test.ts.
   */
-(function () {
-  'use strict';
-  const HL = (globalThis.HL = globalThis.HL || ({} as HlSlice)) as unknown as HlSlice; /* unknown hop: entrypoints/background.ts pulls the classic JS into the program and infers globalThis.HL */
 
   var K_SETTINGS = 'hlx:settings';
   var P_DATA = 'hlx:d:';
@@ -101,20 +98,9 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
   function dataKey(host) { return P_DATA + host; }
   function faviconKey(host) { return P_FAVICON + host; }
 
-  /* Local views (script file — no imports; full models live in src/types) */
+  /* Local views; full models live in src/types */
   interface StoreOpts { schemaVersion?: number; migrations?: MigrationStep[] }
   interface MigrationStep { from: number; to: number; run: (backend: StorageBackend) => Promise<void> }
-  interface HlSlice {
-    APP_ID: string;
-    APP_NAME: string;
-    BACKUP_FORMAT: number;
-    VERSION: string;
-    DEFAULT_SETTINGS: Record<string, unknown>;
-    COLORS: Record<string, unknown>;
-    tags: { normalizeTagMap(o: unknown): Record<string, string[]>; sanitizeTagList(l: unknown): string[] };
-    createStore?: unknown;
-    createStoreReader?: unknown;
-  }
 
   /* Max icon dataURL length (base64) — real favicons are a few kilobytes;
      this is a protective cap for huge files/unusual SVGs. */
@@ -699,11 +685,4 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
     };
   }
 
-  HL.createStore = createStore;
-  HL.createStoreReader = createStoreReader;
-})();
-
-/* identity export (7c-1): read the namespace the IIFE above assigned —
-   same instance every classic/module consumer shares. */
-export const createStore = (globalThis as unknown as { HL: { createStore: unknown } }).HL.createStore;
-export const createStoreReader = (globalThis as unknown as { HL: { createStoreReader: unknown } }).HL.createStoreReader;
+export { createStore, createStoreReader };

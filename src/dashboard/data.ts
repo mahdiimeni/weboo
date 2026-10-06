@@ -161,7 +161,7 @@ async function refreshAll(): Promise<void> {
     recordsOk = false;
     toast("خواندن داده‌ها ناموفق بود", "error");
   }
-  try { favicons = (await store.getFaviconMap()) || {}; } catch (e) { /* degrade to no favicons */ }
+  try { favicons = ((await store.getFaviconMap()) || {}) as DashboardData["favicons"]; } catch (e) { /* degrade to no favicons */ }
   try { tagMap = (await store.getTags()) || {}; } catch (e) { /* degrade to no tags */ }
   let bytesInUse = state.bytesInUse;
   try { bytesInUse = await store.getBytesInUse(); } catch (e) { /* keep the previous badge */ }

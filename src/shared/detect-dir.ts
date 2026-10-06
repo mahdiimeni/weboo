@@ -15,13 +15,8 @@
  * Phase 2 migration (TypeScript): compiled by `bun run build:ext` into
  * extension/shared/detect-dir.js — never edit the .js directly.
  */
-(function () {
-  'use strict';
 
-  interface HlSlice { detectDir?: unknown }
 
-  const g = globalThis as unknown as { HL?: HlSlice };
-  const HL = (g.HL = g.HL || {}) as HlSlice;
 
   /* ---------- Text language direction ---------- */
 
@@ -74,11 +69,8 @@
     return 'rtl';
   }
 
-  HL.detectDir = {
+  export const detectDir = {
     detectTextDir: detectTextDir,
     contentDir: contentDir
   };
-})();
 
-/* identity export (7c-2) */
-export const detectDir = (globalThis as unknown as { HL: { detectDir: unknown } }).HL.detectDir;
