@@ -2178,3 +2178,22 @@ Verification: bun scripts/benchmark.mjs green on the branch AND in a main worktr
 
 Stage Summary:
 - Plan phases 0-11 closed. Remaining: Phase 12 (remove globalThis.HL — the content bundle's internal namespace assigns + identity tails, the SW's side-effect imports, the pop/dash facade assigns; ONE permanent exception: theme-boot's applyThemeNow).
+
+---
+Task ID: 85
+Agent: ZCode
+Task: Modernization Phase 12 — remove globalThis.HL entirely + end-state docs (architecture/anchor/storage)
+
+Work Log:
+- Harness first (the linchpin): tests/unit/helpers/engine.ts evaluates every file as a REAL ES-module graph (vm.SourceTextModule) per test world and HARVESTS the module bindings into the HL shape tests have always read — identity preserved by construction (HL.anchor IS the vm binding); the classic strip-path retires; loadEngine is uniformly async (every caller already awaited).
+- All ~25 product files converted: the IIFE wrapper, the globalThis.HL plumbing (HlSlice/g/HL assigns) and the identity-export tails are gone; module scope is the encapsulation. ui/toast/toolbar/popover mount their classes onto the shared ui object by IMPORTING it (one object per world via module identity). constants' derived keys read the local bindings. The SW consumes named imports with a local reader + a purposeful __HLX_APP target marker (module bindings are unreachable from outside — the rigs' HL.createStore sentinel was the last consumer; both rigs updated).
+- Theme contract restructured: ui.applyThemeNow (ui/base.js = domkit root application + Shadow-DOM host sync + the hlx:theme mirror) replaces the classic HL.applyThemeNow; theme-boot keeps ONLY the anti-flash read (localStorage + root attributes) and no longer creates any registry. The null-fallback contract test retired with the guards that produced it (imports guarantee the deps — the 7c-3 rationale).
+- Tripwire: packaging asserts NO product file writes or reads globalThis.HL (code-level, comments exempt) — the final form is enforced forever.
+- Docs (the plan's Phase 12 deliverable): docs/architecture.md (the end state), docs/anchor-engine.md (creation → structural/textual restore → applied invariant → self-heal → orphans → SPA), docs/storage.md (keys, backend port, queue/read-your-writes guarantees, schema versioning rules, backup v1 contract).
+
+Verification:
+- build:ext 0 · bun run test 557/0/2221 · lint 0 · typecheck 0 · zip (parity inside the chain) · real-theme exit 0 · next-compat 16/16 · dashboard smoke: noHLGlobal TRUE from inside the real page, full render, React list from REAL storage injection, preview/booklet modals via the real UI, 0 exceptions, 0 console errors.
+- Findings en route: the rigs' extension-identification sentinel (HL.createStore) broke with the removal — replaced by the __HLX_APP marker; a missing APP_ID import crashed the SW at eval (caught by the real-theme rig, not by unit gates — the rigs stay the truth for target-level failures).
+
+Stage Summary:
+- Phases 0-12 CLOSED. The modernization is complete: TypeScript types + contracts, ES modules end-to-end (content bundled by WXT, pages via entrypoints, zero globals), React dashboard over a typed data layer, versioned storage with a tested migration pipeline, measured engine parity, and the docs to keep it honest.
