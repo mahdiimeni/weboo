@@ -6,9 +6,11 @@
  * Highlight element: <mark class="hlx-marker" data-hl-id="..." data-hl-color="..." data-hl-noted="1"?>
  * data-hl-noted is set only for highlights that have a note (the underline marker).
  */
-(function () {
-  'use strict';
-  const HL = (globalThis.HL = globalThis.HL || {});
+/* Phase 7b module: textindex is a real import (squash/acceptTextNode reads —
+   the old HL.text namespace seam shrinks). Identity via the module binding.
+   `export const dom` below. Consumers (anchor/highlighter/content) import dom. */
+import { util } from "./utils.js"; /* 7c-2: cssEscape */
+import { text as textIndex } from "./textindex.js"; /* alias: `text` is a common local name in DOM code */
 
   /** XPath relative to body for a node (element or text) */
   function xpathOf(node) {
@@ -77,8 +79,8 @@
       r.setEnd(ec, Math.min(anchor.endOffset, lenOf(ec)));
       if (r.collapsed) return null;
       if (expectText) {
-        var a = HL.text.squash(r.toString()).slice(0, 24);
-        var b = HL.text.squash(expectText).slice(0, 24);
+        var a = textIndex.squash(r.toString()).slice(0, 24);
+        var b = textIndex.squash(expectText).slice(0, 24);
         if (!a || !b || a !== b) return null;
       }
       return r;
@@ -94,7 +96,7 @@
     var root = range.commonAncestorContainer;
     if (root.nodeType === 3) root = root.parentNode;
     if (!root) return out;
-    var walker = document.createTreeWalker(root, 4 /* SHOW_TEXT */, { acceptNode: HL.text.acceptTextNode });
+    var walker = document.createTreeWalker(root, 4 /* SHOW_TEXT */, { acceptNode: textIndex.acceptTextNode });
     var n;
     while ((n = walker.nextNode())) {
       var hit = true;
@@ -141,7 +143,7 @@
 
   function marksOf(id) {
     try {
-      var sel = 'mark.hlx-marker[data-hl-id="' + HL.util.cssEscape(id) + '"]';
+      var sel = 'mark.hlx-marker[data-hl-id="' + util.cssEscape(id) + '"]';
       return Array.prototype.slice.call(document.querySelectorAll(sel));
     } catch (e) {
       return [];
@@ -217,7 +219,7 @@
     return false;
   }
 
-  HL.dom = {
+  export const dom = { /* the dom namespace — one instance per world */
     xpathOf: xpathOf,
     evalXPath: evalXPath,
     serializeRange: serializeRange,
@@ -232,4 +234,4 @@
     flash: flash,
     isHidden: isHidden
   };
-})();
+

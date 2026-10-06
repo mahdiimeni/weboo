@@ -6,26 +6,26 @@
  *  - the Alt+Shift+H shortcut (commands)
  *  - the counter badge on the icon (per the showBadge setting)
  *
- * Note: shared/*.js files have no exports and populate globalThis.HL;
- * importing them for their side effects in the SW module is allowed and required.
+ * Note (Phase 12): the SW consumes ES-module bindings directly — the
+ * globalThis.HL registry is gone (the module graph carries the deps).
  * This SW is the platform layer and chrome.* is "allowed and natural" here (DIP boundary);
  * settings are read from the read-only store slice (createStoreReader — composition root).
  * No heavy state is kept (the SW may sleep between events) —
  * just a light settings cache refreshed by storage events.
  */
-import '../shared/constants.js';
-import '../shared/backends/chrome-storage.js';
-import '../shared/tags.js';
-import '../shared/store.js';
+import { APP_ID, DEFAULT_SETTINGS, MSG } from '../shared/constants.js';
+import { backends } from '../shared/backends/chrome-storage.js';
+import { createStoreReader } from '../shared/store.js';
 
 /* Composition root: the read-only reader (ISP) — the SW never writes;
-   utils/format/clipboard/export are not loaded at all for this layer */
-globalThis.HL.reader = globalThis.HL.createStoreReader(globalThis.HL.backends.chromeStorage());
+   utils/format/clipboard/export are not loaded at all for this layer.
+   Target marker (not a registry): the E2E rigs confirm OUR service worker
+   by this id — module-scope bindings are not reachable from the outside. */
+globalThis.__HLX_APP = APP_ID;
+const reader = createStoreReader(backends.chromeStorage());
 
 (function () {
   'use strict';
-  const HL = globalThis.HL;
-  if (!HL || !HL.MSG || !HL.reader) return;
 
   const MENU_ID = 'hlx-highlight-selection';
   const BADGE_COLOR = '#b45309';
@@ -38,13 +38,13 @@ globalThis.HL.reader = globalThis.HL.createStoreReader(globalThis.HL.backends.ch
   function getSettingsCached() {
     if (settingsCache) return Promise.resolve(settingsCache);
     if (settingsLoading) return settingsLoading;
-    settingsLoading = HL.reader.getSettings().then(function (s) {
+    settingsLoading = reader.getSettings().then(function (s) {
       settingsCache = s;
       settingsLoading = null;
       return s;
     }).catch(function () {
       settingsLoading = null;
-      return Object.assign({}, HL.DEFAULT_SETTINGS);
+      return Object.assign({}, DEFAULT_SETTINGS);
     });
     return settingsLoading;
   }
@@ -52,8 +52,8 @@ globalThis.HL.reader = globalThis.HL.createStoreReader(globalThis.HL.backends.ch
 
   /* Cache refresh on storage changes (the SW re-registers on every wake-up) */
   try {
-    HL.reader.onSettingsChanged(function () { invalidateSettingsCache(); });
-    HL.reader.onRecordsChanged(function () { invalidateSettingsCache(); });
+    reader.onSettingsChanged(function () { invalidateSettingsCache(); });
+    reader.onRecordsChanged(function () { invalidateSettingsCache(); });
   } catch (e) { /* noop */ }
 
   /* ---------- Defensive chrome.* wrappers ---------- */
@@ -105,7 +105,7 @@ globalThis.HL.reader = globalThis.HL.createStoreReader(globalThis.HL.backends.ch
   /* Ask the page's content script for the count; one retry if it wasn't ready yet */
   function requestCount(tabId, isRetry) {
     if (tabId == null) return;
-    sendToTab(tabId, { type: HL.MSG.GET_COUNT }).then(function (resp) {
+    sendToTab(tabId, { type: MSG.GET_COUNT }).then(function (resp) {
       if (resp && typeof resp.count === 'number') {
         updateBadge(tabId, resp.count);
       } else if (!isRetry) {
@@ -145,7 +145,7 @@ globalThis.HL.reader = globalThis.HL.createStoreReader(globalThis.HL.backends.ch
       if (!info || info.menuItemId !== MENU_ID) return;
       if (!tab || tab.id == null) return;
       /* the content script only lives in the main frame; the main-frame selection reaches it */
-      sendToTab(tab.id, { type: HL.MSG.HIGHLIGHT_SELECTION });
+      sendToTab(tab.id, { type: MSG.HIGHLIGHT_SELECTION });
     });
   } catch (e) { /* noop */ }
 
@@ -159,7 +159,7 @@ globalThis.HL.reader = globalThis.HL.createStoreReader(globalThis.HL.backends.ch
           void chrome.runtime.lastError;
           const t = tabs && tabs[0];
           if (t && t.id != null) {
-            sendToTab(t.id, { type: HL.MSG.HIGHLIGHT_SELECTION });
+            sendToTab(t.id, { type: MSG.HIGHLIGHT_SELECTION });
           }
         });
       } catch (e) { /* noop */ }
@@ -171,7 +171,7 @@ globalThis.HL.reader = globalThis.HL.createStoreReader(globalThis.HL.backends.ch
   try {
     chrome.runtime.onMessage.addListener(function (msg, sender) {
       try {
-        if (!msg || msg.type !== HL.MSG.COUNT_REPORT) return false;
+        if (!msg || msg.type !== MSG.COUNT_REPORT) return false;
         if (!sender || !sender.tab || sender.tab.id == null) return false;
         updateBadge(sender.tab.id, Number(msg.count) || 0);
       } catch (e) { /* noop */ }

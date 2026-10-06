@@ -11,9 +11,9 @@ import { setupDom, loadEngine } from "./helpers/engine";
 
 let HL: any;
 
-beforeAll(() => {
+beforeAll(async () => {
   setupDom();
-  HL = loadEngine({ files: ["shared/constants.js", "shared/tags.js"] });
+  HL = await loadEngine({ files: ["shared/constants.js", "shared/tags.js"] });
 });
 
 describe("ثابت‌های دامنه‌ی برچسب", () => {

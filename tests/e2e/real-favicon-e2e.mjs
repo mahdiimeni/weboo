@@ -214,7 +214,7 @@ const siteShot = await browser.send('Page.captureScreenshot', { format: 'png' },
 writeFileSync(join(HERE, 'real-site-highlight.png'), Buffer.from(siteShot.data, 'base64'));
 
 /* ---------- 6) the extension's real dashboard ---------- */
-await browser.send('Page.navigate', { url: `chrome-extension://${extId}/dashboard/dashboard.html` }, sessionId);
+await browser.send('Page.navigate', { url: `chrome-extension://${extId}/dashboard.html` }, sessionId);
 for (let i = 0; i < 30; i++) {
   const ready = await evalIn(sessionId, 'document.readyState === "complete" && !!document.querySelector(".group")', false);
   if (ready === true) break;

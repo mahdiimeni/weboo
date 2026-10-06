@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "types": [],
+    "module": "ES2022",
+    "moduleResolution": "bundler",
+    "rootDir": "src/shared",
+    "outDir": "extension/shared",
+    "strict": true,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "removeComments": false,
+    "newLine": "lf"
+  },
+  "include": ["src/shared/**/*.ts"]
+}

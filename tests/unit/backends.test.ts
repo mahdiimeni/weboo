@@ -6,10 +6,10 @@ import { describe, test, expect, beforeEach } from "bun:test";
 import { setupDom, loadEngine, makeChromeMock, sleep } from "./helpers/engine";
 
 describe("بک‌اند chrome-storage", () => {
-  beforeEach(() => { setupDom(); });
+  beforeEach(async () => { setupDom(); });
 
   test("با نبود chrome به بک‌اند حافظه‌ای degrade می‌شود (رفتار v1.0.5 حفظ شده)", async () => {
-    const HL = loadEngine({ chrome: undefined });
+    const HL = await loadEngine({ chrome: undefined });
     delete (globalThis as any).chrome;
     const store = HL.createStore(HL.backends.chromeStorage());
     const s = await store.getSettings();
@@ -20,7 +20,7 @@ describe("بک‌اند chrome-storage", () => {
 
   test("خطای set (lastError) به reject تبدیل می‌شود", async () => {
     const chrome = makeChromeMock();
-    const HL = loadEngine({ chrome });
+    const HL = await loadEngine({ chrome });
     const store = HL.createStore(HL.backends.chromeStorage());
     chrome.__state.failNextSet = true;
     await expect(store.setSettings({ defaultColor: "teal" })).rejects.toThrow("mock quota");
@@ -28,7 +28,7 @@ describe("بک‌اند chrome-storage", () => {
 
   test("خطای get به reject تبدیل می‌شود", async () => {
     const chrome = makeChromeMock();
-    const HL = loadEngine({ chrome });
+    const HL = await loadEngine({ chrome });
     const store = HL.createStore(HL.backends.chromeStorage());
     chrome.__state.failNextGet = true;
     await expect(store.getSettings()).rejects.toThrow("mock get error");
@@ -36,7 +36,7 @@ describe("بک‌اند chrome-storage", () => {
 
   test("onChange مستقیم بک‌اند شکل changes استاندارد می‌دهد", async () => {
     const chrome = makeChromeMock();
-    const HL = loadEngine({ chrome });
+    const HL = await loadEngine({ chrome });
     const backend = HL.backends.chromeStorage();
     let changes: any = null;
     backend.onChange((c: any) => { changes = c; });
@@ -47,7 +47,7 @@ describe("بک‌اند chrome-storage", () => {
 
   test("unsubscribe واقعاً شنونده را برمی‌دارد", async () => {
     const chrome = makeChromeMock();
-    const HL = loadEngine({ chrome });
+    const HL = await loadEngine({ chrome });
     const backend = HL.backends.chromeStorage();
     let calls = 0;
     const unsub = backend.onChange(() => { calls++; });
@@ -61,24 +61,24 @@ describe("بک‌اند chrome-storage", () => {
 });
 
 describe("runtime bridge — پل chrome.runtime", () => {
-  test("با chrome کامل کار می‌کند", () => {
+  test("با chrome کامل کار می‌کند", async () => {
     setupDom();
     const chrome = makeChromeMock();
     chrome.runtime.sendMessage = (msg: any, cb: any) => { cb({ ok: true }); };
     chrome.runtime.onMessage = { addListener: (l: any) => { (chrome as any).__msgListener = l; } };
-    const HL = loadEngine({ chrome });
+    const HL = await loadEngine({ chrome });
     expect(HL.runtime.available).toBe(true);
     expect(HL.runtime.manifestVersion()).toBe(HL.VERSION); /* mock reads from the real manifest (engine.ts) */
-    expect(HL.runtime.getURL("dashboard/dashboard.html")).toContain("dashboard");
+    expect(HL.runtime.getURL("dashboard.html")).toContain("dashboard"); /* Phase 8: entrypoint emitted at package root */
     let got: any = null;
     HL.runtime.onMessage((msg: any) => { got = msg; });
     (chrome as any).__msgListener({ type: "ping" }, {}, () => {});
     expect(got).toEqual({ type: "ping" });
   });
 
-  test("بدون chrome به‌صورت امن degrade می‌شود", () => {
+  test("بدون chrome به‌صورت امن degrade می‌شود", async () => {
     setupDom();
-    const HL = loadEngine({ chrome: undefined });
+    const HL = await loadEngine({ chrome: undefined });
     delete (globalThis as any).chrome;
     expect(HL.runtime.available).toBe(false);
     expect(HL.runtime.manifestVersion()).toBe(HL.VERSION);
@@ -88,10 +88,10 @@ describe("runtime bridge — پل chrome.runtime", () => {
     return HL.runtime.send({ type: "x" }).then((v: any) => expect(v).toBeUndefined());
   });
 
-  test("پل runtime — پس از حذف faviconUrl (v1.1.4): سطح بدون عضو favicon است و بقیه دست‌نخورده", () => {
+  test("پل runtime — پس از حذف faviconUrl (v1.1.4): سطح بدون عضو favicon است و بقیه دست‌نخورده", async () => {
     setupDom();
     const chrome = makeChromeMock();
-    const HL = loadEngine({ chrome });
+    const HL = await loadEngine({ chrome });
     /* favicons no longer come through the bridge — dataURL comes from the store (hlx:f:<host>) */
     expect((HL.runtime as any).faviconUrl).toBeUndefined();
     expect(HL.runtime.available).toBe(true);
@@ -103,7 +103,7 @@ describe("runtime bridge — پل chrome.runtime", () => {
     setupDom();
     const chrome = makeChromeMock();
     chrome.runtime.sendMessage = (_msg: any, cb: any) => { cb(); }; /* no response */
-    const HL = loadEngine({ chrome });
+    const HL = await loadEngine({ chrome });
     const v = await HL.runtime.send({ type: "x" });
     expect(v).toBeUndefined();
   });

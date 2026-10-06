@@ -5,7 +5,7 @@
  * popup.html markup (extracted at runtime — drift-proof against the source)
  * + the full engine + a chrome mock (storage + tabs), and observe the real
  * init → renderPage render behavior from the outside.
- * Since the v1.2.9 MVC split, boot() evals the trio (popup-data.js →
+ * Since the v1.2.9 MVC split, await boot() evals the trio (popup-data.js →
  * popup-view.js → popup.js) in page order, plus shared/theme-boot.js (the
  * real <head> script that owns the shared HL.applyThemeNow the controller calls).
  * Core contract: direction comes from HL.detectDir.contentDir — LTR only for
@@ -14,20 +14,22 @@
  * document's rtl).
  */
 import { describe, test, expect, beforeEach } from "bun:test";
-import { setupDom, loadEngine, evalClassic, ext, readFile, makeChromeMock, sleep } from "./helpers/engine";
+import { setupDom, loadEngine, ext, readFile, makeChromeMock, sleep } from "./helpers/engine";
 
 let HL: any;
 let win: any;
 
 /* real popup body markup — exactly what the user sees (drift-proof) */
 const POPUP_HTML = readFile(ext("popup", "popup.html"));
-const WRAP_HTML = POPUP_HTML.slice(
-  POPUP_HTML.indexOf('<div class="wrap">'),
-  POPUP_HTML.indexOf('<script src="../shared/constants.js"></script>')
-).trim();
+const WRAP_END = POPUP_HTML.indexOf('<script type="module" src="popup.js"></script>');
+if (POPUP_HTML.indexOf('<div class="wrap">') < 0 || WRAP_END < 0) throw new Error("popup.html markup anchors drifted — WRAP_HTML would silently slice wrong");
+const WRAP_HTML = POPUP_HTML.slice(POPUP_HTML.indexOf('<div class="wrap">'), WRAP_END).trim();
 
-/* popup.html script order — without popup.js itself (eval'd separately) */
+/* the page's load order: theme-boot (classic head script) then the module
+   entry's import graph — popup.js IS the single module entry (7c-3), so the
+   MVC trio rides in the same engine world (no evalClassic anymore). */
 const POPUP_FILES = [
+  "shared/theme-boot.js",
   "shared/constants.js",
   "shared/backends/chrome-storage.js",
   "shared/url.js",
@@ -35,8 +37,12 @@ const POPUP_FILES = [
   "shared/detect-dir.js",
   "shared/domkit.js",
   "shared/export.js",
+  "shared/tags.js",
   "shared/store.js",
   "shared/runtime-bridge.js",
+  "popup/popup-data.js",
+  "popup/popup-view.js",
+  "popup/popup.js",
 ];
 
 const SETTINGS = {
@@ -71,15 +77,7 @@ function rec(id: string, host: string, url: string, title: string, text: string,
 /** a fresh "world": real popup DOM + seed + active tab → returns after full render */
 async function boot(seed: Record<string, any>, tab: any) {
   win = setupDom({ html: WRAP_HTML });
-  HL = loadEngine({ chrome: makeChromeMock(seed, [tab]), files: POPUP_FILES });
-  /* the real page loads theme-boot.js in <head> — the controller's shared
-     HL.applyThemeNow comes from there (the anti-flash read side is a no-op
-     on a fresh window) */
-  evalClassic(ext("shared", "theme-boot.js"));
-  /* MVC trio in page order: pure data → view → controller (v1.2.9) */
-  evalClassic(ext("popup", "popup-data.js"));
-  evalClassic(ext("popup", "popup-view.js"));
-  evalClassic(ext("popup", "popup.js"));
+  HL = await loadEngine({ chrome: makeChromeMock(seed, [tab]), files: POPUP_FILES });
   await sleep(150); /* init has a chain of setTimeout(0) callbacks */
 }
 

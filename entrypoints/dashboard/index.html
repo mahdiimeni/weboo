@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>داشبورد — وب هایلایتر</title>
+  <link rel="stylesheet" href="/dashboard/dashboard.css">
+  <!-- Theme anti-flash: CSP-safe (MV3 blocks inline scripts) -->
+  <script src="/shared/theme-boot.js"></script>
+</head>
+<body>
+
+  <!-- Sticky header -->
+  <header class="topbar">
+    <div class="topbar-in">
+      <div class="brand">
+        <span class="logo" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="21" height="21" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+        </span>
+        <span class="brand-txt">
+          <strong>وب هایلایتر</strong>
+          <span class="muted small">داشبورد مدیریت</span>
+        </span>
+        <span class="ver" id="ver" title="نسخه">v0.6.7</span>
+      </div>
+      <!-- Topbar actions (v0.6.3): «کتابچه» first (unchanged), then the two
+           icon-only buttons (خروجی پشتیبان primary / تنظیمات ghost — their
+           names live in aria-label + title, .btn-icon makes them square), then
+           the size badge. The restore button moved INTO the settings drawer
+           (the .set-sec.restore-sec below — data management lives with data
+           management). One explicit action-row height keeps every control
+           aligned (CSS .topbar-actions). -->
+      <!-- Phase 8 Task 5: React host — TopbarActionsRegion renders the exact
+           three buttons + size badge this container held -->
+      <div class="topbar-actions" id="topbar-actions-host"></div>
+    </div>
+  </header>
+
+  <!-- Body -->
+  <main class="container">
+
+    <!-- Stats -->
+    <section class="stats" aria-label="آمار کلی">
+      <div class="stat-card">
+        <span class="stat-num" id="st-total">۰</span>
+        <span class="stat-lbl">کل هایلایت‌ها</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num" id="st-notes">۰</span>
+        <span class="stat-lbl">یادداشت‌ها</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num" id="st-pages">۰</span>
+        <span class="stat-lbl">صفحات</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num" id="st-sites">۰</span>
+        <span class="stat-lbl">سایت‌ها</span>
+      </div>
+    </section>
+
+    <!-- Filter toolbar -->
+    <section class="toolbar" aria-label="فیلتر و جست‌وجو">
+      <div class="search-box">
+        <svg class="search-ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="search" id="q" placeholder="جست‌وجو در متن، یادداشت یا عنوان صفحه…" aria-label="جست‌وجو">
+      </div>
+      <div class="filter-row">
+        <div class="color-chips" id="color-chips" role="group" aria-label="فیلتر رنگ"></div>
+        <label class="switch-box">
+          <span class="switch">
+            <input type="checkbox" id="f-notes">
+            <span class="track"><span class="knob"></span></span>
+          </span>
+          <span class="switch-lbl">فقط یادداشت‌دار</span>
+        </label>
+        <label class="sort-box">
+          <span class="muted small">مرتب‌سازی:</span>
+          <select id="f-sort">
+            <option value="newest">جدیدترین</option>
+            <option value="oldest">قدیمی‌ترین</option>
+            <option value="page">بر اساس صفحه</option>
+          </select>
+        </label>
+      </div>
+      <!-- Article tag filter (v1.2.15) — filled by the controller from the live
+           tag map; hidden by default until at least one tag exists -->
+      <div class="tag-filter" id="tag-filter" hidden>
+        <span class="muted small tag-filter-lbl">برچسب مقالات:</span>
+        <div class="tag-chips" id="tag-chips" role="group" aria-label="فیلتر برچسب مقالات"></div>
+      </div>
+    </section>
+
+    <!-- Main list -->
+    <section class="list-wrap" aria-label="هایلایت‌ها">
+      <!-- Bulk expand/collapse (v0.3.0) — one button flips every article card;
+           both modes also load all unloaded highlights (the controller wires it,
+           the view renders the next action; hidden until the first render) -->
+      <div class="list-bar">
+        <button type="button" class="btn btn-ghost bulk-toggle" id="btn-bulk" hidden></button>
+      </div>
+
+      <div id="groups"></div>
+
+      <!-- Phase 8 slice 6: React hosts — the components render the exact
+           #load-more button and #empty block these placeholders replaced -->
+      <div id="load-more-host"></div>
+
+      <div id="empty-host"></div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="foot">
+    <p class="muted small">وب هایلایتر — همه‌ی داده‌ها فقط روی همین دستگاه ذخیره می‌شوند؛ هیچ چیزی به سرور ارسال نمی‌شود.</p>
+  </footer>
+
+  <!-- Settings panel overlay -->
+  <div class="overlay" id="overlay" aria-hidden="true"></div>
+
+  <!-- Settings panel (left-side drawer) -->
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="false" aria-label="تنظیمات" aria-hidden="true">
+    <div class="drawer-head">
+      <strong>تنظیمات</strong>
+      <button type="button" class="icon-btn" id="drawer-close" aria-label="بستن تنظیمات" title="بستن">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="drawer-body">
+
+      <section class="set-sec">
+        <h3>ظاهر</h3>
+        <div class="radio-list" id="theme-radios" role="radiogroup" aria-label="قالب رابط"></div>
+      </section>
+
+      <section class="set-sec">
+        <h3>رنگ پیش‌فرض هایلایت</h3>
+        <div class="color-dots" id="color-dots" role="radiogroup" aria-label="رنگ پیش‌فرض هایلایت"></div>
+      </section>
+
+      <section class="set-sec">
+        <h3>رفتار</h3>
+        <label class="switch-box">
+          <span class="switch">
+            <input type="checkbox" id="set-toolbar">
+            <span class="track"><span class="knob"></span></span>
+          </span>
+          <span class="switch-lbl">نمایش نوار ابزار هنگام انتخاب متن</span>
+        </label>
+        <label class="switch-box">
+          <span class="switch">
+            <input type="checkbox" id="set-badge">
+            <span class="track"><span class="knob"></span></span>
+          </span>
+          <span class="switch-lbl">نمایش شمارنده روی آیکون</span>
+        </label>
+      </section>
+
+      <section class="set-sec">
+        <h3>سایت‌های غیرفعال</h3>
+        <p class="muted small">روی این سایت‌ها هایلایت ساخته یا نمایش داده نمی‌شود (داده‌ها حذف نمی‌شوند).</p>
+        <div class="host-chips" id="host-chips"></div>
+        <div class="host-add">
+          <input type="text" id="host-input" placeholder="افزودن دامنه (مثل example.com)" aria-label="دامنه‌ی جدید">
+          <button type="button" class="btn btn-ghost" id="host-add">افزودن</button>
+        </div>
+      </section>
+
+      <!-- Phase 8 Task 5: React host — RestoreSectionRegion renders the exact
+           .set-sec.restore-sec this placeholder replaced (button + hidden
+           file input; the import modal opens from data.ts's stagedBackup) -->
+      <div id="restore-sec-host"></div>
+
+      <!-- Phase 8 Task 5: React host — DangerSectionRegion renders the exact
+           .set-sec.danger-zone three-step confirmation this placeholder replaced -->
+      <div id="danger-sec-host"></div>
+
+    </div>
+  </aside>
+
+  <!-- Phase 8 slice 5: React host — RestoreModal renders the exact
+       .modal#modal tree this placeholder replaced -->
+  <div id="restore-modal-host"></div>
+
+  <!-- Phase 8 slice 5: React host — BookletModal renders the exact
+       .modal#booklet-modal tree this placeholder replaced -->
+  <div id="booklet-modal-host"></div>
+
+  <!-- Highlight preview modal (v0.6.1) — the full-text floating window: the
+       card excerpts (200/300 chars); clicking a highlight opens its WHOLE text
+       and note here. Same overlay/modal family as the restore and export
+       modals; the head (title) stays pinned while the body scrolls, and the
+       content is filled by the view (fillHighlightDir/Title/Preview).
+       v0.6.3: the head's static caption became the article's OWN title —
+       fillHighlightTitle fills it on every open (the text below is only the
+       pre-fill fallback, never visible); the meta line is date/time only.
+       v0.6.4: the window is FULLY direction-smart — the card frame carries the
+       record's own dir (fillHighlightDir), every text keeps its per-text
+       direction, and the fa date rides as an inline RTL island inside a
+       frame-flow row (the .item-date idiom). The X button is GONE (the
+       owner's call): a click on the overlay OUTSIDE the card and Escape close
+       the window; the card itself (tabindex="-1") is the programmatic focus
+       anchor that keeps the keyboard context inside the dialog. -->
+  <div id="hl-modal-host"></div>
+
+  <!-- Toasts -->
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <!-- Hidden file input -->
+  <input type="file" id="file-input" accept="application/json,.json" hidden>
+
+                                <script type="module" src="./main.tsx"></script>
+</body>
+</html>

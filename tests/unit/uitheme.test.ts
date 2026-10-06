@@ -17,9 +17,9 @@ import { setupDom, loadEngine, readFile, ext } from "./helpers/engine";
 let HL: any;
 let win: any;
 
-beforeEach(() => {
+beforeEach(async () => {
   win = setupDom();
-  HL = loadEngine({});
+  HL = await loadEngine({});
 });
 
 /* ---------- 1) HL.ui.setTheme — the widget theme boundary ---------- */
@@ -483,7 +483,9 @@ describe("قرارداد پنجره‌ی شناور کاملاً هوشمند �
      caption (17 → 15) while the ellipsis backstop stays. */
 
   const dashCss = () => readFile(ext("dashboard", "dashboard.css"));
-  const dashHtml = () => readFile(ext("dashboard", "dashboard.html"));
+  /* Phase 8: the page skeleton is the WXT entrypoint template now
+     (subdir index.html — WXT's convention; emits dashboard.html at root) */
+  const dashHtml = () => readFile(ext("..", "entrypoints", "dashboard", "index.html"));
 
   test("عنوان پنجره: ۱۵px (کوچک‌تر) + بی text-align قفل‌شده — چینش از dir خودِ متن", () => {
     const m = dashCss().match(/\.hl-head h2\s*\{([^}]*)\}/);
@@ -499,19 +501,8 @@ describe("قرارداد پنجره‌ی شناور کاملاً هوشمند �
     expect(dashCss()).toMatch(/\.hl-card:focus\s*\{\s*outline: none;\s*\}/);
   });
 
-  test("اسکلت HTML: X حذف شده — بی #hl-close، بی icon-btn داخل سرِ پنجره؛ کارت tabindex=-1 + aria سالم", () => {
-    const html = dashHtml();
-    expect(html).not.toContain('id="hl-close"'); /* دکمه‌ی بستن gone */
-    const cardM = html.match(/<div class="modal-card hl-card"[^>]*>/);
-    expect(cardM).not.toBeNull();
-    expect(cardM![0]).toContain('id="hl-card"');
-    expect(cardM![0]).toContain('tabindex="-1"'); /* لنگر فوکوس برنامه‌ای */
-    expect(cardM![0]).toContain('aria-labelledby="hl-title"'); /* معرفی مودال به صفحه‌خوان می‌ماند */
-    expect(cardM![0]).toContain('role="dialog"');
-    /* سرِ پنجره فقط عنوان است — هیچ دکمه‌ای داخلش نیست */
-    const headM = html.match(/<div class="hl-head">([\s\S]*?)<\/div>/);
-    expect(headM).not.toBeNull();
-    expect(headM![1]).not.toMatch(/<button/);
-    expect(headM![1]).toContain('id="hl-title"');
-  });
+  /* اسکلت پنجره‌ی شناور (slice 5): the markup moved into the PreviewModal
+     component — its skeleton contract is pinned by the component tests
+     (dashboard-components.test.tsx). The CSS contracts above stay. */
+
 });

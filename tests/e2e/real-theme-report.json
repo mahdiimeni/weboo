@@ -3,30 +3,30 @@
   "contentScriptInjected": true,
   "popupPageReady": true,
   "popupCycle": {
-    "afterLight": "auto",
-    "afterDark": "light",
-    "storageTheme": "light",
+    "afterLight": "light",
+    "afterDark": "dark",
+    "storageTheme": "dark",
     "finalCycle": [
-      "auto",
-      "light"
+      "light",
+      "dark"
     ]
   },
-  "hostsFlippedLive": false,
-  "toolbarThemedDarkLive": false,
+  "hostsFlippedLive": true,
+  "toolbarThemedDarkLive": true,
   "toolbarPaletteDark": [
-    "rgba(255, 255, 255, 0.97)",
-    "rgb(31, 41, 55)"
+    "rgba(17, 24, 39, 0.97)",
+    "rgb(249, 250, 251)"
   ],
   "markCreated": true,
-  "popoverThemedDark": false,
+  "popoverThemedDark": true,
   "popoverPaletteDark": [
-    "rgb(255, 255, 255)",
-    "rgb(31, 41, 55)"
+    "rgb(31, 41, 55)",
+    "rgb(243, 244, 246)"
   ],
   "liveFlip": {
-    "to": "dark",
+    "to": "auto",
     "popoverStillOpen": true,
     "flippedToLight": false
   },
-  "bootPathToolbarDark": false
+  "bootPathToolbarDark": true
 }

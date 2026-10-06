@@ -8,42 +8,36 @@
  *   - clipboard copy       → shared/clipboard.js (HL.clipboard)
  *   - file/backup export   → shared/export.js  (HL.export)
  *   - DOM helpers          → shared/domkit.js  (HL.domkit)
+ *
+ * Phase 2 migration (TypeScript): compiled by `bun run build:ext` into
+ * extension/shared/utils.js — never edit the .js directly.
  */
-(function () {
-  'use strict';
-  const HL = (globalThis.HL = globalThis.HL || {});
-
-  function newId() {
+function newId() {
     return 'hlx_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
-  }
-
-  function debounce(fn, ms) {
+}
+function debounce(fn, ms) {
     let t = null;
-    return function () {
-      const args = arguments;
-      clearTimeout(t);
-      t = setTimeout(function () { fn.apply(null, args); }, ms);
+    return function (...args) {
+        clearTimeout(t ?? undefined);
+        t = setTimeout(function () { fn(...args); }, ms);
     };
-  }
-
-  function escapeHtml(s) {
+}
+function escapeHtml(s) {
     return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
-      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
-  }
-
-  function cssEscape(s) {
+}
+function cssEscape(s) {
     try {
-      return (globalThis.CSS && globalThis.CSS.escape) ? globalThis.CSS.escape(String(s)) : String(s).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
-    } catch (e) {
-      return String(s);
+        return (globalThis.CSS && globalThis.CSS.escape) ? globalThis.CSS.escape(String(s)) : String(s).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
     }
-  }
-
-  HL.util = {
+    catch (e) {
+        return String(s);
+    }
+}
+export const util = {
     newId: newId,
     debounce: debounce,
     escapeHtml: escapeHtml,
     cssEscape: cssEscape
-  };
-})();
+};

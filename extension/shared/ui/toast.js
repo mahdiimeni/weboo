@@ -9,9 +9,8 @@
  * lightness-discrimination floor — contrast contract in uitheme.test.ts.
  * Consumers: the content script (lazily — built on first show).
  */
-(function () {
-  'use strict';
-  const HL = (globalThis.HL = globalThis.HL || {});
+import { ui, uiBase } from "./base.js";
+
 
   var LIGHT = [
     '--toast-bg: #ffffff;',
@@ -35,7 +34,7 @@
     ':host([data-theme="dark"]) { color-scheme: dark; ' + DARK + ' }',
     '.hlx-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(8px);',
     '  background: var(--toast-bg); color: var(--toast-fg); border: 1px solid var(--toast-bd);',
-    '  padding: 9px 18px; border-radius: 999px; font-size: 13px; font-family: ' + HL.uiBase.FONT + ';',
+    '  padding: 9px 18px; border-radius: 999px; font-size: 13px; font-family: ' + uiBase.FONT + ';',
     '  direction: rtl; box-shadow: var(--toast-shadow); opacity: 0; transition: all .22s ease;',
     '  pointer-events: none; z-index: 2147483647; white-space: nowrap; }',
     '.hlx-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }'
@@ -47,7 +46,7 @@
     _t: null,
     show: function (msg) {
       if (!this._host) {
-        var h = HL.uiBase.makeHost();
+        var h = uiBase.makeHost();
         this._host = h.host;
         this._root = h.root;
         var st = document.createElement('style');
@@ -68,6 +67,5 @@
     }
   };
 
-  HL.ui = HL.ui || {};
-  HL.ui.Toast = Toast;
-})();
+  ui.Toast = Toast;
+

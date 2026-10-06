@@ -28,10 +28,9 @@
  *
  * Dependencies (script order): shared/constants.js, shared/format.js
  */
-(function () {
-  'use strict';
-  var HL = (globalThis.HL = globalThis.HL || {});
-  var fmt = HL.format;
+import { APP_NAME, VERSION, COLORS } from "./constants.js";
+import { format } from "./format.js"; /* 7c-3 */
+  var fmt = format;
 
   /* ---------- Local pure helpers ---------- */
 
@@ -61,11 +60,11 @@
   }
 
   function colorLabel(r) {
-    var c = HL.COLORS[r && r.color];
+    var c = COLORS[r && r.color];
     return c ? c.label : '';
   }
 
-  /** The article's display host — HL.format.displayHost over url, host as fallback */
+  /** The article's display host — format.displayHost over url, host as fallback */
   function hostOf(g) {
     var h = fmt.displayHost(g.url || g.host || '');
     return h === '—' ? '' : h;
@@ -205,7 +204,7 @@
     if (stats.notes) segs.push(fmt.faNum(stats.notes) + ' یادداشت');
     var lines = [];
     lines.push('<section class="cover" dir="rtl" aria-label="جلد کتابچه">');
-    lines.push('  <div class="cover-brand"><span class="mark" aria-hidden="true"></span><span class="cover-brand-txt">' + esc(HL.APP_NAME) + '</span></div>');
+    lines.push('  <div class="cover-brand"><span class="mark" aria-hidden="true"></span><span class="cover-brand-txt">' + esc(APP_NAME) + '</span></div>');
     lines.push('  <div class="cover-main">');
     lines.push('    <h1 class="cover-title">کتابچه هایلایت‌ها</h1>');
     lines.push('    <p class="cover-sub">مجموعه‌ی کامل هایلایت‌ها و یادداشت‌ها</p>');
@@ -220,7 +219,7 @@
       });
       lines.push('  </div>');
     }
-    lines.push('  <p class="cover-foot">ساخته‌شده با «' + esc(HL.APP_NAME) + '» · نسخه ' + esc(HL.VERSION) + '</p>');
+    lines.push('  <p class="cover-foot">ساخته‌شده با «' + esc(APP_NAME) + '» · نسخه ' + esc(VERSION) + '</p>');
     lines.push('</section>');
     return lines.join('\n');
   }
@@ -304,7 +303,7 @@
     } else {
       groups.forEach(function (g) { body.push(articleSection(g, mode)); });
     }
-    body.push('<footer class="foot" dir="rtl">ساخته‌شده با «' + esc(HL.APP_NAME) + '» — همه‌ی داده‌ها فقط روی دستگاه شما ذخیره می‌شوند.</footer>');
+    body.push('<footer class="foot" dir="rtl">ساخته‌شده با «' + esc(APP_NAME) + '» — همه‌ی داده‌ها فقط روی دستگاه شما ذخیره می‌شوند.</footer>');
 
     return [
       '<!DOCTYPE html>',
@@ -313,7 +312,7 @@
       '<meta charset="utf-8">',
       '<meta name="viewport" content="width=device-width, initial-scale=1">',
       '<meta name="color-scheme" content="light">', /* the booklet is a paper document — always light, print-first */
-      '<title>کتابچه هایلایت‌ها — ' + esc(HL.APP_NAME) + '</title>',
+      '<title>کتابچه هایلایت‌ها — ' + esc(APP_NAME) + '</title>',
       '<style>',
       CSS,
       '</style>',
@@ -327,7 +326,7 @@
     ].join('\n');
   }
 
-  HL.booklet = {
+  export const booklet = {
     buildBookletHtml: buildBookletHtml
   };
-})();
+

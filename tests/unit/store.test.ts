@@ -16,7 +16,7 @@ interface Ctx {
   chrome?: any;
 }
 
-function makeRecord(id: string, host: string, url: string, extra: any = {}) {
+async function makeRecord(id: string, host: string, url: string, extra: any = {}) {
   return {
     id,
     host,
@@ -40,36 +40,36 @@ function makeRecord(id: string, host: string, url: string, extra: any = {}) {
 
 /* ---------- scenario builders ---------- */
 
-function chromeCtx(): Ctx {
+async function chromeCtx(): Promise<Ctx> {
   const chrome = makeChromeMock();
-  const HL = loadEngine({ chrome });
+  const HL = await loadEngine({ chrome });
   return { name: "chrome-storage (mock)", HL, store: HL.createStore(HL.backends.chromeStorage()), chrome };
 }
-function memoryCtx(): Ctx {
-  const HL = loadEngine({});
+async function memoryCtx(): Promise<Ctx> {
+  const HL = await loadEngine({});
   return { name: "memory (fallback)", HL, store: HL.createStore(HL.backends.memoryArea()) };
 }
 
-const SCENARIOS: Array<() => Ctx> = [chromeCtx, memoryCtx];
+const SCENARIOS: Array<() => Promise<Ctx>> = [chromeCtx, memoryCtx];
 
-const recA = () => makeRecord("a1", "site1.com", "https://site1.com/page1");
-const recB = () => makeRecord("b1", "site1.com", "https://site1.com/page2", { color: "pink", note: "یادداشت", updatedAt: 2000 });
-const recC = () => makeRecord("c1", "site2.org", "https://site2.org/x", { text: "متن سایت دوم" });
+const recA = async () => await makeRecord("a1", "site1.com", "https://site1.com/page1");
+const recB = async () => await makeRecord("b1", "site1.com", "https://site1.com/page2", { color: "pink", note: "یادداشت", updatedAt: 2000 });
+const recC = async () => await makeRecord("c1", "site2.org", "https://site2.org/x", { text: "متن سایت دوم" });
 
 for (const makeCtx of SCENARIOS) {
-  describe(`قرارداد store — ${makeCtx().name}`, () => {
+  describe(`قرارداد store — ${makeCtx.name}`, () => {
     let ctx: Ctx;
-    beforeAll(() => {
+    beforeAll(async () => {
       setupDom();
-      ctx = makeCtx();
+      ctx = await makeCtx();
     });
 
-    test("بک‌اند قرارداد ۵عضوی را دارد (ISP حداقلی)", () => {
+    test("بک‌اند قرارداد ۵عضوی را دارد (ISP حداقلی)", async () => {
       const b = ctx.HL.backends;
       expect(typeof b).toBe("object");
     });
 
-    test("createStore بک‌اند ناقص را رد می‌کند", () => {
+    test("createStore بک‌اند ناقص را رد می‌کند", async () => {
       expect(() => ctx.HL.createStore({})).toThrow();
       expect(() => ctx.HL.createStore({ get: () => {}, set: () => {}, remove: () => {}, bytes: () => {}, onChange: null })).toThrow();
     });
@@ -108,9 +108,9 @@ for (const makeCtx of SCENARIOS) {
     });
 
     test("پارتیشن per-host: ذخیره و خواندن", async () => {
-      await ctx.store.save(recA());
-      await ctx.store.save(recB());
-      await ctx.store.save(recC());
+      await ctx.store.save(await recA());
+      await ctx.store.save(await recB());
+      await ctx.store.save(await recC());
 
       const m = await ctx.store.getHostMap("site1.com");
       expect(Object.keys(m).sort()).toEqual(["a1", "b1"]);
@@ -137,8 +137,8 @@ for (const makeCtx of SCENARIOS) {
     });
 
     test("removeMany دسته‌ای", async () => {
-      await ctx.store.save(recA());
-      await ctx.store.save(recC());
+      await ctx.store.save(await recA());
+      await ctx.store.save(await recC());
       await ctx.store.removeMany(["a1", "c1", "unknown"]);
       const all = await ctx.store.getAllRecords();
       expect(all.has("a1")).toBe(false);
@@ -147,7 +147,7 @@ for (const makeCtx of SCENARIOS) {
     });
 
     test("removeForUrl فقط همان صفحه را پاک می‌کند", async () => {
-      await ctx.store.save(recA());
+      await ctx.store.save(await recA());
       expect(await ctx.store.removeForUrl("https://site1.com/page1", "site1.com")).toBe(true);
       const m = await ctx.store.getHostMap("site1.com");
       expect(m.a1).toBeUndefined();
@@ -169,9 +169,9 @@ for (const makeCtx of SCENARIOS) {
       const backup = {
         app: "web-highlighter",
         highlights: {
-          b1: makeRecord("b1", "site1.com", "https://site1.com/page2", { note: "یادداشت جدید", updatedAt: 9000 }),
+          b1: await makeRecord("b1", "site1.com", "https://site1.com/page2", { note: "یادداشت جدید", updatedAt: 9000 }),
           bad1: { id: "bad1", host: "x", urlNorm: "u", text: "" }, /* no text */
-          new1: makeRecord("new1", "site3.net", "https://site3.net/z"),
+          new1: await makeRecord("new1", "site3.net", "https://site3.net/z"),
         },
       };
       const r = await ctx.store.importData(backup, "merge");
@@ -188,7 +188,7 @@ for (const makeCtx of SCENARIOS) {
       /* older than the existing one → skip (existing wins) */
       const r2 = await ctx.store.importData({
         app: "web-highlighter",
-        highlights: { b1: makeRecord("b1", "site1.com", "https://site1.com/page2", { note: "قدیمی", updatedAt: 1 }) },
+        highlights: { b1: await makeRecord("b1", "site1.com", "https://site1.com/page2", { note: "قدیمی", updatedAt: 1 }) },
       }, "merge");
       expect(r2.skipped).toBe(1);
       const m2 = await ctx.store.getHostMap("site1.com");
@@ -199,7 +199,7 @@ for (const makeCtx of SCENARIOS) {
       const backup = {
         app: "web-highlighter",
         settings: { defaultColor: "purple" },
-        highlights: { z1: makeRecord("z1", "z.com", "https://z.com/1") },
+        highlights: { z1: await makeRecord("z1", "z.com", "https://z.com/1") },
       };
       const r = await ctx.store.importData(backup, "replace");
       expect(r.removed).toBe(2); /* b1 + new1 */
@@ -254,7 +254,7 @@ for (const makeCtx of SCENARIOS) {
     test("onRecordsChanged فقط برای کلیدهای hlx:d:* شلیک می‌شود", async () => {
       let calls = 0;
       ctx.store.onRecordsChanged(() => { calls++; });
-      await ctx.store.save(recC());
+      await ctx.store.save(await recC());
       await sleep(30);
       expect(calls).toBe(1);
       await ctx.store.setSettings({ showToolbar: true }); /* settings must not bump the counter */
@@ -380,7 +380,7 @@ for (const makeCtx of SCENARIOS) {
       await ctx.store.setArticleTags("https://site2.org/x", ["آزمایش"]);
       await sleep(30);
       expect(tagCalls).toBe(1);
-      await ctx.store.save(recC());
+      await ctx.store.save(await recC());
       await ctx.store.setSettings({ showBadge: true });
       await sleep(30);
       expect(tagCalls).toBe(1); /* unchanged by record/settings writes */
@@ -416,7 +416,7 @@ for (const makeCtx of SCENARIOS) {
     test("importData — replace: جایگزینی کامل برچسب‌ها؛ بک‌آپ بدون tags → پاک", async () => {
       await ctx.store.importData({
         app: "web-highlighter",
-        highlights: { t1: makeRecord("t1", "t.com", "https://t.com/1") },
+        highlights: { t1: await makeRecord("t1", "t.com", "https://t.com/1") },
         tags: { "https://t.com/1": ["تازه"] },
       }, "replace");
       expect(await ctx.store.getTags()).toEqual({ "https://t.com/1": ["تازه"] });
@@ -424,7 +424,7 @@ for (const makeCtx of SCENARIOS) {
       /* replace with a tags-less backup: everything (incl. tags) is wiped and not restored */
       await ctx.store.importData({
         app: "web-highlighter",
-        highlights: { t2: makeRecord("t2", "t.com", "https://t.com/2") },
+        highlights: { t2: await makeRecord("t2", "t.com", "https://t.com/2") },
       }, "replace");
       expect(await ctx.store.getTags()).toEqual({});
     });
@@ -447,14 +447,14 @@ for (const makeCtx of SCENARIOS) {
 
 /* ---------- behavioral compatibility across backends (LSP) ---------- */
 
-describe("صف نوشتن — رگرسیون race هم‌زمانی", () => {
+describe("صف نوشتن — رگرسیون race هم‌زمانی", async () => {
   test("۱۰۰ ذخیره‌ی هم‌زمان هیچ رکوردی را نمی‌بلعد", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     const store = HL.createStore(HL.backends.memoryArea());
     const jobs: Promise<any>[] = [];
     for (let i = 0; i < 100; i++) {
-      jobs.push(store.save(makeRecord("r" + i, "race.io", "https://race.io/" + (i % 3))));
+      jobs.push(store.save(await makeRecord("r" + i, "race.io", "https://race.io/" + (i % 3))));
     }
     await Promise.all(jobs);
     const all = await store.getAllRecords();
@@ -463,14 +463,14 @@ describe("صف نوشتن — رگرسیون race هم‌زمانی", () => {
 
   test("حذف هم‌زمان با ذخیره همسایه، داده‌ی بی‌ربط را نمی‌بلعد", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     const store = HL.createStore(HL.backends.memoryArea());
-    await store.save(makeRecord("keep", "race.io", "https://race.io/1"));
-    await store.save(makeRecord("drop", "race.io", "https://race.io/1"));
+    await store.save(await makeRecord("keep", "race.io", "https://race.io/1"));
+    await store.save(await makeRecord("drop", "race.io", "https://race.io/1"));
     const jobs = [
       store.remove("drop", "race.io"),
-      store.save(makeRecord("new1", "race.io", "https://race.io/2")),
-      store.save(makeRecord("new2", "race.io", "https://race.io/2")),
+      store.save(await makeRecord("new1", "race.io", "https://race.io/2")),
+      store.save(await makeRecord("new2", "race.io", "https://race.io/2")),
     ];
     await Promise.all(jobs);
     const m = await store.getHostMap("race.io");
@@ -481,12 +481,12 @@ describe("صف نوشتن — رگرسیون race هم‌زمانی", () => {
   });
 });
 
-describe("LSP — دو بک‌اند روی دنباله‌ی یکسان، نتایج یکسان", () => {
+describe("LSP — دو بک‌اند روی دنباله‌ی یکسان، نتایج یکسان", async () => {
   test("chrome و حافظه‌ای یک خروجی معادل می‌دهند", async () => {
     setupDom();
     const run = async (store: any) => {
-      await store.save(recA());
-      await store.save(recB());
+      await store.save(await recA());
+      await store.save(await recB());
       await store.setSettings({ defaultColor: "pink" });
       const out = await store.exportData();
       await store.remove("a1", "site1.com");
@@ -494,11 +494,11 @@ describe("LSP — دو بک‌اند روی دنباله‌ی یکسان، نت�
       return { count: out.meta.count, b1: !!out.highlights.b1, after: after.size, settings: (await store.getSettings()).defaultColor };
     };
     const chrome = makeChromeMock();
-    const HLC = loadEngine({ chrome });
+    const HLC = await loadEngine({ chrome });
     const storeC = HLC.createStore(HLC.backends.chromeStorage());
     const c = await run(storeC);
 
-    const HLM = loadEngine({});
+    const HLM = await loadEngine({});
     const storeM = HLM.createStore(HLM.backends.memoryArea());
     const m = await run(storeM);
 
@@ -506,17 +506,17 @@ describe("LSP — دو بک‌اند روی دنباله‌ی یکسان، نت�
   });
 });
 
-describe("createStoreReader — برش فقط-خواندنی (ISP)", () => {
-  test("قرارداد باریک: فقط ۳ عضو خواندن/شنیدن — هیچ متد نوشتن", () => {
+describe("createStoreReader — برش فقط-خواندنی (ISP)", async () => {
+  test("قرارداد باریک: فقط ۳ عضو خواندن/شنیدن — هیچ متد نوشتن", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     const reader = HL.createStoreReader(HL.backends.memoryArea());
     expect(Object.keys(reader).sort()).toEqual(["getSettings", "onRecordsChanged", "onSettingsChanged"]);
   });
 
-  test("بک‌اند ناقص را رد می‌کند (fail-fast)", () => {
+  test("بک‌اند ناقص را رد می‌کند (fail-fast)", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     expect(() => HL.createStoreReader({ get: () => {} })).toThrow();
     expect(() => HL.createStoreReader(null)).toThrow();
   });
@@ -524,7 +524,7 @@ describe("createStoreReader — برش فقط-خواندنی (ISP)", () => {
   test("getSettings پیش‌فرض‌ها را merge می‌کند (قرارداد همان store)", async () => {
     setupDom();
     const chrome = makeChromeMock();
-    const HL = loadEngine({ chrome });
+    const HL = await loadEngine({ chrome });
     const reader = HL.createStoreReader(HL.backends.chromeStorage());
     const s = await reader.getSettings();
     expect(s).toEqual(HL.DEFAULT_SETTINGS);
@@ -534,7 +534,7 @@ describe("createStoreReader — برش فقط-خواندنی (ISP)", () => {
   test("onSettingsChanged با تنظیمات ادغام‌شده شلیک می‌شود؛ onRecordsChanged نه", async () => {
     setupDom();
     const chrome = makeChromeMock();
-    const HL = loadEngine({ chrome });
+    const HL = await loadEngine({ chrome });
     const store = HL.createStore(HL.backends.chromeStorage());
     const reader = HL.createStoreReader(HL.backends.chromeStorage());
     let settingsHits = 0;
@@ -549,7 +549,7 @@ describe("createStoreReader — برش فقط-خواندنی (ISP)", () => {
     expect(seenDefault).toBe("pink");
     expect(recordsHits).toBe(0);
 
-    await store.save(recA());
+    await store.save(await recA());
     await sleep(20);
     expect(recordsHits).toBe(1);
     expect(settingsHits).toBe(1); /* writing a record does not touch settings */
@@ -557,7 +557,7 @@ describe("createStoreReader — برش فقط-خواندنی (ISP)", () => {
 
   test("LSP: همان قرارداد روی بک‌اند حافظه‌ای", async () => {
     setupDom();
-    const HLM = loadEngine({});
+    const HLM = await loadEngine({});
     /* one shared substrate — the reader must observe the store's writes
        through the same backend */
     const area = HLM.backends.memoryArea();
@@ -568,5 +568,95 @@ describe("createStoreReader — برش فقط-خواندنی (ISP)", () => {
     const s = await reader.getSettings();
     expect(s.defaultColor).toBe("teal");
     expect(s.showToolbar).toBe(true); /* merged with defaults */
+  });
+});
+
+
+/* ---------- hlx:schemaVersion — Phase 4 data-safety contract ---------- */
+
+describe("hlx:schemaVersion — قرارداد نسخه‌ی اسکیما (forward-only migration)", async () => {
+  const K_SCHEMA = "hlx:schemaVersion";
+
+  async function rawVersion(HL: any): Promise<any> {
+    const o = await HL.backends.chromeStorage().get(K_SCHEMA);
+    return o && K_SCHEMA in o ? o[K_SCHEMA] : undefined;
+  }
+
+  test("داده‌ی قدیمی (بدون نسخه) → ثبت نسخه ۱، داده بایت‌به‌بایت دست‌نخورده", async () => {
+    setupDom();
+    const rec = await makeRecord("a1", "site1.com", "https://site1.com/p");
+    const chrome = makeChromeMock({
+      "hlx:d:site1.com": { a1: rec },
+      "hlx:settings": { defaultColor: "teal" },
+      "hlx:tags": { "https://site1.com/p": ["تگ‌ها"] },
+    });
+    const HL = await loadEngine({ chrome });
+    const store = HL.createStore(HL.backends.chromeStorage());
+
+    const recs = await store.getAllRecords(); /* first op → migration rides the queue */
+    expect(recs.size).toBe(1);
+    expect(recs.get("a1")).toEqual(rec); /* byte-identical record */
+    expect((await store.getSettings()).defaultColor).toBe("teal"); /* merged, not reset */
+    expect(await store.getTags()).toEqual({ "https://site1.com/p": ["تگ‌ها"] });
+    expect(await rawVersion(HL)).toBe(1); /* stamped after success */
+  });
+
+  test("نسخه‌ی جدیدتر (کاربر downgrade کرده) هرگز دست نمی‌خورد", async () => {
+    setupDom();
+    const rec = await makeRecord("a1", "site1.com", "https://site1.com/p");
+    const chrome = makeChromeMock({ [K_SCHEMA]: 99, "hlx:d:site1.com": { a1: rec } });
+    const HL = await loadEngine({ chrome });
+    const store = HL.createStore(HL.backends.chromeStorage());
+
+    expect((await store.getAllRecords()).size).toBe(1);
+    expect(await rawVersion(HL)).toBe(99); /* never downgraded, never rewritten */
+  });
+
+  test("گپ مهاجرت → هیچ نسخه‌ای ثبت نمی‌شود (داده مهم‌تر از آرایش)", async () => {
+    setupDom();
+    const chrome = makeChromeMock({ "hlx:d:site1.com": { a1: await makeRecord("a1", "site1.com", "https://site1.com/p") } });
+    const HL = await loadEngine({ chrome });
+    /* injected empty chain: v0 has no step → the runner must stamp NOTHING */
+    const store = HL.createStore(HL.backends.chromeStorage(), { migrations: [] });
+
+    expect((await store.getAllRecords()).size).toBe(1); /* reads still work */
+    expect(await rawVersion(HL)).toBeUndefined(); /* no stamp over unknown ground */
+  });
+
+  test("زنجیره‌ی ناقص → تا جایی که پله دارد بالا می‌رود، نه بیشتر", async () => {
+    setupDom();
+    const chrome = makeChromeMock();
+    const HL = await loadEngine({ chrome });
+    const store = HL.createStore(HL.backends.chromeStorage(), {
+      schemaVersion: 3,
+      migrations: [
+        { from: 0, to: 1, run: async () => {} },
+        { from: 1, to: 2, run: async () => {} } /* 2→3 missing = the gap */
+      ]
+    });
+    await store.getSettings(); /* first op */
+    expect(await rawVersion(HL)).toBe(2); /* stamped per completed step — never 3 */
+  });
+
+  test("migration سریِ نوشتن است: هیچ ذخیره‌ای از کنارش رد نمی‌شود", async () => {
+    setupDom();
+    const chrome = makeChromeMock();
+    const HL = await loadEngine({ chrome });
+    const store = HL.createStore(HL.backends.chromeStorage());
+    const p = store.save(await makeRecord("a1", "site1.com", "https://site1.com/p")); /* issued immediately */
+    await p;
+    expect(await rawVersion(HL)).toBe(1); /* stamp completed before the queued write landed */
+    expect((await store.getAllRecords()).size).toBe(1);
+  });
+
+  test("clearAll کلیدهای کاربری را پاک می‌کند، نسخه‌ی اسکیما را نگه می‌دارد", async () => {
+    setupDom();
+    const chrome = makeChromeMock();
+    const HL = await loadEngine({ chrome });
+    const store = HL.createStore(HL.backends.chromeStorage());
+    await store.save(await makeRecord("a1", "site1.com", "https://site1.com/p"));
+    await store.clearAll();
+    expect((await store.getAllRecords()).size).toBe(0);
+    expect(await rawVersion(HL)).toBe(1); /* schema metadata survives a user wipe */
   });
 });

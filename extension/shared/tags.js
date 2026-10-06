@@ -12,125 +12,131 @@
  *
  * Case policy: comparison/dedup is ASCII-case-insensitive (Persian has no
  * case); the FIRST spelling encountered wins as the display form.
+ *
+ * Phase 2 migration (TypeScript): compiled by `bun run build:ext` into
+ * extension/shared/tags.js — never edit the .js directly.
  */
-(function () {
-  'use strict';
-  var HL = (globalThis.HL = globalThis.HL || {});
-
-  /** Comparison key (case-insensitive; identity for Persian text) */
-  function fold(t) { return String(t).toLowerCase(); }
-
-  /**
-   * Clean single tag, or null when unusable. Only strings are accepted —
-   * non-string input (numbers, objects, stray values from a crafted backup
-   * file) is rejected at the gate instead of being coerced into junk tags.
-   * Persian ZWNJ (نیم‌فاصله) is preserved — it is part of words like
-   * «برنامه‌نویسی»; only real whitespace collapses (\s does not match U+200C).
-   * The length cap (HL.TAG_MAX_LEN) applies AFTER cleanup.
-   */
-  function sanitizeTag(raw) {
-    if (typeof raw !== 'string') return null;
+import { TAG_MAX_LEN, TAG_MAX_PER_ARTICLE } from "./constants.js";
+/** Comparison key (case-insensitive; identity for Persian text) */
+function fold(t) { return String(t).toLowerCase(); }
+/**
+ * Clean single tag, or null when unusable. Only strings are accepted —
+ * non-string input (numbers, objects, stray values from a crafted backup
+ * file) is rejected at the gate instead of being coerced into junk tags.
+ * Persian ZWNJ (نیم‌فاصله) is preserved — it is part of words like
+ * «برنامه‌نویسی»; only real whitespace collapses (\s does not match U+200C).
+ * The length cap (TAG_MAX_LEN) applies AFTER cleanup.
+ */
+function sanitizeTag(raw) {
+    if (typeof raw !== 'string')
+        return null;
     var t = raw.replace(/\s+/g, ' ').trim();
-    if (!t) return null;
-    if (t.length > HL.TAG_MAX_LEN) return null;
+    if (!t)
+        return null;
+    if (t.length > TAG_MAX_LEN)
+        return null;
     return t;
-  }
-
-  /**
-   * Clean list: sanitize each entry, drop unusable ones, dedupe
-   * case-insensitively (first spelling wins), cap the count at
-   * HL.TAG_MAX_PER_ARTICLE. Non-array input → [].
-   */
-  function sanitizeTagList(list) {
-    if (!Array.isArray(list)) return [];
+}
+/**
+ * Clean list: sanitize each entry, drop unusable ones, dedupe
+ * case-insensitively (first spelling wins), cap the count at
+ * TAG_MAX_PER_ARTICLE. Non-array input → [].
+ */
+function sanitizeTagList(list) {
+    if (!Array.isArray(list))
+        return [];
     var out = [];
     var seen = Object.create(null);
     for (var i = 0; i < list.length; i++) {
-      var t = sanitizeTag(list[i]);
-      if (!t) continue;
-      var k = fold(t);
-      if (seen[k]) continue;
-      seen[k] = true;
-      out.push(t);
-      if (out.length >= HL.TAG_MAX_PER_ARTICLE) break;
+        var t = sanitizeTag(list[i]);
+        if (!t)
+            continue;
+        var k = fold(t);
+        if (seen[k])
+            continue;
+        seen[k] = true;
+        out.push(t);
+        if (out.length >= TAG_MAX_PER_ARTICLE)
+            break;
     }
     return out;
-  }
-
-  /**
-   * Structural validation of the persisted shape { <urlNorm>: [tags] } —
-   * the integrity gate for storage reads and backup imports. Non-objects,
-   * non-array values, empty arrays and empty keys are dropped; values are
-   * sanitized like any other list.
-   */
-  function normalizeTagMap(obj) {
-    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return {};
+}
+/**
+ * Structural validation of the persisted shape { <urlNorm>: [tags] } —
+ * the integrity gate for storage reads and backup imports. Non-objects,
+ * non-array values, empty arrays and empty keys are dropped; values are
+ * sanitized like any other list.
+ */
+function normalizeTagMap(obj) {
+    if (!obj || typeof obj !== 'object' || Array.isArray(obj))
+        return {};
     var out = {};
     Object.keys(obj).forEach(function (k) {
-      var key = String(k);
-      if (!key) return;
-      var clean = sanitizeTagList(obj[k]);
-      if (clean.length) out[key] = clean;
+        var key = String(k);
+        if (!key)
+            return;
+        var clean = sanitizeTagList(obj[k]);
+        if (clean.length)
+            out[key] = clean;
     });
     return out;
-  }
-
-  /** Case-insensitive membership test for one tag in a list. */
-  function hasTag(list, tag) {
-    if (!tag) return false;
+}
+/** Case-insensitive membership test for one tag in a list. */
+function hasTag(list, tag) {
+    if (!tag)
+        return false;
     var k = fold(tag);
     return (Array.isArray(list) ? list : []).some(function (t) {
-      return fold(t) === k;
+        return fold(t) === k;
     });
-  }
-
-  /** Pure add/remove by tag name (case-insensitive); returns a NEW array. */
-  function toggleTag(list, tag) {
+}
+/** Pure add/remove by tag name (case-insensitive); returns a NEW array. */
+function toggleTag(list, tag) {
     var cur = Array.isArray(list) ? list : [];
     if (hasTag(cur, tag)) {
-      var k = fold(tag);
-      return cur.filter(function (t) { return fold(t) !== k; });
+        var k = fold(tag);
+        return cur.filter(function (t) { return fold(t) !== k; });
     }
     return cur.concat([tag]);
-  }
-
-  /**
-   * Filter-chip inventory: [{ tag, count }] across all articles —
-   * case-folded merge (first spelling wins as display form), sorted by
-   * count desc, ties in Persian locale order. The dashboard toolbar builds
-   * its tag filter row from this list.
-   */
-  function tagCounts(tagMap) {
+}
+/**
+ * Filter-chip inventory: [{ tag, count }] across all articles —
+ * case-folded merge (first spelling wins as display form), sorted by
+ * count desc, ties in Persian locale order. The dashboard toolbar builds
+ * its tag filter row from this list.
+ */
+function tagCounts(tagMap) {
     var m = normalizeTagMap(tagMap);
     var tally = Object.create(null); /* folded key → { tag, count } */
     Object.keys(m).forEach(function (k) {
-      m[k].forEach(function (t) {
-        var fk = fold(t);
-        tally[fk] = tally[fk] || { tag: t, count: 0 };
-        tally[fk].count++;
-      });
+        m[k].forEach(function (t) {
+            var fk = fold(t);
+            tally[fk] = tally[fk] || { tag: t, count: 0 };
+            tally[fk].count++;
+        });
     });
     return Object.keys(tally).map(function (fk) { return tally[fk]; })
-      .sort(function (a, b) {
+        .sort(function (a, b) {
         return (b.count - a.count) || (a.tag.localeCompare(b.tag, 'fa'));
-      });
-  }
-
-  /**
-   * Union semantics (mirrors the color chips): does this article carry ANY
-   * of the active tags? Both sides fold, so a chip's display spelling
-   * matches an article's stored spelling regardless of ASCII case.
-   */
-  function hasActiveTag(tags, active) {
-    if (!active || !active.size) return false;
+    });
+}
+/**
+ * Union semantics (mirrors the color chips): does this article carry ANY
+ * of the active tags? Both sides fold, so a chip's display spelling
+ * matches an article's stored spelling regardless of ASCII case.
+ */
+function hasActiveTag(tags, active) {
+    if (!active || !active.size)
+        return false;
     var folded = Object.create(null);
     active.forEach(function (a) { folded[fold(a)] = true; });
     return (Array.isArray(tags) ? tags : []).some(function (t) {
-      return !!folded[fold(t)];
+        return !!folded[fold(t)];
     });
-  }
-
-  HL.tags = {
+}
+/* the namespace surface importers consume, typed where it lives
+   (store.ts reads normalizeTagMap/sanitizeTagList) */
+export const tags = {
     sanitizeTag: sanitizeTag,
     sanitizeTagList: sanitizeTagList,
     normalizeTagMap: normalizeTagMap,
@@ -138,5 +144,4 @@
     toggleTag: toggleTag,
     tagCounts: tagCounts,
     hasActiveTag: hasActiveTag
-  };
-})();
+};

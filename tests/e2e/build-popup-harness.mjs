@@ -165,14 +165,14 @@ const MOCK = `<script>
 })();
 </script>`;
 
-if (!html.includes('<script src="../shared/constants.js"></script>')) {
+if (!html.includes('<script type="module" src="popup.js"></script>')) {
   console.error("anchor script tag not found in popup.html");
   process.exit(1);
 }
 
 const out = html.replace(
-  '<script src="../shared/constants.js"></script>',
-  MOCK + '\n<script src="../shared/constants.js"></script>'
+  '<script type="module" src="popup.js"></script>',
+  MOCK + '\n<script type="module" src="popup.js"></script>'
 );
 
 writeFileSync(OUT, out);

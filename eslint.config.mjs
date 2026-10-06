@@ -10,6 +10,8 @@ import tseslint from "typescript-eslint";
 export default tseslint.config(
   {
     ignores: [
+      ".wxt/**",
+      ".output/**",
       "**/node_modules/**",
       // platform / template infrastructure — not project code
       "skills/**",
@@ -44,6 +46,9 @@ export default tseslint.config(
       // intentional classic-script style: `var self = this` in prototype code
       "no-this-alias": "off",
       "@typescript-eslint/no-this-alias": "off",
+      // classic-script style throughout extension/ (TS sources emit that same
+      // style — var/const are kept faithful to the original files)
+      "no-var": "off",
       "prefer-const": "off",
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-unused-vars": "off",

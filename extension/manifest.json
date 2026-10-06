@@ -23,6 +23,7 @@
         "shared/tags.js",
         "shared/textindex.js",
         "shared/domwrap.js",
+      "shared/anchor.js",
         "shared/ui/base.js",
         "shared/ui/toast.js",
         "shared/ui/toolbar.js",
@@ -55,7 +56,7 @@
     "128": "icons/icon128.png"
   },
   "options_ui": {
-    "page": "dashboard/dashboard.html",
+    "page": "dashboard.html",
     "open_in_tab": true
   },
   "commands": {

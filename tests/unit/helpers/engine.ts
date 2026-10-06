@@ -8,7 +8,9 @@
  */
 import { Window } from "happy-dom";
 import { readFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
+import { pathToFileURL, fileURLToPath } from "node:url";
+import { SourceTextModule } from "node:vm";
 
 const ROOT = join(import.meta.dir, "..", "..", "..");
 
@@ -23,6 +25,111 @@ export const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 export function evalClassic(file: string): void {
   /* indirect eval — evaluates in global scope, exactly like a <script> tag */
   (0, eval)(readFileSync(file, "utf-8"));
+}
+
+/* ---------- module-aware loading (Phase 7b) ----------
+   A converted file carries a top-level import/export. Three paths:
+   export-only  → synchronous: exports are stripped and the body is wrapped in
+                  a function, so every world is isolated exactly like classic
+                  eval. Tests read the HL namespace, never the bindings, so
+                  stripping costs nothing.
+   has imports  → async vm.SourceTextModule GRAPH, freshly linked+evaluated per
+                  world (per-world module cache = one instance of every file
+                  per world, evaluated in list order, in the current realm so
+                  the shared globalThis.HL is what modules assign to). Callers
+                  of such worlds must `await loadEngine()` — `await` on a sync
+                  world is a no-op, so call sites stay uniform.
+   dep member   → a file reachable from an import-bearing file is loaded via
+                  the SAME per-world graph (never strip-eval'd separately) so
+                  identity holds: HL.anchor === the imported anchor. */
+const srcCache = new Map<string, string>();
+const readSrc = (f: string): string => {
+  let c = srcCache.get(f);
+  if (c === undefined) { c = readFileSync(f, "utf-8"); srcCache.set(f, c); }
+  return c;
+};
+const RE_TOP_IMPORT = /^import\s/m;
+const RE_TOP_MODULE = /^(?:import|export)\s/m;
+
+/* ---------- namespace harvest (Phase 12) ----------
+   The product no longer assigns a globalThis.HL registry: every engine file
+   is an ES module with real exports. loadEngine evaluates each file's graph
+   and HARVESTS the module namespaces into the same HL shape the tests have
+   always read — the harness's own registry, never the page's global. Identity
+   is preserved by construction: HL.anchor IS the vm-graph binding. theme-boot
+   (the one classic file — the anti-flash contract) still assigns
+   globalThis.HL.applyThemeNow itself; its contribution is merged as-is and is
+   the ONLY globalThis.HL writer in the product. */
+
+/* relative specifiers a file pulls in (extension code: no bare imports) */
+function staticImports(src: string): string[] {
+  const out: string[] = [];
+  for (const m of src.matchAll(/^import\s+(?:[^"'*\n][^"\n]*?\s+from\s+)?["']([^"']+)["']/gm)) out.push(m[1]);
+  for (const m of src.matchAll(/^export\s+[^;\n]*?\s+from\s+["']([^"']+)["']/gm)) out.push(m[1]);
+  return out;
+}
+
+type WorldCache = Map<string, SourceTextModule>;
+
+/* files reachable (via relative imports) from the import-bearing members */
+function graphMembers(paths: string[]): Set<string> {
+  const set = new Set<string>();
+  const walk = (p: string): void => {
+    if (set.has(p)) return;
+    set.add(p);
+    for (const spec of staticImports(readSrc(p))) {
+      if (spec.startsWith(".")) walk(fileURLToPath(new URL(spec, pathToFileURL(p))));
+    }
+  };
+  paths.filter((p) => RE_TOP_IMPORT.test(readSrc(p))).forEach(walk);
+  return set;
+}
+
+/* load file + its relative deps as ONE freshly-evaluated vm graph for this
+   world; already-evaluated members are reused (linking against them is legal) */
+async function loadGraph(file: string, cache: WorldCache): Promise<void> {
+  const ensure = (p: string): SourceTextModule => {
+    let m = cache.get(p);
+    if (!m) {
+      m = new SourceTextModule(readSrc(p), { identifier: pathToFileURL(p).href });
+      cache.set(p, m);
+    }
+    return m;
+  };
+  const root = ensure(file);
+  if (root.status === "unlinked" || root.status === "errored") {
+    if (root.status === "unlinked") {
+      await root.link((spec, ref) => ensure(fileURLToPath(new URL(spec, ref.identifier))));
+    }
+  }
+  if (root.status === "linked") await root.evaluate();
+}
+
+type Harvest = (ns: any, HL: any) => void;
+
+const HARVEST: Record<string, Harvest> = {
+  "shared/ui/base.js": (ns, HL) => { HL.ui = ns.ui; HL.uiBase = ns.uiBase; /* the widget files mutate `ui` in place */ },
+  "shared/store.js": (ns, HL) => { HL.createStore = ns.createStore; HL.createStoreReader = ns.createStoreReader; },
+  "shared/export.js": (ns, HL) => { HL.export = ns.exportTools; },
+  "shared/backends/chrome-storage.js": (ns, HL) => { HL.backends = ns.backends; },
+  "shared/constants.js": (ns, HL) => { Object.assign(HL, ns); },
+};
+
+function harvestInto(paths: string[], cache: WorldCache, HL: any): any {
+  /* 1) real module bindings first — the harvested namespace is the truth */
+  for (const p of paths) {
+    const rel = relative(join(ROOT, "extension"), p).split("\\").join("/");
+    const m = cache.get(p);
+    const ns = m ? m.namespace : null;
+    const rule = HARVEST[rel];
+    if (rule) rule(ns, HL);
+    else if (ns) Object.assign(HL, ns);
+  }
+  /* 2) transitional: files not yet converted (Batch B/C of Phase 12) still
+     assign globalThis.HL — their assigns fill the gaps. At full conversion
+     ONLY theme-boot contributes here (the documented permanent exception). */
+  Object.assign(HL, (globalThis as any).HL || {});
+  return HL;
 }
 
 /* ---------- XPath polyfill for happy-dom ----------
@@ -198,6 +305,7 @@ const DEFAULT_FILES = [
   "shared/tags.js",
   "shared/textindex.js",
   "shared/domwrap.js",
+  "shared/anchor.js",
   "shared/ui/base.js",
   "shared/ui/toast.js",
   "shared/ui/toolbar.js",
@@ -213,14 +321,21 @@ export interface EngineOptions {
   extraFiles?: string[]; /* extra absolute paths outside the shared engine (e.g. content/favicon.js) */
 }
 
-/** Returns a fresh HL (previous chrome/HL is cleared before loading) */
-export function loadEngine(opts: EngineOptions = {}): any {
+/** Returns a fresh HL (previous chrome/HL is cleared before loading).
+ *  Always a Promise (Phase 12: every file is evaluated as a real ES-module
+ *  graph and the namespace is HARVESTED from the module bindings — the
+ *  classic strip-path and the globalThis.HL registry are retired). */
+export function loadEngine(opts: EngineOptions = {}): Promise<any> {
   const g: any = globalThis;
   delete g.HL;
   delete g.chrome;
   if (opts.chrome !== undefined) g.chrome = opts.chrome;
-  const files = opts.files ?? DEFAULT_FILES;
-  for (const f of files) evalClassic(ext(f));
-  for (const f of opts.extraFiles || []) evalClassic(f);
-  return g.HL;
+  const paths = [...(opts.files ?? DEFAULT_FILES), ...(opts.extraFiles || [])]
+    .map((f) => (f.startsWith("/") || /^[A-Za-z]:/.test(f) ? f : ext(f)));
+  const members = graphMembers(paths);
+  const cache: WorldCache = new Map();
+  return (async () => {
+    for (const p of paths) await loadGraph(p, cache);
+    return harvestInto(paths, cache, {});
+  })();
 }

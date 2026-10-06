@@ -1784,3 +1784,416 @@ Stage Summary:
 - Delivered: repository is extension-only — landing page, Prisma scaffold, deploy config and stray example/upload/db projects removed; root dependencies cut from 15 runtime packages to zero (tooling devDeps only), node_modules 756M → 106M
 - The Next.js compatibility suite survives as a self-contained fixture under tests/ (its own package.json; the E2E installs and builds it on demand) — extension test capability unchanged: 16/16
 - Test contract: 628 unit / lint 0 / next-compat 16/16 / real-theme exit 0
+---
+Task ID: 64
+Agent: main (Hermes)
+Task: Modernization program kickoff — Phase 0 (complete repository audit + baseline) on dedicated migration branch, per the owner's TypeScript/WXT/React/SOLID modernization plan
+
+Work Log:
+- Branch: migration/arch-modernization created from main @ 763ecc9 (owner had committed Task 63). All migration work stays off main (prompt §46).
+- Baseline gates (recorded verbatim in docs/migration-baseline.md): bun run test 628/0/2423 · lint exit 0 · zip 49 entries/143,770 B · harness 2 written · browser E2E last green at Task 63 (next-compat 16/16, real-theme exit 0). Known failures: none. Toolchain: bun 1.4.2, Node v26.7.0.
+- §4 risk audit executed against source: globalThis.HL 38 hits/31 files (the migration target); chrome.storage confined to 1 file (backend already adapterized); chrome.runtime/tabs only in SW/popup/chrome-storage/runtime-bridge; MutationObserver only 2 (content + ui watchdog); eval/new Function 0; innerHTML 25 hits but constant-ICONS-only (no user-data interpolation); no import graph exists yet (classic scripts) so circular imports are impossible today — the real implicit coupling is manifest load order; 293 `any` annotations in tests only.
+- Key structural finding (R1): MV3 content_scripts are injected as CLASSIC scripts — import/export illegal there — so removing globalThis.HL from the content path REQUIRES a bundler; background SW is already type:module and extension pages can use native ESM. This pins global removal to after WXT (prompt's own ordering holds).
+- Data contract snapshotted exactly: record literal {id,host,site,url,urlNorm,title,text,prefix,suffix,start,end,anchor,color,note,createdAt,updatedAt}; keys hlx:settings|d:|f:|tags; BACKUP_FORMAT=1 — and documented that NO storage schema version exists yet (risk R6).
+- Toolchain decision documented (§7): incremental tsc emit for Phases 2-5, WXT at Phase 6 as planned; Phase 1 types are toolchain-neutral. Risks R1-R9, compatibility constraints, and the 12-phase mapping written to docs/migration-baseline.md (the prompt's Phase 0 deliverable).
+- Nothing in product code changed this task. Zip byte-churn from the baseline rebuild discarded (risk R8: commit zips only on releases).
+
+Stage Summary:
+- Phase 0 complete: audit findings, measured baseline, migration risks, compatibility invariants, phase plan — all in docs/migration-baseline.md; branch ready for Phase 1 (domain types + storage/messaging contracts + typecheck gate)
+---
+Task ID: 65
+Agent: main (Hermes)
+Task: Modernization Phase 1 — domain types, storage port contract, typed messaging contracts, and the project's first typecheck gate (zero behavior change)
+
+Work Log:
+- src/types/highlight.ts: HighlightRecord (persisted core {id,host,url,urlNorm,text,createdAt,updatedAt} required — exactly what store.test.ts proves save accepts; engine-written fields optional and read-defensively: site/title/prefix/suffix/start/end/anchor/color/note), HighlightAnchor (serializeRange shape: XPath pair + offsets, nullable = textual re-resolve path), HighlightColor union pinned to HL.COLOR_KEYS.
+- src/types/settings.ts + src/types/tags.ts: Settings {defaultColor,showToolbar,showBadge,disabledHosts,theme} typed from HL.DEFAULT_SETTINGS; ThemeKey from HL.THEMES; ArticleTags = {urlNorm: string[]} per store key hlx:tags. Registry sync enforced by the parity test (adding a color/theme without updating the types fails typecheck).
+- src/types/storage.ts: StorageBackend — the 5-member port (get/set/remove/bytes/onChange) extracted verbatim from chrome-storage.js's port doc + createStore()'s runtime validation; StorageChanges mirrors the chrome.storage-style change event. LSP already proven by store.test.ts's dual-backend contract suite; the parity test additionally pins the exact 5-member ISP (memoryArea key list).
+- src/types/messaging.ts: MessagePayloads map + discriminated ExtensionMessage union + per-type MessageResponse mapped type — payload/response shapes taken from the real send/handle sites (content.js:82/195-204, service-worker.js:108/148/172, popup.js:191). EXTENSION_MESSAGE_TYPES is the exhaustiveness list; never rename one side alone.
+- Typecheck gate: package.json "typecheck": "tsc --noEmit" + tsconfig include src/**/*.ts. First-ever run surfaced 22 PRE-EXISTING strict errors, all in tests/unit/dashboard-view.test.ts (null-strictness in querySelector derefs the suite already proves non-null at runtime). Understood, then annotated type-level only (! and one HTMLElement cast) — no assertion or behavior touched. New files: 0 errors.
+- tests/unit/types-contract.test.ts (5 tests): HL.MSG ≡ typed union (exact set), illegal payload via @ts-expect-error, DEFAULT_SETTINGS ↔ Settings/registries, full+minimal+null-anchor record literals, port member-list pin.
+- Gates (all green): bun run typecheck 0 · bun run test 633/0/2435 (628→633, 24→25 files) · bun run lint 0. Zip/packaging untouched (no extension/ change — packaging contract still green inside the unit run).
+- Commit series (§45): types → storage → messaging → parity test → typecheck gate → this journal entry.
+
+Stage Summary:
+- Phase 1 complete: typed domain/storage/messaging contracts exist, are enforced by a typecheck gate, and are pinned to the runtime by parity tests — the substrate every later TS migration (Phases 2-3) will compile against
+- Zero behavior change: extension/ byte-identical this task; all 633 tests green
+- Next: Phase 2 — low-risk pure modules JS→TS (format, utils, tags, detect-dir, url, textindex) under the new gate
+---
+Task ID: 66
+Agent: main (Hermes)
+Task: Modernization Phase 2 — low-risk pure modules JavaScript → TypeScript with a real emit pipeline (classic-script output preserved, zero behavior change)
+
+Work Log:
+- Pipeline: tsconfig.extension.json — src/shared/*.ts → tsc emits extension/shared/*.js (rootDir/outDir mirror; ES2022+DOM, strict, noImplicitAny:false to match the gate). Scripts: "build:ext"; `test` and `zip` now run build:ext first, so the emitted JS the tests/zip ship can never go stale. Zip still packs exactly extension/ (49-entry contract — packaging.test green).
+- Classic-script invariant discovered at emit: a single `import type` made textindex a MODULE and tsc appended `export {};` — a SyntaxError under manifest injection. Fixed structurally: no imports in emit-land sources; textindex now declares its own focused `FindRec` view (ISP — the engine reads only text/prefix/suffix/start/end) instead of importing HighlightRecord; documented in the file header as a Phase-6 boundary. Tripwire test added (see below).
+- Migrations (6 modules, sources at src/shared/, emitted at extension/shared/):
+  · format.ts — typed display formats; HL.COLORS typed optional to match the function's own defensive fallback (dotColorOf).
+  · detect-dir.ts — pure; detectTextDir/contentDir return the exact 'ltr'|'rtl'|'' unions.
+  · url.ts — normalizeUrl typed {url,norm,site,host}|null; watchHref takes a structural WatchableWindow (DIP — tests inject fakes).
+  · utils.ts — debounce generic over arity (Parameters<F>), escapeHtml map as Record<string,string>.
+  · tags.ts — sanitize/normalize gate typed against unknown input (crafted-backup defense visible in the types); HlSlice documents the constants dependency (constants-first is packaging-tested).
+  · textindex.ts — full index engine typed: TextIndex/Located/FoundRange interfaces, acceptTextNode returns 1|2, consider() scoring keeps the +8 visibility rule; `const tix = ti` keeps narrowing inside the consider closure.
+- Load-order/global pattern kept: each file keeps the `(g.HL = g.HL || {})` IIFE with a narrow local HlSlice interface (casts erase at emit — runtime byte-equivalent semantics). No runtime imports → manifest order unchanged → no manifest/test churn.
+- Lint: `no-var` added to the off-list (classic-script style — same rationale block as prefer-const):81 no-var hits on TS sources that faithfully preserve the originals' var style.
+- Tripwire (packaging.test, new describe): every emitted JS must exist, its src .ts source-of-truth must exist, and NO emitted file may match /^\s*(import|export)\s/m — the whole export{} class of bug is now test-guarded.
+- Gates (all green): bun run test 634/0/2447 (633→634) · lint 0 · typecheck 0 · zip 49 entries (size144,920 — emitted formatting; zip churn of a non-release commit discarded per baseline R8) · next-compat E2E 16/16 · real-theme E2E exit 0 — browser verification against the EMITTED JS.
+- Commit series (§45): pipeline+format → lint no-var → detect-dir → url → utils → tags → textindex → tripwire → this journal entry.
+
+Stage Summary:
+- Phase 2 complete: 6 modules (872 source lines) are now TypeScript with a compiling emit step wired into test/zip; behavior proven by 634 unit tests + both real-browser rigs
+- Architectural boundary honored: emit output is classic-script-clean and tripwire-tested; ESM conversion waits for the bundler (Phase 6) per baseline R1
+- Next: Phase 3 — anchor engine extraction behind a CompositeAnchorResolver (textindex/domwrap/highlighter), the highest-risk refactor so far
+---
+Task ID: 67
+Agent: main (Hermes)
+Task: Modernization Phase 3 — anchor engine extraction behind an ordered resolver composite (audit-first port, zero behavior change)
+
+Work Log:
+- Audit first (baseline §8 gate): traced the resolution algorithm across highlighter.applyRecord (structural XPath + hidden-copy rejection + inScope/re-entry guards) and textindex.findRange (offsets → exact → normalized with shared scoring). Conclusion: the old algorithm is NOT a first-wins strategy chain — it is candidate generation + ONE scorer + a confidence gate. The extraction preserves THAT shape (§16: do not blindly replace a working strategy): a naive ordered-resolver "first wins" would have changed duplicate-text resolution — the v0.6.7 core.
+- New module src/shared/anchor.ts → extension/shared/anchor.js (classic, zero imports — Phase-2 invariant; loaded after domwrap, before highlighter; inserted in manifest content_scripts + engine DEFAULT_FILES; popup/dashboard untouched — they never load the engine):
+  · resolveStructural(rec) — verbatim port of applyRecord's fast path (resolveAnchor + isHidden(commonAncestorContainer) rejection).
+  · resolve(ti, rec) — composite over HL.anchor.resolvers: sources [offsets, exact, norm] are DATA (append-only; read at call time) with one scoreOf(): bonus + prefix(+2) + suffix(+2) − proximity(≤1.5) + visible-copy(+8). The norm source carries its perf gate as metadata (maxBestBefore: 4 ≙ the old `if (!best || bestScore < 4)`). Strict `>` max keeps the old first-wins tie order; iteration order matches the old evaluation order exactly (offsets, exact ascending, norm word-boundary ascending).
+  · Score-equivalence proof during design: the old norm path inlined scoring with pre-squashed prefix/suffix; scoreOf() passes them raw through endsWithNorm which squashes internally — identical numbers.
+- highlighter.applyRecord now calls the two strategies; textindex.ts lost findRange + the scoring-only comparison helpers + FindRec/FoundRange (−4,184 chars) and is now the pure index primitive (build/locate/offsets/range normalization). HL.text exports: build, normInfo, squash, acceptTextNode, normalizeRange, boundaryToText.
+- Tests: textindex.test's findRange suite moved VERBATIM to tests/unit/anchor.test.ts (5 assertions unchanged, HL.text.findRange → HL.anchor.resolve); +2 structural tests (serialize round-trip; hidden copy → null → falls back) + 1 OCP acceptance test (appending a resolver with bonus 9999 resolves a quote no built-in source can — proves the composite reads the extended list; popped in finally). packaging.test: order pair anchor.js < highlighter.js + classic-tripwire list extended with anchor.
+- Gates (all green): bun run test 637/0/2460 (634→637) · lint 0 · typecheck 0 · zip 50 entries (anchor.js added) · next-compat E2E 16/16 · real-theme E2E exit 0 · LIVE duplicate-text rig on 16personalities: Cloudflare pass (load+reload), create→10 marks, restored after reload→20 marks, popover opens after reload, pageErrorsTotal 0 — the Phase-3 exit criterion (duplicate-text/orphan E2E green).
+- Commit series (§45): anchor module+wire-in → switch (highlighter/textindex/tests) → this journal entry → E2E evidence.
+
+Stage Summary:
+- Phase 3 complete: anchor resolution is now an ordered, data-driven resolver composite with a single scorer; the v0.6.7 duplicate-text behavior is proven unchanged by unit port + 3 browser rigs
+- OCP demonstrated by test (appending a resolver needs no orchestration change); textindex is a pure primitive; applyRecord lost its resolution logic (highlighter.step: content step closer to the v0.6.9 target)
+- Next: Phase 4/5 — storage/schema boundary (hlx:* key consolidation behind explicit version + migration) and highlighter's remaining content extraction; WXT stays Phase 6 (R1: globalThis.HL can only leave the content path with a bundler)
+---
+Task ID: 68
+Agent: main (Hermes)
+Task: Modernization Phase 4 — storage schema boundary: explicit version key + forward-only migration gate (data safety, zero behavior change)
+
+Work Log:
+- Audit (before touching the data layer): chrome.storage keys = hlx:settings, hlx:d:<host>, hlx:f:<host>, hlx:tags (+ messages hlx:*-report/goto which are not storage); hlx:theme is a localStorage MIRROR of settings.theme (theme-boot pre-paint contract — different mechanism by design, inventoried, NOT consolidated this phase); backup has its own versioned contract (BACKUP_FORMAT + app check + sanitizeRecord/normalizeTagMap/sanitizeFaviconMeta gates on import) and stays byte-unchanged; no schema version existed anywhere; clearAll wiped every hlx:* key.
+- Implemented in extension/shared/store.js (single choke point — zero new files, zero call-site changes):
+  · K_SCHEMA='hlx:schemaVersion', SCHEMA_VERSION=1 (v1 = the explicit name for the pre-versioning shape; absence = legacy v0 — no user data rewritten when versioning landed).
+  · MIGRATIONS = ordered [{from,to,run}] + migrateSchema(backend, opts): forward-only (stored >= target → hands off, downgrade never rewritten); stamps EACH step after its run() succeeded (crash mid-chain resumes at stamped step); a gap/invalid step stamps NOTHING for the remainder (data beats cosmetics). Rules documented at the declaration: run() must be IDEMPOTENT (concurrent contexts; stamp-after-crash re-run) and a future step that rewrites USER keys must join the write queue (stamp-only steps are key-disjoint).
+  · Lazy memoized gate migrated(): awaited by drained() (every public read) and by enqueueWrite (every public write) — nothing overtakes migration; failure PROPAGATES to that operation (same error surface as a backend failure — keeps backends.test's lastError→rejection contract true) and resets the memo so the next op retries (transient errors heal, never stamped over).
+  · opts { schemaVersion, migrations } injected like the backend (test seam for gap/chain mechanics; production callers pass nothing).
+  · clearAll keeps hlx:schemaVersion: schema metadata ≠ user data; an empty store IS the current shape (existing clearAll tests assert behavior, not raw keys — green unchanged).
+  · createStoreReader (read-only ISP role) never migrates — documented ceiling: settings reads are default-merged; a future migration that rewrites settings must run from a writer context first.
+- Design lesson caught by tests: the first version ran migration EAGERLY at createStore construction — it consumed backends.test's one-shot failure injection (arm-after-construct tests saw the failure consumed by migration's own get/set, ops resolved instead of rejecting). Fix = lazy gate + error propagation (above); both backends' error contracts pass WITHOUT editing those tests.
+- Tests: new describe in store.test.ts (6): legacy seed → stamped 1 with records/settings/tags byte-identical; stored=99 downgrade → untouched; injected empty chain → NO stamp (gap rule); partial chain to target 3 → stops at stamped 2; save() issued at once → stamp completes before the queued write lands (ordering); clearAll wipes user keys, keeps version. All run against chrome-storage mock; both backends exercise migration implicitly through the whole contract suite.
+- Gates (all green): bun run test 643/0/2474 (637→643) · lint 0 · typecheck 0 · zip 50 entries · next-compat E2E 16/16 · real-theme E2E exit 0 · LIVE 16personalities with the new gate in real Chrome: CF pass ×2, create → 10 marks, restored after reload → 20 marks, popover after reload, pageErrorsTotal 0.
+- Commit series (§45): store schema gate + tests → this journal entry → E2E evidence.
+
+Stage Summary:
+- Phase 4 complete: every read/write passes a forward-only, stamp-after-success migration gate; the data-safety invariants (no silent discard, no downgrade rewrite, no stamping over unknown ground, idempotent steps) are pinned by 6 contract tests
+- Backup format untouched (its sanitize gates remain the import protection); hlx:theme mirror inventoried for a later, explicit migration
+- Next: Phase 5 — storage layer to TypeScript (store.js behind the typed StorageBackend port) or the remaining content extraction; WXT stays Phase 6 (R1)
+---
+Task ID: 69
+Agent: main (Hermes)
+Task: Modernization Phase 5 — store.js (the data layer) to TypeScript behind the typed StorageBackend port
+
+Work Log:
+- Source of truth moves: extension/shared/store.ts (686 lines) → tsc emits extension/shared/store.js (classic, zero imports — the Phase-2 invariant; packaging classic-tripwire extended with "store"). Zero call-site changes: HL.createStore/HL.createStoreReader signatures gained only types + the Phase-4 opts (JS consumers unaffected).
+- Port typing (the phase's core): the file is a script (no imports allowed), so StorageBackend/StorageChanges are declared GLOBAL at the top of store.ts — an EXACT duplicate of src/types/storage.ts — with a compile-time mutual-assignability tripwire in types-contract.test.ts (import aliased to PortBackend so the bare name resolves to the global; `bun run typecheck` fails if the mirrors ever drift). ReaderBackend = Pick<get|onChange> — the reader's OWN validation (ISP-faithful, not the full port it never checks).
+- Typing decisions (oracle-driven, 3 tsc rounds 24 → 5 → 0 errors): local collaborator views inside the IIFE (StoreOpts/MigrationStep/HlSlice — full models live in src/types); untrusted-input entry points typed any with their runtime guards INTACT (sanitizeRecord, importData backup, sanitizeFaviconMeta — validation is runtime, types document intent); Record<string,any> for host maps/record maps (defensive JS shapes); Map<string,any> for getAllRecordsRaw.
+- Emit-fidelity proof (this phase's risk = the whole data layer regenerated by tsc's printer): normalized char-stream diff vs HEAD (comments stripped, whitespace/parens removed, documented const-HL + added "use strict" accounted) → IDENTICAL except two redundant paren pairs the printer adds (return (m || {})) — pure formatting. The printer also splits single-line `if (c) return x;` bodies onto the next line (AST-preserving by construction — for/if single-statement bodies verified unambiguous, no ASI hazards).
+- Two lessons recorded: (1) a JSDoc header attached to a TYPE declaration is erased with it at emit — the file header must sit directly above the first runtime statement (reordered: type mirror block → header with GENERATED TARGET marker → IIFE); (2) narrowing an `unknown` param by self-reassignment (m = m as Record<...>) does not stick in tsc — use any for the untrusted param and keep the guard.
+- Tests: +1 compile-time mirror parity test in types-contract.test.ts (644 total). All 84 store contract/schema tests run against the EMITTED store.js via build:ext chaining.
+- Gates (all green): bun run test 644/0/2478 (643→644) · lint 0 · typecheck 0 · zip 50 entries · next-compat E2E 16/16 · real-theme E2E exit 0.
+- Commit series (§45): store TS migration → mirror tripwires → this journal entry → E2E evidence.
+
+Stage Summary:
+- Phase 5 complete: the persistence domain (store + schema gate + import/export) is now typechecked end-to-end behind the Phase-1 port, with the classic-script invariant and the port mirror both test-guarded
+- Behavior proven unchanged: byte-parity of the emit + 644 tests + both browser rigs
+- Next: content-side extraction (highlighter/UI layering v0.6.9 target) and/or WXT introduction (Phase 6 — bundler before globalThis.HL can leave the content path, per R1)
+---
+Task ID: 70
+Agent: main (Hermes)
+Task: Modernization Phase 6a — WXT toolchain introduced: first entrypoint, output-parity gate, R1 path opened
+
+Work Log:
+- Toolchain: wxt@0.21.4 installed (devDep; node 26 + bun fine on this machine, esbuild/rollup natives OK on the no-AVX2 CPU). wxt.config.ts: publicDir=extension/ (every file copied verbatim — same relative paths tests/harnesses/manifest reference) + manifest = extension/manifest.json parsed at config time (single version source stays the manifest).
+- WXT hard-refuses zero entrypoints (preventNoEntrypoints — no config escape), so Phase 6a lands ONE real entrypoint: background. Chosen because extension/background/service-worker.js is ALREADY an ES module that side-effect-imports the classic shared scripts (constants → chrome-storage → tags → store) — its header documents the globalThis.HL pattern; the entrypoint is a pure hand-off (import the SW + defineBackground marker). wxt.config deletes manifest.background so config and entrypoint never both claim the key.
+- Gate: scripts/wxt-parity.mjs chained into `bun run build:wxt` — .output/chrome-mv3 must be a functional twin of extension/: every source file present byte-for-byte (manifest compared structurally, not byte-wise), no stray extras (allowlist: the entrypoint bundle at its manifest path + assets/*), manifest.deep-equal on every key except background (fully entrypoint-owned: WXT picks path AND module style; contract = bundle exists). Current result: `wxt-parity: OK — 44 files byte-identical, manifest equal (13 keys)`, build 563 ms.
+- Bundle verification: background.js (15,144 B) contains every SW duty (context menu, badge count-report, createStoreReader, hlx:schemaVersion), load order preserved (constants < store), and ZERO leftover import/export statements — a self-contained worker valid without type:module (WXT drops that field deliberately; modeled in parity).
+- Typecheck interaction discovered: entrypoints/background.ts imports the classic SW, which pulls extension/**/*.js into the tsc program — globalThis.HL then carries a JS-inferred type and store.ts's single cast fails (TS2352). Fix = the standing `as unknown as` hop (comment at the site); emit erases it (1-line comment-only diff in extension/shared/store.js). tsconfig include += entrypoints/**/*.ts (module esnext/bundler already correct for the wxt subpath import).
+- Housekeeping: .gitignore += .output/ .wxt/; eslint ignores the generated dirs; `bun run build:wxt` script added.
+- Gates (all green): bun run test 644/0/2478 · lint 0 · typecheck 0 · zip 50 entries · build:wxt parity OK. extension/ changed by ONE comment line (the cast note) — no behavior delta, so the browser rigs were not re-run this phase; 6b re-runs all of them.
+- Commit series (§45): store unknown-hop cast → WXT toolchain + entrypoint + parity gate → this journal entry.
+
+Stage Summary:
+- Phase 6a complete: WXT builds the extension with a real entrypoint and a gate that fails on ANY output drift from the hand-maintained tree — the bundler now provably reproduces the product byte-for-byte before it starts owning it
+- R1 path opened: the content script moves to a bundled entrypoint next (6b), after which globalThis.HL can start leaving the content path
+- Next: Phase 6b — content entrypoint (side-effect imports in manifest order → single bundle), packaging tests updated to the bundled model, all rigs (next-compat/real-theme/live) re-run against .output; then popup/dashboard entrypoints (6c)
+---
+Task ID: 71
+Agent: main (Hermes)
+Task: Modernization Phase 6b — content entrypoint: 20 classic content scripts → ONE WXT bundle (R1 critical path)
+
+Work Log:
+- entrypoints/content.ts: side-effect imports of all 20 files in EXACT extension/manifest.json content_scripts[0].js order + mark-style.css, wrapped in defineContentScript({matches http/https/file, runAt document_idle, allFrames false, cssInjectionMode manifest, noScriptStartedPostMessage: true, main noop}). Bundle-safety audit first: ZERO column-0 declarations across the 20 files (all IIFE, communicate only via globalThis.HL) — module scope changes nothing at runtime.
+- Behavior preservation details: noScriptStartedPostMessage:true — WXT's dev-handshake postMessage must NOT reach real pages (original had none). WXT's runAt type wants snake_case ('document_idle') despite the doc comment saying 'documentIdle' — tsc as oracle. cssInjectionMode manifest → output css lands at content-scripts/content.css (modeled drift; the source file stays byte-copied by publicDir).
+- wxt.config: content_scripts key deleted from the user manifest (entrypoint-owned, same as background); the SOURCE manifest file keeps the js list as the canonical ORDER.
+- Parity gate extended: content modeled as entrypoint-owned — contract: matches SET-equal (WXT sorts the array; Chrome treats matches as a set), run_at/all_frames identical, EXACTLY ONE js bundle that exists, has zero module statements, and contains code probes (hlx:schemaVersion/mark/hlx:count-report), css files exist, + THE hand-off guard: entrypoint import sequence == manifest js sequence (drift in either file fails the build). Extras allowlist generalized to manifest-referenced files + assets/*.
+- Output: content-scripts/content.js = 65,201 B single bundle, 0 import/export, load order preserved (background.js + content.js both self-contained); parity OK (44 files byte-identical, manifest equal).
+- Rig upgrades (repo files): HLX_EXT_DIR env override on real-theme-e2e + next-compat-e2e (HLX_EXT_DIR=.output/chrome-mv3 runs the bundled build); extension detection upgraded from URL-path match (background/service-worker.js) to an HL-sentinel probe (attach + evaluate 'typeof HL !== undefined && typeof HL.createStore === function') — required because the sandbox ships foreign extensions with background.js SWs. /tmp/site-repro.mjs was lost to tmp cleanup (rebuild on demand from session history if the live rig is wanted again).
+- Verification (bundled .output in real Chrome): real-theme exit 0 (extension loaded id ljfppidaoggceodlhiekmedglcopjdjh) · next-compat 16/16. Default path (extension/) after rig edits: real-theme 0 · next-compat 16/16. Gates: bun run test 644/0/2478 · lint 0 · typecheck 0 · zip 50 · build:wxt parity OK.
+- Commit series (§45): content entrypoint + parity rules → rig env override + sentinel detection → this journal entry → E2E evidence.
+
+Stage Summary:
+- Phase 6b complete: the content path now builds as ONE WXT bundle proven green in real Chrome (both rigs), with the import-order hand-off guard making manifest↔entrypoint drift a build failure
+- R1 milestone: globalThis.HL can now start leaving the content path — the bundler owns ordering, the classic files are just modules-by-side-effect
+- Next: Phase 6c — popup/dashboard entrypoints (html+js), then manifest fully WXT-owned; afterwards begin converting shared files to real exports (the HL-global shrink)
+---
+Task ID: 72
+Agent: main (Hermes)
+Task: Modernization Phase 6c — popup/dashboard entrypoints evaluated (empirical) and DEFERRED with rationale; Phase 6 closed
+
+Work Log:
+- Goal was "popup + dashboard as WXT entrypoints". Empirical probing of WXT 0.21's html entrypoint types (find-entrypoints map: popup.html/popup/index.html/options.html/options/index.html special, ANY other *.html = unlisted-page) settled it:
+  1. entrypoints/popup.html (root copy): vite leaves classic scripts verbatim → output popup.html at ROOT breaks every relative ref (../shared/* escapes the extension root, popup.css/popup*.js land only under popup/) + WXT emitted default_popup "popup.html" pointing at that broken page. Fatal outputDir error on the symlink variant (WXT chokes on entrypoints whose realpath leaves entrypointsDir — symlinks are out).
+  2. entrypoints/popup/popup.html (depth-preserving copy): builds and output popup/popup.html is byte-identical (7743 B, 0 diff) — but the path matches only "*.html" → unlisted-page type → NO manifest wiring; deleting config's action.default_popup proved the popup key was still config-sourced (earlier default_popup sighting was the config value surviving, not entrypoint generation).
+  3. options/dashboard: WXT has only options.html / options/index.html — neither preserves the shipped dashboard/dashboard.html path; dashboard.html itself would be an unlisted page.
+- Decision (priority: correctness → data safety → behavior preservation): action + options_ui stay CONFIG-owned. The publicDir byte-copies + identical config pointers make the output behavior-identical by construction, and wxt-parity proves file bytes + all 13 manifest keys on every build. Manifest churn (renaming popup/popup.html → index.html, dashboard → options.html) buys tooling aesthetics and risks product paths for zero user value — rejected under §10/YAGNI. Documented in wxt.config.ts: revisit when popup/dashboard migrate to React (fresh entrypoints are written WITH that rewrite, WXT owns those keys then).
+- Phase 6 final shape: WXT owns background.ts + content.ts bundles (real ordering ownership, entrypoint-driven manifest keys with modeled drift); config manifest (parsed from extension/manifest.json = single version source) owns name/version/permissions/commands/icons/action/options_ui; parity gate compares all non-modeled keys deep-equal and models background/content explicitly (+ import-order hand-off guard).
+- Cleanup: experiment entrypoint removed, parity mirror rule added-then-removed (net zero), config comment replaced with the accurate ownership rationale.
+- Verification: build:wxt parity OK (44 files byte-identical, manifest equal 13 keys) · bun run test 644/0/2478 · lint 0 · typecheck 0 · zip 50 · real-theme(default) 0 · next-compat(default) 16/16 · next-compat(.output) 16/16.
+
+Stage Summary:
+- Phase 6 COMPLETE (6a background → 6b content → 6c popup/options closure): every manifest key has an explicit owner, every bundle byte-proven in real Chrome
+- Next: Phase 7 — real ES-module exports in src/shared (the globalThis.HL shrink), starting from the content bundle which the bundler already owns
+---
+Task ID: 73
+Agent: main (Hermes)
+Task: Modernization Phase 7a — packaging bridge: ship the WXT output (prerequisite for real ES modules)
+
+Work Log:
+- Why: a file can only gain import/export once EVERY classic loader of it is gone. Content scripts are the hard wall (MV3 manifest has no module mode) — so the shipped artifact must be the WXT bundle before textindex/anchor/highlighter/… become modules. Phase 7a makes .output/chrome-mv3 the release product WITHOUT touching any file contents (zero behavior change; parity proves equivalence).
+- scripts/build-zip.mjs: packs .output/chrome-mv3 instead of extension/; refuses when output missing (prints the build commands); header documents the split — extension/ = source tree (tests/harnesses/manifest config source), .output = packed product. version still read from extension/manifest.json (single source; parity proves output manifest equal).
+- package.json: `zip` = build:ext && build:wxt && node scripts/build-zip.mjs — a zip can never contain a stale or unverified output (build:wxt runs wxt-parity first). Result: 54 entries (was 50: +background.js, +content-scripts/{content.js,content.css}), harnesses still excluded, 176,185 bytes.
+- E2E rigs (real-theme + next-compat): default EXT_DIR = .output/chrome-mv3 with an auto `bun run build:ext && bun run build:wxt` when HLX_EXT_DIR is unset — the rigs test the SHIPPED artifact and can never run against a stale build; HLX_EXT_DIR=extension still selects the source tree (both trees stay loadable-unpacked until 7b removes the content classic list).
+- First run failed: execSync ReferenceError in both rigs — the import insertion guard matched a pre-existing 'node:child_process' substring and skipped the import. Fixed with a verified regex insert; rerun green.
+- Verification: bun run test 644/0/2478 · lint 0 · typecheck 0 · zip 54 entries (parity OK inside chain) · real-theme(.output default)=0 · next-compat(.output default)=16/16 · real-theme(source)=0 · next-compat(source)=16/16.
+- Not shipped yet conceptually: the zip still contains byte-copied classic content files (publicDir = full source copy; manifest only references the bundles — dead but inert). The source manifest content_scripts list remains the canonical ORDER pin for the parity import-order guard.
+
+Stage Summary:
+- Phase 7a complete: release artifact = WXT build end-to-end; both rigs default to it with freshness guaranteed
+- Phase 7b next: content-only files → real ES modules (their only remaining classic loaders are the source manifest list — now order-data, not a load path — and the unit-test engine, which switches to imports)
+---
+Task ID: 74
+Agent: main (Hermes)
+Task: Modernization Phase 7b-1 — first real ES modules (textindex, anchor) + dual-mode test engine
+
+Work Log:
+- Design before code (consumer audit): content-only files = {textindex, domwrap, anchor, ui/*, highlighter, favicon, content}; shared classic-loaded files = {constants, chrome-storage, url, utils, format, detect-dir, clipboard, tags, store, runtime-bridge} (popup.html 14 tags, dashboard.html 17, SW 4 imports). vm.SourceTextModule probes as sync — no win (link/evaluate are async).
+- Conversion shape chosen (smallest real diff): IIFE KEEPS running and assigning the HL namespace; a top-level tail `export const text/anchor = (globalThis…).HL…` exports the SAME object by identity. Bundle consumers and HL.* consumers share one instance (the resolvers array stays the single mutable OCP seam). `HL` is IIFE-local in both files — the export line reads it off globalThis after the IIFE (first attempt referenced bare HL → TS2304 at the tail, caught by tsc).
+- tests/unit/helpers/engine.ts dual-mode: top-level /^import|^export/ detection over a file cache; export-only files = strip `export ` prefixes (+ export{} lines), wrap in `(function(){…})()`, indirect eval → synchronous, per-world isolation identical to classic (tests read HL, never the bindings). Files WITH top-level import → async path: dynamic import with ?world=N bust (re-executes the graph per world; ceiling documented: relative deps resolve canonically, safe only while files stay stateless). loadEngine returns a Promise ONLY in the import case — none exist yet, so all 73 call sites stay sync; zero test churn (textindex/anchor suites run unedited).
+- packaging.test tripwire SCOPED, both directions: classic-required set asserts no module statements; allowlist {textindex, anchor} asserts they ARE modules (drift-proof: removing the export fails; adding one without removing classic loaders fails too). File-head invariant notes in both TS sources rewritten to the 7b reality.
+- Verification: build:ext emits 1 export const in each converted file, 0 in the rest · targeted 23/0 · full bun run test 644/0/2478 · lint 0 · typecheck 0 · zip 54 · real-theme 0 · next-compat 16/16 (both modules ship inside the WXT content bundle).
+- Not yet done (the actual shrink, next steps): content.ts imports of the converted files become NAMED imports; engine takes the async path when highlighter.js converts (the 73-site await sweep); popup/dashboard html to a single module entry when shared files convert.
+
+Stage Summary:
+- First files are real ES modules end-to-end (tsc emit → WXT bundle in real Chrome → engine world isolation), tripwire keeps every non-converted file classic
+- The gate that matters next: highlighter conversion flips loadEngine to async for default-file worlds — the await sweep is designed (fails loudly on missed awaits) but not started
+---
+Task ID: 75
+Agent: main (Hermes)
+Task: Modernization Phase 7b-2 — highlighter declares its engine imports; engine loads real module graphs (vm); full await sweep
+
+Work Log:
+- Conversions (the shrink in action): src/shared/anchor.ts gains `import { text } from "./textindex.js"` (HL.text.normInfo → text.normInfo ×2); extension/shared/highlighter.js gains `import { text as textIndex } from "./textindex.js"` + `import { anchor } from "./anchor.js"` (4 HL.* reads → direct bindings). The alias exists because selectionCtx has `var text = sel.toString()` — a hoisted function-scoped shadow that made `text.normalizeRange` undefined (caught by 4 live failures before the alias). Three files are now real ES modules with REAL cross-imports; every other HL.* read in highlighter (dom, clipboard, format, …) stays for the shared-file wave.
+- Engine async path rebuilt: vm.SourceTextModule GRAPH per world (probe: bun runs it in the CURRENT realm, so modules assign to the same globalThis.HL tests read). graphMembers() walks relative imports of import-bearing files; those files load via ONE per-world cache (fresh link+evaluate each world) so identity holds — verified: `imported text === HL.text`. Export-only files keep strip+wrap eval; pure-classic worlds stay sync. loadEngine returns a Promise only for import-bearing worlds.
+- Await sweep across ALL 26 suites (uniform: `await loadEngine` is a no-op on sync worlds): loadEngine sites awaited, enclosing beforeAll/beforeEach/test callbacks → async, async-helper cascades (boot, chromeCtx, memoryCtx, makeRecord, recA/B/C, loadExport, bootThemeBoot) awaited at every call site + `Promise<Ctx>` signatures. Sweep bugs found by fail-loud runs: `async async function` doubles, `() => await` arrows missing async, describe-title `makeCtx().name` → `makeCtx.name` (would have been undefined on a Promise), SCENARIOS type → `() => Promise<Ctx>`, recA/B/C calls saved Promises as records (empty-store failures) → awaited.
+- Typography: textindex export typed `TextView` (structural, 6 members) after TS18046 `'text' is of type 'unknown'` in anchor.
+- Verification: build:ext (tsc) 0 · bun run test **644/0/2478** · lint 0 · typecheck 0 · zip 54 (parity inside chain) · real-theme 0 · next-compat **16/16** — the triple-import module graph ships in the WXT content bundle into real Chrome.
+
+Stage Summary:
+- highlighter (orchestrator) → textindex + anchor are declared ES-module dependencies; engine evaluates real graphs per test world with instance identity proven
+- Remaining shrink surface: shared classic files (constants, store, tags, format, …) + popup/dashboard single module entry + domwrap's HL.text reads — the shared-file wave
+---
+Task ID: 76
+Agent: main (Hermes)
+Task: Modernization Phase 7b-3 — composition wave (content imports its engines) + E2E truth-hardening (source-tree module finding)
+
+Work Log:
+- Conversions (the shrink continues): extension/shared/domwrap.js → `import { text as textIndex }` (3 HL.text reads) + tail `export const dom`; extension/shared/highlighter.js → `import { dom }` (16 HL.dom reads collapse) + tail `export const createHighlighter`; extension/content/favicon.js → tail `export const favicon`; extension/content/content.js (the composition root) → top-level `import { dom } / { createHighlighter } / { favicon }` (10 HL.* reads collapse; shared classic files — store/backends/url/ui/util/runtime/MSG — stay on HL until the shared-file wave); src/shared/anchor.ts → `import { dom } from "./domwrap.js"` (3 sites) typed via new src/shared/domwrap.d.ts (moduleResolution: bundler resolves the .js specifier to the .d.ts; runtime loads the sibling JS). All identity exports — one instance per world, vm-graph identity already proven in 7b-2.
+- Tripwires extended (tests/unit/packaging.test.ts): the 4 hand-written converted files must CONTAIN module syntax (drift-proof the other way), and the 14 not-yet-converted classic content files must contain ZERO module syntax. Emitted allowlist stays {textindex, anchor}. favicon.test.ts moved off direct evalClassic onto engine extraFiles (module load path).
+- CRITICAL FINDING — MV3 content scripts are ALWAYS classic: Chrome has NO content_scripts "type" key (BCD lists only world/run_at/matches/...; a planted "type":"module" was empirically IGNORED by Chrome 145). Direct consequence: extension/ (source tree) is NOT loadable unpacked since 7b-1 — its 6 module files SyntaxError at classic injection (probe proved: 2x "Unexpected token 'export'" + 4x "Cannot use import statement outside a module", content never booted). This was SILENT since 7b-1 because real-theme exited 0 regardless of content probes. The shipped artifact (.output WXT bundle, zero module statements) was never affected — Phase 7a's bundle bridge is exactly the right structure. Manifest type key planted during diagnosis was reverted (net zero manifest diff).
+- Rig truth-hardening (both rigs): (1) real-theme now HARD-GATES on core probes (extensionLoaded, contentScriptInjected, popupPageReady, popupCycleOk, hostsFlippedLive, toolbarThemedDarkLive, markCreated, popoverThemedDark, bootPathToolbarDark) — was informational; (2) both rigs FAIL FAST with an explanation when HLX_EXT_DIR points at extension/ (source data, not a loadable extension); (3) real-theme wipes its profile per run — root-caused a false-failure sequence: chrome.storage (hlx:settings.theme) persisted in /tmp/hlx-theme-profile and the popup cycle assumes a fresh "auto" start, so consecutive runs walked the cycle one step off (diagnosis trail: dead wipe code had landed after process.exit(0); earlier phases passed only because /tmp cleanup coincided with fresh phases). Two back-to-back runs now deterministic (→ light → dark, exit 0 both).
+- Verification: build:ext tsc 0 · bun run test **646 pass / 0 fail / 2496 expect()** (2 new packaging tripwires) · lint 0 · typecheck 0 · parity OK (44 files byte-identical, manifest 13 keys) · zip **54 entries / 177,294 B** · real-theme **exit 0 × 2 consecutive** (fresh profile + hard gate) · next-compat **16/16** · source-tree guard exit 1 with reason (proven).
+
+Stage Summary:
+- Content side now declares real ES edges: domwrap→textindex, highlighter→textindex/anchor/dom, anchor→textindex/dom, content→dom/highlighter/favicon, favicon export-only — HL.* remains only for shared classic files (store, backends, constants, url, ui, util, runtime, MSG) + popup/dashboard/SW pages
+- E2E rigs now tell the truth: content probes gate, source-tree loadability is an explicit honest failure, storage state is deterministic
+- Remaining shrink surface: shared-file wave (constants, chrome-storage, url, utils, format, detect-dir, clipboard, tags, store, runtime-bridge, ui/*) + popup/dashboard single module entry + theme-boot/domkit/export/markdown-export/booklet-export
+
+---
+Task ID: 77
+Agent: main (Hermes)
+Task: Modernization Phase 7c-1 — shared-file wave (identity exports + orchestrator imports) and module pages
+
+Done:
+- Converted the shared files with real importers to ES modules via identity tails: hand-written constants (MSG, GOTO_HASH_PREFIX), backends/chrome-storage (backends), clipboard (clipboard), runtime-bridge (runtime), ui/base (ui — HL.ui is created there and mutated in place by toast/toolbar/popover, so one object binding stays valid); TS-sourced url/utils/store (export url/util/createStore from their TS sources, emitted classic body + tail).
+- content.js now imports all of them — its remaining HL.* namespace reads are gone except HL.store (dynamic singleton assigned below the imports, read across worlds) and comment mentions. highlighter.js imports util/clipboard/ui (5+1+2 reads collapsed); HL.store reads kept call-time by design.
+- popup.html + dashboard.html: every script tag became type="module" except theme-boot, which stays classic ON PURPOSE — a blocking <head> script runs before every deferred module (anti-flash window) and it is first in both pages; mixed classic+module is only order-safe while classic exists exclusively first. All 11 page-only scripts verified strict + no document.currentScript before the flip (module semantics identical).
+- Tripwires: packaging emitted allowlist grew to {textindex, anchor, url, utils, store}; hand-written converted list +5; classic list now only format/detect-dir/tags/ui-toast-toolbar-popover; NEW test pins the page-script shape (only theme-boot classic) because a classic tag on a converted file would SyntaxError; html script-src regex accepts type="module".
+- Bug caught by the flip: popup.test WRAP_HTML slice anchored on the old classic tag — indexOf returned -1 and slice(start, -1) silently wrapped the WHOLE page (tests still green on wrong markup). Anchor updated + fail-loud drift guard added.
+- Harness builders (popup/dashboard) follow the module tag; harness regenerated. tests/e2e/popover-page.html still uses classic tags for now-module files — it has ZERO references anywhere (orphan fixture), left untouched.
+- Dashboard module-page smoke (CDP, /tmp/dash-module-smoke): full Persian UI renders, 17 scripts parsed, 0 exceptions, 0 console errors. Probe pitfall: target search must match OUR SW exactly (ends /background.js) — a foreign extension's thunk.js SW was matched first and its missing dashboard gave a bogus ERR_FILE_NOT_FOUND.
+- Gates: unit 647/0/2499 · lint 0 · typecheck 0 · parity OK (44 byte-identical, manifest 13 keys) · zip 54 / 178,077 B · real-theme exit 0 (module popup cycles → light → dark, storage.theme = dark) · next-compat 16/16 · dashboard smoke clean.
+
+Stage Summary:
+- content/highlighter orchestrators are now import-driven for every shared file they touch; the HL namespace remains only for page glue (HL.store slot, popup/dashboard page files, SW-side reads) and not-yet-imported shared files (format, detect-dir, tags, ui-toast/toolbar/popover keep HL reads — they load before their readers in both bundle and pages)
+- popup/dashboard are real module pages; theme-boot is the deliberate classic anchor
+- Remaining shrink surface: format/detect-dir/tags + ui internal reads (importers arrive with the popup/dashboard single module entry), page files (popup-*/dashboard-*/domkit/export/*) as importable modules, SW named imports
+
+---
+Task ID: 78
+Agent: main (Hermes)
+Task: Modernization Phase 7c-2 — content side fully import-driven (format/detect-dir/tags + ui internals + SW named imports)
+
+Done:
+- constants.js exports grew 2 -> 12 (MSG, GOTO_HASH_PREFIX, APP_NAME, APP_ID, BACKUP_FORMAT, VERSION, COLORS, COLOR_KEYS, THEME_KEYS, TAG_MAX_LEN, TAG_MAX_PER_ARTICLE, DEFAULT_SETTINGS — all assigned once at load, static bindings safe). New src/shared/constants.d.ts types the seam for TS consumers (domwrap.d.ts precedent; loose members, tighten per importer).
+- Converted the last three emitted shared files: format.ts imports COLORS + export format; tags.ts imports TAG_MAX_LEN/TAG_MAX_PER_ARTICLE + export tags (typed surface: normalizeTagMap/sanitizeTagList — store.ts consumes these); detect-dir.ts export detectDir (no internal reads).
+- store.ts fully import-driven: imports {APP_ID, APP_NAME, BACKUP_FORMAT, VERSION, COLORS, DEFAULT_SETTINGS} from constants + {tags as tagRules} — alias avoids shadowing by the setArticleTagsRaw(urlNorm, tags) param and the exportData local. 11 read sites collapsed; createStoreReader exported for the SW. Kept: HL.createStore/HL.createStoreReader assignments (page glue), error-message strings verbatim.
+- ui internals collapsed: base imports THEME_KEYS (+ exports uiBase); toast imports uiBase (2); toolbar imports uiBase + COLORS/COLOR_KEYS (6); popover imports uiBase/detectDir/format/util/COLORS/COLOR_KEYS (16 code reads -> 6 bindings). Every ui file keeps its HL.ui.X = X line — page readers (popup/dashboard) resolve widgets through the namespace; one mutated object, identity holds.
+- stragglers: domwrap imports util (cssEscape); runtime-bridge imports VERSION (2 code + 1 doc mention).
+- SW composition root: named imports {backends} + {createStoreReader}, side-effect imports kept for constants/tags (IIFE reads HL.MSG/DEFAULT_SETTINGS, reader paths normalize via HL.tags); stale "shared/*.js have no exports" comment fixed. One-line root: HL.reader = createStoreReader(backends.chromeStorage()).
+- Tripwires final-form: emitted test = ALL 8 emitted files must contain module syntax (classic branch retired); converted+classic describes replaced by ONE manifest-driven invariant — all 20 content_scripts files must carry module syntax (bundle must carry ZERO, asserted separately). 646 tests (net -1: two describes merged into one).
+- Content-side live HL reads after this wave: 9 x HL.store (the dynamic singleton slot — assigned by content, read across worlds; import impossible without DI refactor) + 1 comment. Namespace ASSIGNMENTS (HL.ui.X, HL.backends.X) stay by design for page readers.
+- Gates: unit 646/0/2505 · lint 0 · typecheck 0 · parity OK (44 byte-identical, manifest 13 keys) · zip 54 / 178,721 B · real-theme exit 0 (popup cycle -> light -> dark, storage.theme = dark) · next-compat 16/16 · SW smoke 0 (target registers, HL wired: VERSION/reader/MSG/tags/createStore/backends, 0 exceptions) · dashboard smoke clean.
+
+Stage Summary:
+- The content path (manifest 20 files) is now 100% ES modules with real import edges; remaining HL.* are the intentional HL.store slot and namespace assignments that serve page consumers
+- SW shows its real deps (backends, createStoreReader) as named imports; constants/tags remain side-effect imports by design
+- Remaining shrink surface: page files (popup-*/dashboard-*/domkit/export/markdown-export/booklet-export/theme-boot) toward a single module entry per page; utils/export layering reads if any importer needs them; optional HL.store -> DI at composition root (bigger, deliberate)
+
+---
+Task ID: 79
+Agent: main (Hermes)
+Task: Modernization Phase 7c-3 — single module entry per page (popup/dashboard controllers become the entry; MVC trio import-driven)
+
+Done:
+- popup.html: 14 script tags -> 2 (theme-boot classic + type=module src=popup.js). dashboard.html: 17 -> 2 (same shape). The page's load-order contract now lives in the entry's import list, which the packaging tests parse directly.
+- popup.js = single module entry: imports the former document-order tags (constants, backends, url, format, detect-dir, domkit, export, tags, store, runtime-bridge) + siblings ./popup-data.js and ./popup-view.js; 20 HL reads collapsed (format/detectDir/domkit/MSG/THEME_KEYS/SETTINGS_HASH/DEFAULT_SETTINGS/GOTO/VERSION/runtime/url/export->exportTools + pop/popView via import, popView aliased as view). Kept: HL.store dynamic slot + HL.applyThemeNow (theme-boot classic-first contract).
+- dashboard.js = single module entry (15 imports incl. markdown/booklet/clipboard/util + dash/dashView siblings, dashView aliased as view); 30+ HL reads collapsed (store x22 + applyThemeNow x4 kept by design). Guards removed: imports guarantee the deps now (popup.js 13-clause guard, dashboard.js 5-clause guard, popup-data/view 1-clause guards).
+- MVC trios converted: popup-data (THEME_KEYS/format/detectDir + export pop), popup-view (THEMES/format/domkit + export popView), dashboard-data (format/detectDir/tags + export dash), dashboard-view (7 constants + format/domkit/dash + export dashView) — all identity exports, namespace assigns kept for test/namespace readers.
+- Page-only shared files converted with real importers: domkit (THEME_KEYS; export domkit), export.js (export exportTools — reserved word makes the module binding exportTools, namespace stays HL.export), markdown-export (APP_NAME/VERSION/COLORS/format + export markdown), booklet-export (same + export booklet). constants exports 12 -> 14 (+THEMES, +SETTINGS_HASH) with constants.d.ts updated.
+- Bugs caught and fixed en route: (1) sibling paths written as ../ from files living IN shared/ (domkit/markdown/booklet -> extension/constants.js ENOENT) — systematic specifier audit fixed 5, pattern now checked; (2) import { url } shadowed by locals `let url`/`const url` in popup.js init (url.normalizeUrl is not a function) — aliased url as urlUtil, same class as the 7b-2 `var text` shadow; scanned every converted file for local-decl-vs-import collisions (dashboard.js clean; highlighter's `var anchor` predates and is covered by green tests).
+- Tests reworked: evalClassic of the trios (popup, popup-data, dashboard-data, dashboard-view) replaced by loadEngine file lists (graph pulls their imports; theme-boot rides FIRST in popup's list = page order); unused evalClassic imports dropped. packaging script-exists tests now parse the ENTRY import list (order pairs preserved: constants<backends, tags<store, data<view, format<markdown/booklet, ISP no utils/clipboard in popup); page-shape test asserts exactly ['theme-boot classic', 'one module entry'] per page. Harness builders anchor the entry tag; harness regenerated (2 tags + MOCK inline).
+- Gates: unit 646/0/2497 · lint 0 · typecheck 0 · parity OK (44 byte-identical, manifest 13 keys) · zip 54 / 179,677 B · real-theme exit 0 (popup entry boots, cycle -> light -> dark) · next-compat 16/16 · dashboard smoke: full render, scripts=2, 0 exceptions · SW smoke: HL wired, 0 exceptions.
+
+Stage Summary:
+- Both pages are now one classic anti-flash script + one ES module entry; the MVC trios and page-only shared files are real modules with explicit deps
+- Page-side live HL reads = HL.store slot (28) + HL.applyThemeNow (5) + doc comments — everything else imported
+- Remaining: optional HL.store -> DI at composition roots (content.js + both entries share the slot pattern — deliberate, needs a design decision); theme-boot stays classic by design (anti-flash); orphan tests/e2e/popover-page.html still classic-tagged (zero references)
+
+---
+Task ID: 80
+Agent: main (Hermes)
+Task: Modernization Phase 7c-4 — store leaves the namespace (DI at composition roots) + orphan fixture removed
+
+Done:
+- HL.store namespace slot eliminated ENTIRELY (grep-verified zero code references left): the three composition roots now hold a LOCAL instance — content.js `const store = createStore(backends.chromeStorage())` (5 reads collapsed, highlighter gets `store,` via cfg), popup.js (9), dashboard.js (19). The `HL.store || createStore(...)` double-init guard is gone: each page creates exactly once by construction.
+- highlighter.js: `var store = cfg.store` — the namespace fallback is removed and the wiring error now names only cfg.store. Verified every createHighlighter caller (content + all test sites) passes `store:` explicitly; no test asserts the old error string.
+- Stale comments fixed where they asserted the slot (store.ts DIP paragraph now documents local-instance + cfg.store injection; markdown-export header; highlighter header). store.js re-emitted (0 HL.store occurrences).
+- Deleted tests/e2e/popover-page.html — orphan fixture (zero code references anywhere; only worklog history mentions it). It loaded extension shared files via classic tags from file://, which cannot work since 7b anyway.
+- E2E rig truth-hardening follow-up: next-compat's extension-load probe raced its own 40x600ms window once right after a real-theme run (false "extension did not load"; same build passed 16/16 on immediate re-run). Budget extended to ~48s and the failure path now logs every chrome-extension target it saw — diagnosable instead of a bare verdict.
+- Gates: unit 646/0/2497 · lint 0 · typecheck 0 · parity OK (44 byte-identical, manifest 13 keys) · zip 54 / 179,676 B · real-theme exit 0 (contentScriptInjected true, popup cycle -> light -> dark) · next-compat 16/16 (hardened probe) · dashboard smoke 0 exceptions · SW smoke: HL wired, 0 exceptions.
+
+Stage Summary:
+- The only globalThis.HL state left is: namespace ASSIGNMENTS serving page readers (HL.ui.X, HL.backends.X, HL.pop/dash/markdown/booklet facades), HL.applyThemeNow (theme-boot classic contract), identity export tails, and doc comments — no dynamic cross-context slots
+- Phase 12 (remove globalThis.HL entirely) now has a concrete path: roots already inject; remaining work is turning namespace assigns into imports at their reader sites + retiring identity tails
+- Next per plan (docs/migration-baseline.md §8): Phase 7 formalize dashboard selectors (verify/no-op audit), Phase 8 dashboard React view layer, Phase 9 popup React decision, Phase 11 benchmarks, Phase 12 HL removal
+
+---
+Task ID: 81
+Agent: main (Hermes)
+Task: Modernization Phase 7 close-out — dashboard selectors audit (formalize: verify + record)
+
+Done (audit, zero code changes by design):
+- Purity check on extension/dashboard/dashboard-data.js: document/window/chrome/localStorage/setTimeout/querySelector hits = NONE; imports = format + detect-dir + tags (all module imports since 7c-3). The data layer is pure — selectors are NOT in the data layer.
+- Controller (dashboard.js): its only DOM knowledge is the `els` map + textContent updates — normal MVC controller wiring, not data logic. View (dashboard-view.js) owns element construction (23 builder/facade functions); its DOM assertions remain covered by dashboard-view.test.ts.
+- Exit criterion "dashboard-data tests unchanged" holds by construction: no code changed; suite stays 646/0/2497 (baseline), lint 0, typecheck 0 — gates green from Task 80, tree clean.
+- Verdict: Phase 7 was already satisfied by the v1.2.9 MVC split; "formalize" = this record. No extraction needed — nothing to move.
+
+Stage Summary:
+- Plan phases 0-7 all closed; remaining: Phase 8 (dashboard React view layer — plan written to .hermes/plans/2026-10-03_154509-dashboard-react-phase8.md), Phase 9 (popup React decision), Phase 10 (storage migration-pipeline verification), Phase 11 (benchmarks), Phase 12 (remove globalThis.HL)
+- Phase 8 scope note surfaced by this audit: the controller holds ~112 imperative DOM lines (els map + textContent) — the React rewrite moves those into components too; "view layer only" in docs/migration-baseline.md §8 underestimates the swap boundary
+
+---
+Task ID: 82
+Agent: ZCode
+Task: Modernization Phase 8 — dashboard React rewrite (plan: .hermes/plans/2026-10-03_154509-dashboard-react-phase8.md, Tasks 1-6)
+
+Work Log:
+- Task 3 switchover (commit 7cf1c9e): the options page became a real WXT entrypoint. CRITICAL FINDING — WXT 0.21 recognizes only entrypoints/<name>.html or entrypoints/<name>/index.html; a non-conventional name (dashboard/dashboard.html) is SILENTLY skipped as an entrypoint, which left the manifest pointing at a file never emitted and made Chrome 145 reject the WHOLE unpacked load with no manifest error (the profile's Extensions dir stayed empty; parity's §3b page-shape check skipped a missing page silently — that blind spot is now a hard failure). Subdir index.html flattens to dashboard.html at the package root: manifest options_ui.page + popup.js openDashboard follow; wxt-parity gained chunks/ as a legal bundle dir.
+- Pre-existing red fixed first (3fa0c6e): 7c-2 made store.ts a module, its StorageBackend mirror stopped leaking into global scope and the port-mirror test broke `tsc --noEmit` at HEAD (the typecheck-0 claims since Task 78 were stale for this gate). The mirror type is now exported (type-only, emit byte-identical).
+- Step 0 spike: bun runs .tsx natively + react-dom/client mounts into the happy-dom document (tests/unit/dashboard-components.test.tsx). No renderToStaticMarkup fallback needed.
+- Slices (each TDD'd, gated, committed): 1 StatsStrip (6146513) · 2 DisabledHosts + data.ts + toast.ts (ea6e50f) · 3 BulkToggle via bulkBridge (f699b5c) · 7 ThemeRadios/ColorDots/BehaviorSwitches (8eec5f9) · 6 EmptyState/LoadMore via listChromeBridge (8d7a66e) · 4 toolbar + the WHOLE list region (5e97444) · 5 the three modals (f543804) · Task 5 controller retirement (c1fba6f).
+- Architecture end-state: src/dashboard/data.ts = react-free external store (own store instance; records/favicons/tags storage-backed with the debounced-400ms live sync; filters/collapsedGroups/reversedGroups/collapsedSections/visibleLimit/preview/drawer/booklet/stagedBackup as session state; OPTIMISTIC writes + rollback = the old setSetting semantics; the boot-collapse policy, syncTagSelection pruning and the orphan-tag sweep moved verbatim). The list pipeline stays PURE (dash.*) and runs per render in the React regions — the same functions renderList called. Components: StatsStrip, Toolbar, DirSection, GroupCard (+OrderBtn, FaviconSpot), TagsRow (idle⇄editing add chip), ItemCard, BulkToggle, EmptyState, LoadMore, ThemeRadios, ColorDots, BehaviorSwitches, Modals (Preview/Restore/Booklet over a shared shell), PageChrome (topbar + restore/danger sections), icons (dashView.ICONS as JSX). All markup contracts byte-equal — ids/classes are load-bearing.
+- Task 5: dashboard.js + dashboard-view.js DELETED (-3037 lines). The drawer FRAME chrome (open/close/aria/Escape/focus/#hlx-settings hash) is src/dashboard/chrome.ts — imperative over the static shell, state-driven; everything else is React/data. The dashboard E2E harness retired with the controller (nothing left to mock).
+- Direction contracts preserved exactly (R9): per-text quote/note/tag-label directions (detectTextDir, BOTH branches explicit), Persian chrome dir="rtl" islands (count capsules, dates, cut-off notices, order pill, add-chip), the smart card/preview frame (g.dir / rec-text dir), the v0.6.4 preview window (no X, overlay-click close, card = focus anchor, date-only meta).
+- Test-harness findings: bun + happy-dom — React 19 never reliably extracts onChange from synthetic typing events; the UNCONTROLLED input idiom (ref + read at commit — the controller's own els.hostInput semantics) avoids the whole class; Enter dispatches need focus first. bun test runs files alphabetically — component tests pass in any order.
+
+Verification:
+- build:ext (tsc) 0 · bun run test 557/0/2192 (65 component assertions pin the view contracts; the view-builder suite retired with dashboard-view.js) · lint 0 · typecheck 0 · zip 54 entries / 240,350 B (parity inside the chain) · real-theme 0 · next-compat 16/16 · dashboard smoke (real Chrome): full render, React list renders records injected via REAL chrome.storage (2 dir sections + lead badge, per-text dir mix rtl+ltr, RTL date islands, tag chips, 5 color chips, bulk visible, stats live-update), preview modal opens on quote click (focus anchor, no X) and closes on overlay click, booklet modal opens via the real topbar button — 0 exceptions, 0 console errors.
+
+Stage Summary:
+- Phases 0-8 closed: the dashboard is a React application over a typed data layer; the extension/ tree ships only content+popup+shared+data; HL namespace reads on the dashboard page are theme-boot's applyThemeNow contract only.
+- Remaining per plan (docs/migration-baseline.md §8): Phase 9 (popup React decision — "may be a no-op, documented"), Phase 10 (storage migration-pipeline verification), Phase 11 (benchmarks), Phase 12 (remove globalThis.HL entirely — the dashboard page now has exactly one HL reader: theme-boot's applyThemeNow).
+
+---
+Task ID: 83
+Agent: ZCode
+Task: Modernization Phase 9 (popup React decision) + Phase 10 (storage migration-pipeline verification) — audits per plan §8
+
+Phase 9 — Decision: DOCUMENTED NO-OP (popup stays module MVC)
+- Size reality: the popup is 641 lines TOTAL (controller 287, view 244, data 110, html 127, css 300). The dashboard got React because its view was 1,137 lines of imperative builders + ~112 controller DOM lines over a complex render matrix (filter → group → paginate → direction sections → per-card state). The popup has none of that: flat sections, one theme cycle, no filter state, no per-item interaction surface.
+- Value test (plan: "only where valuable"): a rewrite adds a second React entry for zero user-visible gain, while the spec lives in real-theme's hard-gated popup probes (the theme cycle is the contract) and popup.test reads the sources directly — migration cost is real, benefit is nil. Behavior preservation outranks consistency (owner's priority order).
+- Phase 12 compatibility: the popup's only live HL reads are 3× HL.applyThemeNow — the theme-boot classic contract, which is a PERMANENT documented exception (theme-boot must stay the first classic script; applyThemeNow can never be an ESM import). The pop/popView facade assigns stay for the tests, same identity-tail pattern as dashboard-data.
+- Exit criterion "popup tests green": holds by construction (popup.test 8 + popup-data.test 20, suite green from Task 82).
+
+Phase 10 — Verification: the migration pipeline is COMPLETE and TESTED (built with the store's TS port, Phase 4-labeled in store.ts)
+- hlx:schemaVersion key; SCHEMA_VERSION = 1 (v1 = the explicit name for the pre-versioning shape — no data rewritten when versioning landed); forward-only MIGRATIONS; a memoized gate awaits migrateSchema on the FIRST store operation — reads and writes alike, nothing overtakes it, a backend error resets the memo and is retried (never stamped over).
+- Data-safety rules verified by the dedicated describe in store.test.ts (v1→N via injected chains): legacy-absent → stamped v1 with records/settings/tags byte-identical; stored newer (user downgrade) → never touched; a gap in the chain → NOTHING stamped; partial chain → stamped per completed step only; the migration serializes with the write queue (a save issued at boot lands after the stamp); clearAll preserves the stamp (schema metadata, not user data).
+- Import hardening (R6's other half): importData validates the envelope at the page (app === APP_ID, highlights object) and sanitizes every record through sanitizeRecord — the RECORD_FIELDS whitelist (unknown fields dropped by design, types coerced, color fallback to yellow, id/host/url/text defaults, createdAt/updatedAt defaults) — merge mode resolves duplicates by updatedAt (newer wins), replace mode rewrites wholesale.
+- Exit criterion "migration tests v1→N": met (the v1→3 injected-chain tests above). No code change needed — like Phase 7, the phase was already satisfied by earlier work; the record is the deliverable.
+
+Stage Summary:
+- Plan phases 0-10 all closed. Remaining: Phase 11 (benchmarks: small/medium/large × 0/10/100/500 highlights, measured before/after) and Phase 12 (remove globalThis.HL — remaining readers: the content bundle's internal namespace assigns + identity tails, the SW's side-effect imports, the pop/dash facade assigns serving tests, and the ONE permanent exception: theme-boot's applyThemeNow).
+
+---
+Task ID: 84
+Agent: ZCode
+Task: Modernization Phase 11 — engine benchmarks (docs/benchmarks.md), measured before/after
+
+Work Log:
+- scripts/benchmark.mjs: the SAME harness runs on both sides of the migration (it loads the engine via the shared test helper — classic eval on main, vm module graphs on the branch — and filters the file set by existence: main has no shared/anchor.js). Storage is the in-memory backend by design: engine+DOM cost isolated from chrome.storage I/O.
+- Matrix: {small ≈1.6k, medium ≈8k, large ≈40k words} × {0, 10, 100, 500} highlights. create = K × createFromRange with ranges pre-computed on the pristine doc applied in DESCENDING order (each mark splits its text node; the original keeps the prefix — descending keeps offsets valid; the ascending naive order IndexSizeErrors at K≥100). restore = fresh world, records adopted, applyAll() timed, applied == K asserted (visibility invariant).
+- Numbers (median of 3): before/after pair within ±3-5% run noise on EVERY cell — no regression, no speedup: behavior- and performance-preserving, exactly what §6 demanded. Shape notes: ~linear in K at fixed doc size; restore at K=0 = the fresh-index boot floor (0.5ms small → 4.4ms large); per-item cost grows with doc size — the known O(doc × marks) shape of the anchor engine, unchanged, a candidate for the text-index if it ever matters.
+- docs/benchmarks.md carries the methodology, both tables, the conclusion and the re-run command. happy-dom is slower than real Chrome — the numbers are RELATIVE (identical harness both sides), not user-facing absolutes.
+
+Verification: bun scripts/benchmark.mjs green on the branch AND in a main worktree · suite untouched (no product code in this phase).
+
+Stage Summary:
+- Plan phases 0-11 closed. Remaining: Phase 12 (remove globalThis.HL — the content bundle's internal namespace assigns + identity tails, the SW's side-effect imports, the pop/dash facade assigns; ONE permanent exception: theme-boot's applyThemeNow).
+
+---
+Task ID: 85
+Agent: ZCode
+Task: Modernization Phase 12 — remove globalThis.HL entirely + end-state docs (architecture/anchor/storage)
+
+Work Log:
+- Harness first (the linchpin): tests/unit/helpers/engine.ts evaluates every file as a REAL ES-module graph (vm.SourceTextModule) per test world and HARVESTS the module bindings into the HL shape tests have always read — identity preserved by construction (HL.anchor IS the vm binding); the classic strip-path retires; loadEngine is uniformly async (every caller already awaited).
+- All ~25 product files converted: the IIFE wrapper, the globalThis.HL plumbing (HlSlice/g/HL assigns) and the identity-export tails are gone; module scope is the encapsulation. ui/toast/toolbar/popover mount their classes onto the shared ui object by IMPORTING it (one object per world via module identity). constants' derived keys read the local bindings. The SW consumes named imports with a local reader + a purposeful __HLX_APP target marker (module bindings are unreachable from outside — the rigs' HL.createStore sentinel was the last consumer; both rigs updated).
+- Theme contract restructured: ui.applyThemeNow (ui/base.js = domkit root application + Shadow-DOM host sync + the hlx:theme mirror) replaces the classic HL.applyThemeNow; theme-boot keeps ONLY the anti-flash read (localStorage + root attributes) and no longer creates any registry. The null-fallback contract test retired with the guards that produced it (imports guarantee the deps — the 7c-3 rationale).
+- Tripwire: packaging asserts NO product file writes or reads globalThis.HL (code-level, comments exempt) — the final form is enforced forever.
+- Docs (the plan's Phase 12 deliverable): docs/architecture.md (the end state), docs/anchor-engine.md (creation → structural/textual restore → applied invariant → self-heal → orphans → SPA), docs/storage.md (keys, backend port, queue/read-your-writes guarantees, schema versioning rules, backup v1 contract).
+
+Verification:
+- build:ext 0 · bun run test 557/0/2221 · lint 0 · typecheck 0 · zip (parity inside the chain) · real-theme exit 0 · next-compat 16/16 · dashboard smoke: noHLGlobal TRUE from inside the real page, full render, React list from REAL storage injection, preview/booklet modals via the real UI, 0 exceptions, 0 console errors.
+- Findings en route: the rigs' extension-identification sentinel (HL.createStore) broke with the removal — replaced by the __HLX_APP marker; a missing APP_ID import crashed the SW at eval (caught by the real-theme rig, not by unit gates — the rigs stay the truth for target-level failures).
+
+Stage Summary:
+- Phases 0-12 CLOSED. The modernization is complete: TypeScript types + contracts, ES modules end-to-end (content bundled by WXT, pages via entrypoints, zero globals), React dashboard over a typed data layer, versioned storage with a tested migration pipeline, measured engine parity, and the docs to keep it honest.

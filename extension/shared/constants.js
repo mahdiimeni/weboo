@@ -1,20 +1,16 @@
 /**
  * Web Highlighter — shared constants and conventions
- * This file must work both as a classic script (in the content script and
- * extension pages) and as a side-effect import in the service worker (module);
- * hence it has no import/export at all and puts everything on globalThis.HL.
+ * Every consumer (content bundle, pages, service worker, TS sources) imports
+ * these bindings as an ES module.
  */
-(function () {
-  'use strict';
-  const HL = (globalThis.HL = globalThis.HL || {});
 
-  HL.APP_NAME = 'وب هایلایتر';
-  HL.APP_ID = 'web-highlighter';
-  HL.VERSION = '0.6.7';
-  HL.BACKUP_FORMAT = 1;
+  export const APP_NAME = 'وب هایلایتر';
+  export const APP_ID = 'web-highlighter';
+  export const VERSION = '0.6.7';
+  export const BACKUP_FORMAT = 1;
 
   /** Runtime message types */
-  HL.MSG = {
+  export const MSG = {
     COUNT_REPORT: 'hlx:count-report',     // content → SW: badge update
     GET_COUNT: 'hlx:get-count',           // SW/popup → content: fetch count
     GOTO: 'hlx:goto',                     // popup → content: scroll to highlight
@@ -22,10 +18,10 @@
   };
 
   /** Hash prefix for jumping straight to a highlight (#hlx-goto-<id>) */
-  HL.GOTO_HASH_PREFIX = 'hlx-goto-';
+  export const GOTO_HASH_PREFIX = 'hlx-goto-';
 
   /** Dashboard settings panel deeplink hash (#hlx-settings — from the popup gear button) */
-  HL.SETTINGS_HASH = 'hlx-settings';
+  export const SETTINGS_HASH = 'hlx-settings';
 
   /**
    * Highlight color registry — single source of order/label/color dot.
@@ -34,14 +30,14 @@
    * The tests/unit/colors.test.ts test verifies this convention on every run
    * so adding a new color stays a one-entry registry change + one CSS rule.
    */
-  HL.COLORS = {
+  export const COLORS = {
     yellow: { label: 'زرد',       dot: '#f5b800' },
     green:  { label: 'سبز',       dot: '#58b85c' },
     teal:   { label: 'فیروزه‌ای', dot: '#35b3ae' },
     pink:   { label: 'صورتی',     dot: '#e5679b' },
     purple: { label: 'بنفش',      dot: '#a478e8' }
   };
-  HL.COLOR_KEYS = Object.keys(HL.COLORS);
+  export const COLOR_KEYS = Object.keys(COLORS);
 
   /**
    * Extension UI theme registry — single source of order/label (same pattern as HL.COLORS).
@@ -53,12 +49,12 @@
    * (floating toolbar/note popover/toast) — widgets are keyed via data-theme
    * on their own :host and through the composition root (settings).
    */
-  HL.THEMES = {
+  export const THEMES = {
     auto:  { label: 'هماهنگ با سیستم' },
     light: { label: 'روشن' },
     dark:  { label: 'تاریک' }
   };
-  HL.THEME_KEYS = Object.keys(HL.THEMES);
+  export const THEME_KEYS = Object.keys(THEMES);
 
   /**
    * Article-tag limits (v1.2.15) — consumed by shared/tags.js (the tag domain
@@ -69,15 +65,16 @@
    * BEFORE the cap is hit so the user gets an explanation instead of a
    * silent drop).
    */
-  HL.TAG_MAX_LEN = 30;
-  HL.TAG_MAX_PER_ARTICLE = 8;
+  export const TAG_MAX_LEN = 30;
+  export const TAG_MAX_PER_ARTICLE = 8;
 
   /** Default settings */
-  HL.DEFAULT_SETTINGS = {
+  export const DEFAULT_SETTINGS = {
     defaultColor: 'yellow',
     showToolbar: true,
     showBadge: true,
     disabledHosts: [],
     theme: 'auto'
   };
-})();
+
+

@@ -2,7 +2,7 @@
  * HL.dash tests — dashboard data layer (pure functions)
  */
 import { describe, test, expect, beforeAll } from "bun:test";
-import { setupDom, loadEngine, evalClassic, ext } from "./helpers/engine";
+import { setupDom, loadEngine, ext } from "./helpers/engine";
 
 let HL: any;
 
@@ -24,11 +24,10 @@ function rec(id: string, over: any = {}) {
   };
 }
 
-beforeAll(() => {
+beforeAll(async () => {
   setupDom();
-  HL = loadEngine({ files: ["shared/constants.js", "shared/format.js", "shared/detect-dir.js", "shared/tags.js"] });
+  HL = await loadEngine({ files: ["shared/constants.js", "shared/format.js", "shared/detect-dir.js", "shared/tags.js", "dashboard/dashboard-data.js"] });
   /* dashboard-data depends only on HL.COLORS/HL.tags and HL (no DOM) */
-  evalClassic(ext("dashboard", "dashboard-data.js"));
 });
 
 describe("فرمت‌ها", () => {

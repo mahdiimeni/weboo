@@ -18,9 +18,6 @@
  * as a real PDF (no library, no server, CSP-safe: the booklet carries no
  * scripts at all). The frame is removed after the dialog is dismissed.
  */
-(function () {
-  'use strict';
-  const HL = (globalThis.HL = globalThis.HL || {});
 
   /** Downloads text as a file */
   function downloadText(filename, text, mime) {
@@ -85,7 +82,7 @@
     setTimeout(function () { if (f.parentNode) f.remove(); }, 10000);
   }
 
-  HL.export = {
+  export const exportTools = {
     downloadText: downloadText,
     backupFileName: backupFileName,
     markdownFileName: markdownFileName,
@@ -93,4 +90,4 @@
     saveBackup: saveBackup,
     printHtml: printHtml
   };
-})();
+

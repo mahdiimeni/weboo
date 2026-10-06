@@ -4,3 +4,14 @@ node_modules/
 # Build Outputs (Next.js)
 .next/
 out/
+
+# TypeScript incremental cache
+tsconfig.tsbuildinfo
+# stray per-file tsc emits (build:ext only ever writes extension/shared/)
+src/**/*.js
+
+# WXT (Phase 6) build artifacts
+.output/
+.wxt/
+# workspace meta (agent plans/scratch) — not extension content
+.hermes/

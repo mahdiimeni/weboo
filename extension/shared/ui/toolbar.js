@@ -16,11 +16,11 @@
  * background the previous alphas were below the visibility threshold —
  * contrast contract in uitheme.test.ts). Dark palette untouched.
  */
-(function () {
-  'use strict';
-  const HL = (globalThis.HL = globalThis.HL || {});
-  var svg = HL.uiBase.svg;
-  var ICON = HL.uiBase.ICON;
+import { ui, uiBase } from "./base.js";
+import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
+
+  var svg = uiBase.svg;
+  var ICON = uiBase.ICON;
 
   var LIGHT = [
     '--tb-bg: rgba(255,255,255,.97);',
@@ -61,7 +61,7 @@
     '.hlx-tb { position: fixed; direction: rtl; display: flex; align-items: center; gap: 2px;',
     '  background: var(--tb-bg); color: var(--tb-fg); border: 1px solid var(--tb-border);',
     '  border-radius: 999px; padding: 6px 8px; box-shadow: var(--tb-shadow);',
-    '  font-family: ' + HL.uiBase.FONT + '; pointer-events: auto; animation: hlx-pop .14s ease-out; }',
+    '  font-family: ' + uiBase.FONT + '; pointer-events: auto; animation: hlx-pop .14s ease-out; }',
     '@keyframes hlx-pop { from { opacity: 0; transform: translateY(5px) scale(.95); } to { opacity: 1; } }',
     '.hlx-tb .c { width: 25px; height: 25px; border-radius: 999px; border: 2px solid var(--tb-dot-border);',
     '  transition: transform .12s ease, border-color .12s ease; flex: 0 0 auto; }',
@@ -81,7 +81,7 @@
     this.ctx = null;
     this.visible = false;
 
-    var h = HL.uiBase.makeHost();
+    var h = uiBase.makeHost();
     this.host = h.host;
     this.root = h.root;
 
@@ -94,8 +94,8 @@
     el.setAttribute('role', 'toolbar');
     el.setAttribute('aria-label', 'ابزار هایلایت');
     var html = '';
-    (HL.COLOR_KEYS || []).forEach(function (k) {
-      var c = HL.COLORS[k];
+    (COLOR_KEYS || []).forEach(function (k) {
+      var c = COLORS[k];
       html += '<button class="c" data-color="' + k + '" title="هایلایت ' + c.label + '" aria-label="هایلایت ' + c.label + '" style="background:' + c.dot + '"></button>';
     });
     html += '<span class="sep"></span>';
@@ -150,6 +150,5 @@
     this.el.style.display = 'none';
   };
 
-  HL.ui = HL.ui || {};
-  HL.ui.FloatingToolbar = FloatingToolbar;
-})();
+  ui.FloatingToolbar = FloatingToolbar;
+

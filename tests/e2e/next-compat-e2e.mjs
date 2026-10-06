@@ -21,14 +21,32 @@
  * Usage: bun tests/e2e/next-compat-e2e.mjs
  * Env:   HLX_CHROME (chrome binary), HLX_FIXTURE_PORT (default 8090)
  */
-import { spawn } from 'node:child_process';
+import { spawn, execSync } from "node:child_process";
 import { writeFileSync, existsSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
-const EXT_DIR = join(ROOT, 'extension');
+/* Default: the SHIPPED artifact (.output/chrome-mv3 — WXT build, parity-gated).
+   Rebuild it fresh here so the rig never tests a stale output. HLX_EXT_DIR can
+   point at any OTHER built extension dir; it cannot point at extension/ (the
+   source tree) since 7b — see the guard below. */
+const EXT_DIR = process.env.HLX_EXT_DIR || join(ROOT, '.output', 'chrome-mv3');
+if (!process.env.HLX_EXT_DIR) {
+  execSync('bun run build:ext && bun run build:wxt', { cwd: ROOT, stdio: 'inherit' });
+}
+
+/* extension/ (the source tree) is NOT loadable unpacked since 7b: its content
+   files carry ES-module import/export and MV3 content_scripts are ALWAYS
+   classic in Chrome (there is no content_scripts "type" key — verified against
+   BCD and Chrome 145: a planted value is ignored). Only the WXT bundle
+   (.output/chrome-mv3) is a loadable extension. Fail fast + honestly instead
+   of letting probe failures obscure the reason. */
+if (EXT_DIR.replace(/[\/]$/, '') === join(ROOT, 'extension')) {
+  console.log('[FAIL] extension/ is source data, not a loadable extension (content files are ES modules; MV3 content_scripts are always classic). Drop HLX_EXT_DIR to build+test .output/chrome-mv3.');
+  process.exit(1);
+}
 const FIXTURE = join(HERE, 'fixtures', 'next-app');
 const CHROME = process.env.HLX_CHROME || join(process.env.HOME, '.hermes/tools/chromium-1208/chrome-linux64/chrome');
 const CDP_PORT = 9340 + Math.floor(Math.random() * 40);
@@ -136,12 +154,31 @@ async function shot(sessionId, file) {
 
 /* ---------- find the extension id (from its own SW target) ---------- */
 let extId = null;
-for (let i = 0; i < 40 && !extId; i++) {
+/* dev-tree layout (background/service-worker.js) AND WXT layout (background.js
+   — collides with the sandbox's foreign extensions, so CONFIRM via the app marker the SW sets on itself) */
+/* budget: 80 x 600ms (~48s) — a cold SW on a loaded box raced the old 40-iter
+   window once (false "extension did not load" right after real-theme) */
+for (let i = 0; i < 80 && !extId; i++) {
   const { targetInfos } = await browser.send('Target.getTargets');
-  const sw = targetInfos.find((t) => t.url.startsWith('chrome-extension://') && t.url.includes('background/service-worker.js'));
-  if (sw) extId = sw.url.split('/')[2]; else await sleep(600);
+  const cands = targetInfos.filter((t) => t.url.startsWith('chrome-extension://') &&
+    (t.url.includes('background/service-worker.js') || t.url.endsWith('/background.js')));
+  for (const c of cands) {
+    try {
+      const { sessionId } = await browser.send('Target.attachToTarget', { targetId: c.targetId, flatten: true });
+      const r = await browser.send('Runtime.evaluate', { expression: 'globalThis.__HLX_APP === "web-highlighter"', returnByValue: true }, sessionId);
+      if (r.result && r.result.value === true) { extId = c.url.split('/')[2]; break; }
+    } catch (e) { /* foreign */ }
+  }
+  if (!extId) await sleep(600);
 }
-if (!extId) { fail('extension did not load'); chrome.kill(); process.exit(1); }
+if (!extId) {
+  /* diagnostics: what candidates did we actually see (foreign vs ours)? */
+  try {
+    const { targetInfos } = await browser.send('Target.getTargets');
+    log('candidates seen:', JSON.stringify(targetInfos.filter((t) => t.url.startsWith('chrome-extension://')).map((t) => t.url)));
+  } catch (e) { /* best-effort */ }
+  fail('extension did not load'); chrome.kill(); process.exit(1);
+}
 log('extension loaded, id =', extId);
 
 /* ---------- site tab ---------- */

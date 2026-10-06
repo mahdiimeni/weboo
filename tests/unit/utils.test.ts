@@ -6,9 +6,9 @@ import { describe, test, expect } from "bun:test";
 import { setupDom, loadEngine, sleep, ext } from "./helpers/engine";
 
 describe("HL.url.normalizeUrl", () => {
-  test("حذف hash و utm و مرتب‌سازی پارامترها", () => {
+  test("حذف hash و utm و مرتب‌سازی پارامترها", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     const r = HL.url.normalizeUrl("https://Example.com/a/?utm_source=x&b=2&a=1#section");
     expect(r).not.toBeNull();
     expect(r.host).toBe("example.com");
@@ -17,29 +17,29 @@ describe("HL.url.normalizeUrl", () => {
     expect(r.site).toBe("https://example.com");
   });
 
-  test("حذف اسلش انتهایی و پارامترهای ردیابی", () => {
+  test("حذف اسلش انتهایی و پارامترهای ردیابی", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     const r = HL.url.normalizeUrl("https://example.com/path/?gclid=abc&ref=xx");
     expect(r.norm).toBe("https://example.com/path");
   });
 
-  test("نرمال‌سازی پورت پیش‌فرض", () => {
+  test("نرمال‌سازی پورت پیش‌فرض", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     expect(HL.url.normalizeUrl("https://example.com:443/x").norm).toBe("https://example.com/x");
     expect(HL.url.normalizeUrl("http://example.com:80/y").norm).toBe("http://example.com/y");
   });
 
-  test("دامنه کوچک‌شده", () => {
+  test("دامنه کوچک‌شده", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     expect(HL.url.normalizeUrl("HTTPS://Fa.EXAMPLE.IR/Deep/Path").host).toBe("fa.example.ir");
   });
 
-  test("آدرس نامعتبر → null", () => {
+  test("آدرس نامعتبر → null", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     expect(HL.url.normalizeUrl("not a url")).toBeNull();
     expect(HL.url.normalizeUrl(null)).toBeNull();
   });
@@ -48,7 +48,7 @@ describe("HL.url.normalizeUrl", () => {
 describe("HL.url.watchHref — ناوبری سمت کلاینت (SPA)", () => {
   test("pushState → فراخوانی یک‌باره با href جدید", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     const calls: string[] = [];
     const unwatch = HL.url.watchHref(window, (h: string) => calls.push(h), 20);
     (window as any).history.pushState(null, "", "/route-b");
@@ -60,7 +60,7 @@ describe("HL.url.watchHref — ناوبری سمت کلاینت (SPA)", () => {
 
   test("unwatch → تغییر بعدی دیده نمی‌شود", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     const calls: string[] = [];
     const unwatch = HL.url.watchHref(window, (h: string) => calls.push(h), 20);
     unwatch();
@@ -71,7 +71,7 @@ describe("HL.url.watchHref — ناوبری سمت کلاینت (SPA)", () => {
 
   test("popstate بدون تغییر href → بدون فراخوانی تکراری (dedup)", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     const calls: string[] = [];
     HL.url.watchHref(window, (h: string) => calls.push(h), 20);
     (window as any).history.pushState(null, "", "/route-d");
@@ -83,9 +83,9 @@ describe("HL.url.watchHref — ناوبری سمت کلاینت (SPA)", () => {
 });
 
 describe("HL.util (پریمیتیوهای هسته)", () => {
-  test("newId: پیشوند و یکتایی", () => {
+  test("newId: پیشوند و یکتایی", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     const ids = new Set<string>();
     for (let i = 0; i < 500; i++) {
       const id = HL.util.newId();
@@ -95,9 +95,9 @@ describe("HL.util (پریمیتیوهای هسته)", () => {
     expect(ids.size).toBe(500);
   });
 
-  test("escapeHtml: کاراکترهای خطرناک escape می‌شوند", () => {
+  test("escapeHtml: کاراکترهای خطرناک escape می‌شوند", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     expect(HL.util.escapeHtml('<a href="x">&\'</a>')).toBe("&lt;a href=&quot;x&quot;&gt;&amp;&#39;&lt;/a&gt;");
     expect(HL.util.escapeHtml(null)).toBe("");
     expect(HL.util.escapeHtml(5)).toBe("5");
@@ -105,7 +105,7 @@ describe("HL.util (پریمیتیوهای هسته)", () => {
 
   test("debounce: فقط آخرین فراخوانی اجرا می‌شود", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     let calls: number[] = [];
     const fn = HL.util.debounce((n: number) => calls.push(n), 30);
     fn(1);
@@ -115,23 +115,23 @@ describe("HL.util (پریمیتیوهای هسته)", () => {
     expect(calls).toEqual([3]);
   });
 
-  test("cssEscape: شناسه‌های امن بدون تغییر می‌مانند", () => {
+  test("cssEscape: شناسه‌های امن بدون تغییر می‌مانند", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     expect(HL.util.cssEscape("hlx_abc123")).toBe("hlx_abc123");
   });
 
-  test("utils دیگر اعضای جابه‌جاشده را ندارد (قرارداد تفکیک)", () => {
+  test("utils دیگر اعضای جابه‌جاشده را ندارد (قرارداد تفکیک)", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     expect(Object.keys(HL.util).sort()).toEqual(["cssEscape", "debounce", "escapeHtml", "newId"]);
   });
 });
 
 describe("HL.format (فرمت‌های نمایشی)", () => {
-  test("excerpt: فاصله‌ها فشرده و بلند کوتاه می‌شود", () => {
+  test("excerpt: فاصله‌ها فشرده و بلند کوتاه می‌شود", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     expect(HL.format.excerpt("  salam   \n\t daneh  ", 50)).toBe("salam daneh");
     const out = HL.format.excerpt("abcdefghij", 5);
     expect(out).toBe("abcde…");
@@ -139,54 +139,54 @@ describe("HL.format (فرمت‌های نمایشی)", () => {
     expect(HL.format.excerpt(null, 5)).toBe("");
   });
 
-  test("fmtDateTime: رشته‌ی غیرخالی برای تاریخ معتبر؛ نامعتبر بدون throw", () => {
+  test("fmtDateTime: رشته‌ی غیرخالی برای تاریخ معتبر؛ نامعتبر بدون throw", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     const d = HL.format.fmtDateTime(Date.UTC(2024, 0, 15, 10, 30));
     expect(typeof d).toBe("string");
     expect(d.length).toBeGreaterThan(0);
     expect(() => HL.format.fmtDateTime(NaN)).not.toThrow();
   });
 
-  test("faNum: ارقام فارسی", () => {
+  test("faNum: ارقام فارسی", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     expect(HL.format.faNum(1234)).toBe("۱٬۲۳۴");
     expect(HL.format.faNum(0)).toBe("۰");
   });
 
-  test("fmtBytes: بایت/کیلوبایت با ارقام فارسی", () => {
+  test("fmtBytes: بایت/کیلوبایت با ارقام فارسی", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     expect(HL.format.fmtBytes(500)).toContain("بایت");
     expect(HL.format.fmtBytes(2048)).toContain("کیلوبایت");
     expect(HL.format.fmtBytes(3 * 1048576)).toContain("مگابایت");
   });
 
-  test("dotColorOf: رنگ معتبر؛ نامعتبر → زرد پیش‌فرض", () => {
+  test("dotColorOf: رنگ معتبر؛ نامعتبر → زرد پیش‌فرض", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     expect(HL.format.dotColorOf("teal")).toBe(HL.COLORS.teal.dot);
     expect(HL.format.dotColorOf("nope")).toBe(HL.COLORS.yellow.dot);
   });
 
-  test("faviconLetter: حرف اول هاست بدون www", () => {
+  test("faviconLetter: حرف اول هاست بدون www", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     expect(HL.format.faviconLetter("www.wikipedia.org")).toBe("W");
     expect(HL.format.faviconLetter("")).toBe("و");
   });
 
-  test("displayUrl: حذف scheme؛ خالی → خط تیره", () => {
+  test("displayUrl: حذف scheme؛ خالی → خط تیره", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     expect(HL.format.displayUrl("https://example.com/a")).toBe("example.com/a");
     expect(HL.format.displayUrl("")).toBe("—");
   });
 
-  test("displayHost: فقط دامنه‌ی اصلی (بدون www/پورت/مسیر/کوئری)", () => {
+  test("displayHost: فقط دامنه‌ی اصلی (بدون www/پورت/مسیر/کوئری)", async () => {
     setupDom();
-    const HL = loadEngine({});
+    const HL = await loadEngine({});
     expect(HL.format.displayHost("https://example.com/some/long/article?utm=x#top")).toBe("example.com");
     expect(HL.format.displayHost("https://www.bbc.com/persian/articles/123")).toBe("bbc.com");
     expect(HL.format.displayHost("http://localhost:3000/docs/page")).toBe("localhost");
@@ -200,15 +200,15 @@ describe("HL.format (فرمت‌های نمایشی)", () => {
 });
 
 describe("HL.export (خروجی فایل)", () => {
-  const loadExport = () => loadEngine({ extraFiles: [ext("shared", "export.js")] });
+  const loadExport = async () => await loadEngine({ extraFiles: [ext("shared", "export.js")] });
 
-  test("backupFileName: الگوی نام فایل بک‌آپ", () => {
+  test("backupFileName: الگوی نام فایل بک‌آپ", async () => {
     setupDom();
-    const HL = loadExport();
+    const HL = await loadExport();
     expect(HL.export.backupFileName()).toMatch(/^web-highlighter-backup-\d{4}-\d{2}-\d{2}-\d{4}\.json$/);
   });
 
-  test("saveBackup: JSON زیبا با نام بک‌آپ دانلود می‌شود", () => {
+  test("saveBackup: JSON زیبا با نام بک‌آپ دانلود می‌شود", async () => {
     setupDom();
     const g: any = globalThis;
     const clicked: any[] = [];
@@ -222,7 +222,7 @@ describe("HL.export (خروجی فایل)", () => {
     g.document.addEventListener("click", function (ev: any) {
       if (ev.target && ev.target.tagName === "A") clicked.push(ev.target.getAttribute("download"));
     }, true);
-    const HL = loadExport();
+    const HL = await loadExport();
     HL.export.saveBackup({ app: "web-highlighter", meta: { count: 2 } });
     expect(clicked.length).toBe(1);
     expect(String(clicked[0])).toMatch(/^web-highlighter-backup-/);

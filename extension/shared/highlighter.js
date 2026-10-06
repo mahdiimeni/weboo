@@ -8,13 +8,13 @@
  *   - text-selection/click/Escape events
  *
  * DIP: no platform dependency (chrome.*) here; everything is injected via cfg:
- * (module dependencies: HL.text/dom/ui/clipboard/util/format — all shared core)
+ * (module imports: text/dom/util/clipboard/ui/anchor — store is injected (cfg.store) — no HL.store slot anymore)
  * Since v1.2.9 the record set is encapsulated behind count/has/get/each +
  * adoptRecord/forgetRecord/resetRecords (was: the raw recs Map leaked to callers).
  *   cfg.page      { url, norm, site, host, title? }  — page context (title optional)
  *   cfg.scope     root element (document.body or any scoped container)
  *   cfg.eventRoot event root (document or the same scope)
- *   cfg.store     an HL.createStore instance (default HL.store)
+ *   cfg.store     an HL.createStore instance (required — composition root injects)
  *   cfg.hooks     optional hooks:
  *     canShowToolbar() → bool    (content: settings/site disabled; default: always true)
  *     defaultColor()   → key     (content: user setting; default: 'yellow')
@@ -24,17 +24,24 @@
  *     onSaved(rec)               (after each successful save — e.g. a UI status update)
  *     onDeleted(id)              (after delete — e.g. purge from the content orphan queue)
  */
-(function () {
-  'use strict';
-  var HL = (globalThis.HL = globalThis.HL || {});
+/* Phase 7b-2: explicit ES-module dependencies — the two engines this
+   orchestrator delegates to (index + resolution), imported by identity so
+   there is exactly one textindex/anchor instance per world. */
+import { text as textIndex } from "./textindex.js"; /* alias: selectionCtx has a local `text` string */
+import { anchor } from "./anchor.js";
+import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine — 16 HL.dom reads collapse to this binding */
+/* 7c-1: shared-file wave — util/clipboard/ui bindings (store via cfg injection) */
+import { util } from "./utils.js";
+import { clipboard } from "./clipboard.js";
+import { ui } from "./ui/base.js";
 
   function createHighlighter(cfg) {
     cfg = cfg || {};
     var page = cfg.page || { url: '', norm: '', site: '', host: '' };
     var scope = cfg.scope || document.body;
     var eventRoot = cfg.eventRoot || document;
-    var store = cfg.store || HL.store;
-    if (!store) throw new Error('HL.createHighlighter: store تزریق نشده است (HL.store یا cfg.store).');
+    var store = cfg.store; /* injected by the composition root — no namespace lookup */
+    if (!store) throw new Error('HL.createHighlighter: store تزریق نشده است (cfg.store).');
 
     var hooks = cfg.hooks || {};
     var onError = hooks.onError || function () { /* silent */ };
@@ -49,7 +56,7 @@
     /* ---------- Text index ---------- */
 
     function freshIndex() {
-      state.ti = HL.text.build(scope);
+      state.ti = textIndex.build(scope);
       return state.ti;
     }
 
@@ -70,7 +77,7 @@
     /* ---------- Anchor self-healing (batched saving of updates) ---------- */
 
     var healQueue = new Map();
-    var flushHeal = HL.util.debounce(function () {
+    var flushHeal = util.debounce(function () {
       var arr = Array.from(healQueue.values());
       healQueue.clear();
       if (arr.length) {
@@ -92,8 +99,8 @@
        unclickable. Hidden marks are kept, never unwrapped here (they are
        correct again if the site re-shows that copy). */
     function hasVisibleMarks(id) {
-      var ms = HL.dom.marksOf(id).filter(inScope);
-      for (var i = 0; i < ms.length; i++) if (!HL.dom.isHidden(ms[i])) return true;
+      var ms = dom.marksOf(id).filter(inScope);
+      for (var i = 0; i < ms.length; i++) if (!dom.isHidden(ms[i])) return true;
       return false;
     }
 
@@ -101,14 +108,13 @@
       if (hasVisibleMarks(rec.id)) return true; /* already applied where the user can see it */
 
       /* Fast path: XPath — but skip it when it lands in a hidden duplicate */
-      var range = HL.dom.resolveAnchor(rec.anchor, rec.text);
-      if (range && HL.dom.isHidden(range.commonAncestorContainer)) range = null;
+      var range = anchor.resolveStructural(rec);
       var located = null;
 
       /* Textual path (fallback) — the index must be fresh because the previous wrap split nodes */
       if (!range) {
         if (!state.ti) freshIndex();
-        located = HL.text.findRange(state.ti, rec);
+        located = anchor.resolve(state.ti, rec);
         range = located && located.range;
       }
       if (!range) return false;
@@ -119,19 +125,19 @@
       var sEl = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
       if (sEl && sEl.closest && sEl.closest('mark[data-hl-id="' + rec.id + '"]')) return false;
 
-      var marks = HL.dom.markRange(range, rec.id, rec.color);
+      var marks = dom.markRange(range, rec.id, rec.color);
       if (!marks.length) return false;
-      HL.dom.setNoted(rec.id, hasNote(rec)); /* underline = note marker */
+      dom.setNoted(rec.id, hasNote(rec)); /* underline = note marker */
       state.ti = null; /* text structure changed; the index must be rebuilt */
 
       if (located) {
         /* self-heal: store the new anchor and exact offsets */
-        rec.anchor = HL.dom.serializeRange(range);
+        rec.anchor = dom.serializeRange(range);
         rec.start = located.start;
         rec.end = located.end;
         queueHealSave(rec);
       }
-      for (var i = 0; i < marks.length; i++) if (!HL.dom.isHidden(marks[i])) return true;
+      for (var i = 0; i < marks.length; i++) if (!dom.isHidden(marks[i])) return true;
       return false; /* wrapped only into a hidden copy — reconcile will retry */
     }
 
@@ -186,7 +192,7 @@
 
     function copyText(t) {
       if (!t) return;
-      HL.clipboard.copyText(t).then(function (ok) {
+      clipboard.copyText(t).then(function (ok) {
         if (ok) toast('کپی شد ✓');
       });
     }
@@ -239,7 +245,7 @@
       if (inBad(sc) || inBad(ec)) return null;
       /* Normalize element boundaries (double-click on the last word + period → boundary lands on <p>) */
       var clone = range.cloneRange();
-      HL.text.normalizeRange(clone);
+      textIndex.normalizeRange(clone);
       return { range: clone, text: text };
     }
 
@@ -252,10 +258,10 @@
       var offs = ti.offsetsOfRange(ctx.range);
       if (!offs) { onError('این قسمت از صفحه قابل هایلایت نیست.'); clearSelection(); return null; }
 
-      var id = HL.util.newId();
+      var id = util.newId();
       var now = Date.now();
-      var anchor = HL.dom.serializeRange(ctx.range);
-      var marks = HL.dom.markRange(ctx.range, id, color);
+      var anchor = dom.serializeRange(ctx.range);
+      var marks = dom.markRange(ctx.range, id, color);
       if (!marks.length) { onError('این قسمت از صفحه قابل هایلایت نیست.'); clearSelection(); return null; }
       state.ti = null;
 
@@ -292,7 +298,7 @@
       var ti = freshIndex();
       var offs = ti.offsetsOfRange(range);
       if (!offs) { clearSelection(); return null; }
-      var id = HL.util.newId();
+      var id = util.newId();
       var now = Date.now();
       var rec = {
         id: id,
@@ -306,15 +312,15 @@
         suffix: ti.text.slice(offs.end, offs.end + 32),
         start: offs.start,
         end: offs.end,
-        anchor: HL.dom.serializeRange(range),
+        anchor: dom.serializeRange(range),
         color: color,
         note: note || '',
         createdAt: now,
         updatedAt: now
       };
-      var marks = HL.dom.markRange(range, id, color);
+      var marks = dom.markRange(range, id, color);
       if (!marks.length) { clearSelection(); return null; }
-      if (note && String(note).trim()) HL.dom.setNoted(id, true);
+      if (note && String(note).trim()) dom.setNoted(id, true);
       state.ti = null;
       state.recs.set(id, rec);
       persistRecord(rec, { count: true });
@@ -329,7 +335,7 @@
       if (!rec) return;
       rec.color = color;
       rec.updatedAt = Date.now();
-      HL.dom.setColor(id, color);
+      dom.setColor(id, color);
       persistRecord(rec, {});
     }
 
@@ -338,13 +344,13 @@
       if (!rec) return;
       rec.note = note;
       rec.updatedAt = Date.now();
-      HL.dom.setNoted(id, hasNote(rec)); /* add/remove the underline */
+      dom.setNoted(id, hasNote(rec)); /* add/remove the underline */
       persistRecord(rec, { count: true });
     }
 
     function removeHighlight(id) {
       var rec = state.recs.get(id);
-      HL.dom.unwrap(id);
+      dom.unwrap(id);
       state.recs.delete(id);
       if (rec) toast('هایلایت حذف شد.');
       return store.remove(id, page.host).then(function () {
@@ -357,7 +363,7 @@
     /* ---------- Toolbar + popover ---------- */
 
     var popoverOpen = false;
-    var popover = new HL.ui.NotePopover({
+    var popover = new ui.NotePopover({
       onColorChange: function (id, color) { setRecordColor(id, color); },
       onSaveNote: function (id, note) { setRecordNote(id, note); },
       onDelete: function (id) { removeHighlight(id); },
@@ -368,7 +374,7 @@
     });
     popover.h.onClose = function () { popoverOpen = false; };
 
-    var toolbar = new HL.ui.FloatingToolbar({
+    var toolbar = new ui.FloatingToolbar({
       onColor: function (color, ctx) {
         toolbar.dismiss();
         createFromCtx(ctx, color, false);
@@ -387,10 +393,10 @@
     function openPopover(id, opts) {
       var rec = state.recs.get(id);
       if (!rec) return;
-      var marks = HL.dom.marksOf(id).filter(inScope);
+      var marks = dom.marksOf(id).filter(inScope);
       var mark = null;
       for (var i = 0; i < marks.length; i++) { /* anchor to the copy the user sees */
-        if (!HL.dom.isHidden(marks[i])) { mark = marks[i]; break; }
+        if (!dom.isHidden(marks[i])) { mark = marks[i]; break; }
       }
       if (!mark) mark = marks[0];
       if (!mark && !(opts && opts.mark)) return;
@@ -426,7 +432,7 @@
       toolbar.present(ctx);
     }
 
-    var onSelEnd = HL.util.debounce(maybeShowToolbar, 180);
+    var onSelEnd = util.debounce(maybeShowToolbar, 180);
 
     on(eventRoot, 'mouseup', function (e) {
       if (e.button !== 0) return;
@@ -434,7 +440,7 @@
       setTimeout(onSelEnd, 30);
     }, true);
 
-    on(document, 'selectionchange', HL.util.debounce(function () {
+    on(document, 'selectionchange', util.debounce(function () {
       var sel = window.getSelection();
       if (!sel || sel.isCollapsed) {
         if (!popoverOpen) toolbar.dismiss();
@@ -515,5 +521,7 @@
     };
   }
 
-  HL.createHighlighter = createHighlighter;
-})();
+
+
+
+export { createHighlighter };
