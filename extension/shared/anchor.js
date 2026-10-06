@@ -16,6 +16,22 @@
  * "simplify"): bonus + prefix(+2) + suffix(+2) − offset-proximity(≤1.5)
  * + visible-copy(+8: the occurrence the user can SEE beats a hidden one).
  *
+ * Confidence policy (hardening phase — derived from the scoring, not
+ * invented): MIN_CONFIDENCE sits between the scorer's own documented
+ * boundaries — hidden candidates max out at 5, visible ones start at 6.5
+ * ("worst visible = 8−1.5"). A best below the floor is a HIDDEN (or
+ * otherwise unseeable) guess: the resolver orphans it instead of returning
+ * a range the applied invariant would reject after wrapping DOM. Everything
+ * at or above the floor keeps today's behavior — including re-acquiring a
+ * highlight onto a duplicate copy that BECAME visible (the twin-retarget
+ * contract: the visibility signal alone is legitimate evidence).
+ *
+ * NO fuzzy matching, deliberately: every source matches the exact quote
+ * (offsets verify the saved position, exact/norm match the full string);
+ * fuzzy would raise false-positive risk on adversarial pages and contradict
+ * "a false positive is worse than an orphan". Revisit only with a real
+ * user-visible failure this design cannot express.
+ *
  * OCP: strategies are DATA — HL.anchor.resolvers is an ordered list read at
  * call time; a new resolver (fuzzy, sentence-level, …) is appended without
  * touching orchestration (see anchor.test's OCP test).
@@ -33,6 +49,9 @@ function squash(s) { return String(s == null ? '' : s).replace(/[\s\u00a0\u200b]
 function endsWithNorm(a, b) { return squash(a).endsWith(squash(b)); }
 function startsWithNorm(a, b) { return squash(a).startsWith(squash(b)); }
 /* ---------- ONE scorer for every candidate ---------- */
+/* Derived floor: hidden candidates max out at 5 (1+2+2−0), visible start at
+   6.5 (8−1.5) — anything below 5.5 cannot be the occurrence the user saw. */
+var MIN_CONFIDENCE = 5.5;
 function scoreOf(cand, ctx) {
     var ti = ctx.ti, rec = ctx.rec;
     var sc = cand.bonus || 0;
@@ -130,7 +149,8 @@ function resolve(ti, rec) {
             }
         }
     }
-    if (!best)
+    /* confidence policy: below the floor = a hidden/unseeable guess → orphan */
+    if (!best || bestScore < MIN_CONFIDENCE)
         return null;
     var a = ti.locate(best.start);
     var b = ti.locate(best.end - 1);
