@@ -67,7 +67,7 @@ DOM widgets) and an injected store — see `docs/anchor-engine.md`.
 
 ## Testing
 
-- `bun run test` — 616 unit tests over bun:test + happy-dom (strict + noImplicitAny across both tsconfigs). The harness
+- `bun run test` — the full unit test suite over bun:test + happy-dom (strict + noImplicitAny across both tsconfigs). The harness
   (`tests/unit/helpers/engine.ts`) evaluates each file as a real ES-module
   graph (vm.SourceTextModule) per test world and HARVESTS the module bindings
   into the `HL` shape the tests read — identity preserved by construction.

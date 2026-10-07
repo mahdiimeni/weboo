@@ -1,7 +1,7 @@
 # Dependencies
 node_modules/
 
-# Build Outputs (Next.js)
+# E2E fixture build artifacts
 .next/
 out/
 

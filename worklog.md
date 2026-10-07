@@ -1,5 +1,22 @@
 # Worklog — "Web Highlighter" project (rebuilt in the current workspace)
 
+> **⚠️ Historical document — do not read as current architecture.**
+>
+> This file is the preserved work journal of the project's rebuild and
+> migration (tasks 1 → 88). It describes decisions, layouts and structures
+> **as they were at the time each task was written** — much of it is now
+> obsolete (e.g. the original Next.js landing page, the pre-migration
+> `globalThis.HL` classic-script architecture, old version numbers).
+>
+> **For the current state of the project, read:**
+> - [`README.md`](README.md) — what the project is, how to load/build/test it
+> - [`docs/architecture.md`](docs/architecture.md) — the current architecture (post-migration end state)
+> - [`docs/anchor-engine.md`](docs/anchor-engine.md) — the anchoring engine
+> - [`docs/storage.md`](docs/storage.md) — the storage layer
+>
+> The task entries below are kept verbatim as historical migration
+> information; nothing in them has been edited or reordered.
+
 ## Overview
 This workspace is a full rebuild of the delivered "Web Highlighter v1.0.2" project, migrated from the user's tar archive (workspace-07eb7a22...tar):
 - **Persian Chrome MV3 extension**: web text highlighting with 5 colors + notes + 100% local storage (chrome.storage.local) + JSON backup
