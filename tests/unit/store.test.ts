@@ -660,3 +660,82 @@ describe("hlx:schemaVersion — قرارداد نسخه‌ی اسکیما (forwa
     expect(await rawVersion(HL)).toBe(1); /* schema metadata survives a user wipe */
   });
 });
+
+for (const makeCtx of SCENARIOS) {
+  describe(`unknown-field preservation (hardening) — ${makeCtx.name}`, () => {
+    let ctx: Ctx;
+    beforeAll(async () => {
+      setupDom();
+      ctx = await makeCtx();
+    });
+
+  test("newer-version data: unknown fields survive import → read → export → re-import", async () => {
+    ctx = await makeCtx();
+    const future = await makeRecord("f1", "future.io", "https://future.io/a");
+    future.fontWeight = 3;                 /* a future top-level field */
+    future.meta = { model: "v9", tags: ["a", "b"] }; /* nested future object */
+    future.flag = true;
+    await ctx.store.importData({ app: "web-highlighter", highlights: { f1: future } }, "merge");
+
+    const stored = (await ctx.store.getAllRecords()).get("f1")!;
+    expect(stored.fontWeight).toBe(3);         /* preserved in storage */
+    expect(stored.meta).toEqual({ model: "v9", tags: ["a", "b"] });
+
+    const backup = await ctx.store.exportData(); /* export round trip keeps them */
+    const again = await ctx.store.importData(JSON.parse(JSON.stringify(backup)), "replace");
+    const stored2 = (await ctx.store.getAllRecords()).get("f1")!;
+    expect(stored2.fontWeight).toBe(3);
+    expect(stored2.meta).toEqual({ model: "v9", tags: ["a", "b"] });
+    expect(again.added).toBe(1);
+  });
+
+  test("current-version data: known fields always win and no unknown keys leak in", async () => {
+    ctx = await makeCtx();
+    const rec = await makeRecord("c1", "site1.com", "https://site1.com/p");
+    await ctx.store.importData({ app: "web-highlighter", highlights: { c1: rec } }, "merge");
+    const stored = (await ctx.store.getAllRecords()).get("c1")!;
+    expect(stored.text).toBe(rec.text);
+    expect(stored.color).toBe(rec.color);
+    expect(Object.keys(stored).sort()).toEqual(
+      ["anchor", "color", "createdAt", "end", "host", "id", "note", "prefix", "site", "start", "suffix", "text", "title", "updatedAt", "url", "urlNorm"].sort()
+    ); /* the exact v1 shape — nothing extra */
+  });
+
+  test("older-version data: missing engine fields → defaults, still no surprise keys", async () => {
+    ctx = await makeCtx();
+    await ctx.store.importData({
+      app: "web-highlighter",
+      highlights: { o1: { id: "o1", host: "old.io", url: "https://old.io/x", urlNorm: "https://old.io/x", text: "قدیمی" } },
+    }, "merge");
+    const stored = (await ctx.store.getAllRecords()).get("o1")!;
+    expect(stored.text).toBe("قدیمی");
+    expect(stored.color).toBe("yellow"); /* default applied */
+    expect(stored.title).toBe("");
+  });
+
+  test("malformed unknown data: hostile keys and oversized blobs are dropped, record survives", async () => {
+    ctx = await makeCtx();
+    const future = await makeRecord("m1", "mixed.io", "https://mixed.io/a");
+    (future as any)["bad key; drop"] = 1;                       /* key shape */
+    (future as any)["big"] = "x".repeat(10000);                 /* over budget */
+    (future as any)["fn"] = () => "not JSON";                    /* not serializable */
+    (future as any)["ok"] = { small: true };
+    await ctx.store.importData({ app: "web-highlighter", highlights: { m1: future } }, "merge");
+    const stored = (await ctx.store.getAllRecords()).get("m1")!;
+    expect(stored.ok).toEqual({ small: true });  /* valid unknown field kept */
+    expect(stored["bad key; drop"]).toBeUndefined();
+    expect(stored.big).toBeUndefined();
+    expect(stored.fn).toBeUndefined();
+    expect(stored.text).toBe("متن m1");          /* the record itself is unharmed */
+  });
+
+  test("missing fields: textless record still skipped (validation NOT weakened by preservation)", async () => {
+    ctx = await makeCtx();
+    const r = await ctx.store.importData({
+      app: "web-highlighter",
+      highlights: { bad: { id: "bad", host: "x", urlNorm: "u", text: "" } },
+    }, "merge");
+    expect(r.skipped).toBe(1);
+  });
+});
+}

@@ -451,6 +451,42 @@ function createStore(backend, opts) {
         };
     }
     var RECORD_FIELDS = ['id', 'host', 'site', 'url', 'urlNorm', 'title', 'text', 'prefix', 'suffix', 'start', 'end', 'anchor', 'color', 'note', 'createdAt', 'updatedAt'];
+    /* Unknown-field preservation (hardening phase — data-safety contract):
+       fields this version does not know are FUTURE data, not garbage — a
+       newer build's records must survive an older build's import/export
+       round trip. Sanity rules only: JSON-safe values, sane key shape, and a
+       per-record serialized budget (8 KB) so a hostile backup cannot bloat
+       the store through this door. Known fields always win. */
+    var UNKNOWN_FIELDS_BUDGET = 8192;
+    function preserveUnknownFields(r, out) {
+        var budget = UNKNOWN_FIELDS_BUDGET;
+        for (var k in r) {
+            if (!Object.prototype.hasOwnProperty.call(r, k))
+                continue;
+            if (RECORD_FIELDS.indexOf(k) !== -1)
+                continue;
+            if (!/^[A-Za-z0-9_-]{1,64}$/.test(k))
+                continue; /* sane key shape */
+            var v = r[k];
+            var t = typeof v;
+            var size = -1;
+            if (v === null || t === 'string' || t === 'number' || t === 'boolean') {
+                size = String(v).length + k.length;
+            }
+            else if (t === 'object') {
+                try {
+                    var s = JSON.stringify(v);
+                    if (s)
+                        size = s.length + k.length;
+                }
+                catch (e) { /* unserializable → dropped by the budget rules */ }
+            }
+            if (size !== -1 && size <= budget) {
+                out[k] = v;
+                budget -= size;
+            }
+        }
+    }
     function sanitizeRecord(r, id) {
         var out = {};
         RECORD_FIELDS.forEach(function (f) { if (r[f] !== undefined)
@@ -468,6 +504,7 @@ function createStore(backend, opts) {
         out.note = String(r.note || '');
         out.createdAt = Number(r.createdAt) || Date.now();
         out.updatedAt = Number(r.updatedAt) || out.createdAt;
+        preserveUnknownFields(r, out);
         return out;
     }
     /**
