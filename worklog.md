@@ -2262,3 +2262,19 @@ Verification:
 
 Stage Summary:
 - Everything is additive: the no-selection/no-font build renders the exact pre-Task-88 document (no font class, same palette classes), exportGroups/markdown/backup flows untouched, no storage or settings change (font and selection are per-print choices by design). One picker-row derivation + one selection rule + one font registry — each with a single home (SRP), consumed by modal/controller/builder through injected props (DIP); the builder's registry keeps ISP (booklet facade = buildBookletHtml only) and OCP (a new mode OR font = one entry). The rig's real-download findings are recorded above as reusable rig wisdom.
+
+---
+Task ID: 89
+Agent: ZCode
+Task: Version policy + bump to 0.7.0 (booklet v2's release number)
+
+Work Log:
+- User policy (standing): every feature/fix/huge update ships with a version bump — bug fix → PATCH, new feature → MINOR, huge/breaking → MAJOR (semver).
+- Applied retroactively to Task 88 (booklet v2 = features) → 0.7.0 in all FOUR synced sites the packaging test pins: manifest.json (single source), shared/constants.js VERSION, popup.html + dashboard/index.html static «v…» fallback labels. Repo history had drifted (Task 87/88 shipped as 0.6.7); the policy is now documented in README.
+- dist zip rebuilt (55 entries, parity OK) — the v0.6.x zips stay tracked as release artifacts.
+
+Verification:
+- bun run test 641/0/2510 (packaging's single-version suite green across the four sites) · lint 0 · typecheck 0 · build:wxt + parity OK.
+
+Stage Summary:
+- Versioning is no longer implicit: README documents the PATCH/MINOR/MAJOR mapping and the four synced locations; every future task close-out carries its bump.

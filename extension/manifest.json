@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "وب هایلایتر — هایلایت و یادداشت محلی",
   "short_name": "وب هایلایتر",
-  "version": "0.6.7",
+  "version": "0.7.0",
   "description": "هایلایت مقالات وب با ۵ رنگ، یادداشت روی هر هایلایت، ذخیره‌سازی ۱۰۰٪ محلی روی دستگاه شما و بک‌آپ/بازیابی JSON — بدون سرور، بدون حساب کاربری، بدون اشتراک.",
   "permissions": ["storage", "unlimitedStorage", "contextMenus", "activeTab"],
   "background": {

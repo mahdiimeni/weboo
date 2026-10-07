@@ -30,6 +30,14 @@ bun run typecheck     # tsc --noEmit
 bun run harness       # regenerate the popup E2E harness
 ```
 
+**Versioning (semver, user policy):** every change ships with a version bump —
+bug fix → PATCH (0.7.**x**), new feature → MINOR (0.**x**.0), huge/breaking
+update → MAJOR. The version lives in FOUR synced places the packaging test
+pins: `extension/manifest.json` (single source), `extension/shared/constants.js`
+(`VERSION`), and the static `v…` fallback labels in `extension/popup/popup.html`
++ `entrypoints/dashboard/index.html`. The bump lands in the task's close-out
+commit and the dist zip is rebuilt.
+
 E2E rigs (real Chrome, need a Chromium path):
 
 ```bash

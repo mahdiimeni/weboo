@@ -6,7 +6,7 @@
 
   export const APP_NAME = 'وب هایلایتر';
   export const APP_ID = 'web-highlighter';
-  export const VERSION = '0.6.7';
+  export const VERSION = '0.7.0';
   export const BACKUP_FORMAT = 1;
 
   /** Runtime message types */
