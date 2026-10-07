@@ -2,7 +2,8 @@
 
 A Persian/RTL web-highlighter MV3 extension: 5 highlight colors, notes,
 article tags, JSON backup/restore (full or selective — by sites, articles
-and tags), booklet export — 100% local storage, no server, no account.
+and tags), booklet export (selectable articles, clickable index, print font
+choice) — 100% local storage, no server, no account.
 
 ## Load it (what to open in Chrome)
 
@@ -23,7 +24,7 @@ bun install
 
 bun run build:wxt     # WXT build → .output/chrome-mv3 (+ the parity gate)
 bun run zip           # full chain: typecheck-emit → WXT build → parity → dist zip
-bun run test          # unit suite (616 tests, bun:test + happy-dom)
+bun run test          # unit suite (641 tests, bun:test + happy-dom)
 bun run lint          # eslint
 bun run typecheck     # tsc --noEmit
 bun run harness       # regenerate the popup E2E harness
@@ -34,6 +35,8 @@ E2E rigs (real Chrome, need a Chromium path):
 ```bash
 HLX_CHROME=<chromium> bun tests/e2e/real-theme-e2e.mjs    # popup theme cycle
 HLX_CHROME=<chromium> bun tests/e2e/next-compat-e2e.mjs   # SPA/remount scenarios
+HLX_CHROME=<chromium> bun tests/e2e/real-backup-e2e.mjs   # selective backup + dashboard
+HLX_CHROME=<chromium> bun tests/e2e/real-booklet-e2e.mjs  # booklet picker/TOC/font
 ```
 
 ## Architecture

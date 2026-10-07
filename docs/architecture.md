@@ -49,7 +49,12 @@ docs/                 this file, benchmarks, migration-baseline
    (restore / booklet / selective-backup / preview) mount as regions; the
    selective backup («بک‌آپ انتخابی») filters `store.exportData` through the
    store's pure `matchesBackupSelection` — the dashboard's preview count and
-   the exported file share that one rule.
+   the exported file share that one rule. The booklet modal reuses the same
+   pattern (Task 88): `dash.articleOptions` is the ONE picker-row derivation
+   both modals render, `dash.filterGroupsByKeys` is the print's selection
+   rule (empty = all), and `booklet.buildBookletHtml` takes the picked
+   articles plus a `BOOKLET_FONTS` registry id — the TOC entries anchor to
+   their articles (`#art-N`), links Chrome's Save-as-PDF keeps.
 3. **Service worker** — the platform layer: named imports, a local read-only
    store slice, a `globalThis.__HLX_APP` marker for the E2E rigs to identify
    the target (module bindings are not reachable from outside).
