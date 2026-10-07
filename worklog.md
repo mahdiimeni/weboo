@@ -2222,3 +2222,23 @@ Verification:
 
 Stage Summary:
 - Hardening phase closed. Honest residual debt: (1) records remain Record<string, any> at the engine boundary BY DESIGN (a real schema field would be the trigger to type them — see the migration ponytail note); (2) the toolbar timing test is occasionally flaky under load; (3) CI runs unit/build gates only — browser rigs remain manual/local; (4) popup stays MVC (documented decision, revisit if it grows).
+
+---
+Task ID: 87
+Agent: ZCode
+Task: Selective backup export (بک‌آپ انتخابی) — sites / articles / tags alongside the full backup
+
+Work Log:
+- Contract first (types layer): BackupSelection { hosts?, articles?, tags? } in src/types/storage.ts, structurally mirrored in store.ts (same pattern as the StorageBackend port — rootDir forbids importing src/types) and pinned by a new mutual-assignability tripwire in types-contract.test.ts.
+- Store (domain): exportData(selection?) — the union rule lives in ONE pure exported predicate, matchesBackupSelection(record, sel, tagMap): host match OR article-key (urlNorm) match OR the record's article carries any selected tag (tags.hasActiveTag — widened to accept arrays alongside Sets, behavior-neutral). favicons/tags FOLLOW the included records (favicons only for represented hosts, tag entries only for articles in the file); settings are ALWAYS exported (a replace-mode restore of a partial file rewrites the same settings — it can never wipe them to defaults); meta gains { partial: true, selection } on partial files only. Empty/absent selection IS the full backup — exportData() and exportData({}) produce the exact historical shape (importData untouched; zero-globals/ES-module shape untouched).
+- Delivery (export.js): backupFileName(partial) → web-highlighter-backup-partial-*.json; saveBackup reads the marker from the object it delivers (no new exportTools keys — the ISP key list test still passes).
+- Pure view pipeline (dashboard-data.js): dash.backupSelectionOptions(records, tagMap) → { sites: [{host, articles}], articles: [{key, host, title, count}], tags: tagCounts(tagMap) } — sites busiest-first (fa locale ties), articles in 'page' (title) order. Rows carry exactly the values the matcher compares, so the preview count and the file can never disagree.
+- Application (data.ts): setBackupOpen / countSelectedBackup (snapshot filter through the store's exported predicate — no duplicated rule) / exportSelectedBackup (store.exportData(sel) → saveBackup → toast).
+- UI (React, the fourth modal): BackupModal in Modals.tsx — three checkbox sections over .sel-list scrollable rows (CSS: the .radio accent family compacted; :has(:checked) highlight), live count line (role=status), disabled until something is selected AND matches > 0, fresh selection per open, Escape/انصراف close. Topbar gains «خروجی انتخابی» (new IconSelectBackup) BEFORE the full-export button — the one-click full backup keeps its place and behavior; popup intentionally unchanged (full backup only). RestoreModal shows a «بک‌آپ انتخابی (بخشی از کتابخانه)» summary row for partial files. Wired: App.BackupModalRegion → main.tsx → index.html #backup-modal-host.
+
+Verification:
+- bun run test 616/0/2425 (34 new tests: 20 selective store tests across BOTH backends incl. union/fold/trim/unknown-host/round-trip and the matcher's url fallback; 2 partial-filename tests; 4 backupSelectionOptions tests incl. purity; 6 BackupModal component tests; 2 contract tests) · lint 0 · typecheck 0 · build:wxt + parity OK (41 files byte-identical, manifest equal).
+- Fix en route: TS narrowing doesn't reach the exportData forEach closure (chosen copy); hasActiveTag's .size guard didn't typecheck for arrays (normalized to a list first).
+
+Stage Summary:
+- The full backup flow is byte-identical when nothing is selected (all pre-existing tests untouched and green); the selective path is additive everywhere (optional param, additive meta fields, additive modal). One matching rule, three consumers (export, preview count, future callers) — SRP/DIP preserved: the store owns the backup contract, the delivery layer names the file, the dashboard only picks.

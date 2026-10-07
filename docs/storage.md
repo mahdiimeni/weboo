@@ -64,3 +64,22 @@ through the field whitelist, resolves merge duplicates by `updatedAt`
 explicit user choice in the modal). The backup format is versioned
 independently (`BACKUP_FORMAT = 1`) and must keep importing across the whole
 project.
+
+**Selective backup** (`exportData(selection?)`): the optional
+`BackupSelection` (`{ hosts?, articles?, tags? }` — see
+`src/types/storage.ts`, mirrored in the store and pinned by the
+types-contract tests) filters the highlights by the UNION rule of the pure
+`matchesBackupSelection`: a record is included when its host, its article
+key (urlNorm) or its article's tags match ANY given list — tags select
+articles and fold case exactly like the filter chips. Everything else
+FOLLOWS the included records: favicons only for the hosts still represented,
+tag entries only for the articles in the file. Settings are device-global
+and always exported (a replace-mode restore of a partial file rewrites the
+same settings — it can never wipe them to defaults). A partial file marks
+itself `meta: { count, partial: true, selection }`; the delivery layer names
+it `web-highlighter-backup-partial-*.json` and the restore modal shows a
+«بک‌آپ انتخابی» row. An empty/absent selection IS the full backup —
+`exportData()` and `exportData({})` produce the exact historical shape. The
+dashboard's picker (`dash.backupSelectionOptions`) derives its rows from the
+same values the matcher compares, so the live preview count can never
+disagree with the exported file.

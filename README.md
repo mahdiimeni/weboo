@@ -1,8 +1,8 @@
 # وب هایلایتر — Web Highlighter
 
 A Persian/RTL web-highlighter MV3 extension: 5 highlight colors, notes,
-article tags, JSON backup/restore, booklet export — 100% local storage, no
-server, no account.
+article tags, JSON backup/restore (full or selective — by sites, articles
+and tags), booklet export — 100% local storage, no server, no account.
 
 ## Load it (what to open in Chrome)
 
@@ -23,7 +23,7 @@ bun install
 
 bun run build:wxt     # WXT build → .output/chrome-mv3 (+ the parity gate)
 bun run zip           # full chain: typecheck-emit → WXT build → parity → dist zip
-bun run test          # unit suite (557 tests, bun:test + happy-dom)
+bun run test          # unit suite (616 tests, bun:test + happy-dom)
 bun run lint          # eslint
 bun run typecheck     # tsc --noEmit
 bun run harness       # regenerate the popup E2E harness

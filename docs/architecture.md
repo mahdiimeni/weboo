@@ -45,7 +45,11 @@ docs/                 this file, benchmarks, migration-baseline
    store read via `useSyncExternalStore`, optimistic writes + rollback); the
    drawer frame chrome is `src/dashboard/chrome.ts`. The theme write side is
    `ui.applyThemeNow` (ui/base.js); the anti-flash READ stays classic in
-   `theme-boot.js` (the page's only non-module script, by design).
+   `theme-boot.js` (the page's only non-module script, by design). Four modals
+   (restore / booklet / selective-backup / preview) mount as regions; the
+   selective backup («بک‌آپ انتخابی») filters `store.exportData` through the
+   store's pure `matchesBackupSelection` — the dashboard's preview count and
+   the exported file share that one rule.
 3. **Service worker** — the platform layer: named imports, a local read-only
    store slice, a `globalThis.__HLX_APP` marker for the E2E rigs to identify
    the target (module bindings are not reachable from outside).
@@ -58,7 +62,7 @@ DOM widgets) and an injected store — see `docs/anchor-engine.md`.
 
 ## Testing
 
-- `bun run test` — 582 unit tests over bun:test + happy-dom (strict + noImplicitAny across both tsconfigs). The harness
+- `bun run test` — 616 unit tests over bun:test + happy-dom (strict + noImplicitAny across both tsconfigs). The harness
   (`tests/unit/helpers/engine.ts`) evaluates each file as a real ES-module
   graph (vm.SourceTextModule) per test world and HARVESTS the module bindings
   into the `HL` shape the tests read — identity preserved by construction.
@@ -68,7 +72,9 @@ DOM widgets) and an injected store — see `docs/anchor-engine.md`.
   first + exactly one module entry); **no product file touches
   `globalThis.HL`**.
 - Real Chrome (`tests/e2e/`): `real-theme` (the popup theme cycle, hard-gated
-  probes), `next-compat` (16 SPA/remount scenarios), and the dashboard smoke
+  probes), `next-compat` (16 SPA/remount scenarios), `real-backup` (the
+  selective backup through the real UI — modal, live count, and the actual
+  downloaded partial file), and the dashboard smoke
   (real storage injection → React render → modals via the real UI).
 - CI (`.github/workflows/ci.yml`): install → typecheck → lint → test →
   build + parity on every push/PR; browser rigs stay local by design.
