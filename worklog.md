@@ -2197,3 +2197,28 @@ Verification:
 
 Stage Summary:
 - Phases 0-12 CLOSED. The modernization is complete: TypeScript types + contracts, ES modules end-to-end (content bundled by WXT, pages via entrypoints, zero globals), React dashboard over a typed data layer, versioned storage with a tested migration pipeline, measured engine parity, and the docs to keep it honest.
+
+---
+Task ID: 86
+Agent: ZCode
+Task: Architecture-hardening phase — anchor confidence, message validation, data compatibility, security, strictness, CI (behavior-preserving)
+
+Work Log:
+- Audit + baseline first: full gate chain green (unit 557/0, lint 0, typecheck 0, build+parity OK, E2E batteries). Most hardening-prompt areas were already satisfied by phases 0-12 (no globals + tripwire, storage port + migrations, framework-free content, lightweight popup/SW, docs, benchmarks) — preserved untouched per the prime directive.
+- Anchor confidence policy (commit 0fc00b0): MIN_CONFIDENCE = 5.5 DERIVED from the scorer's own documented seam (hidden candidates ≤ 5, visible ≥ 6.5) — a best below the floor is a hidden/unseeable guess and the resolver orphans it directly. Everything above keeps today's behavior INCLUDING the twin-retarget contract (visibility alone is evidence — pinned by the v0.6.7 tests). NO fuzzy matching, deliberately documented. 7 new policy tests.
+- Runtime message validation (993f595): src/shared/message-guard.ts (21st content file) — parseMessage() parses wire values against the Phase 1 contracts (known discriminator, exact payload fields, finite non-negative counts, bounded control-char-free ids) and returns null on anything else; unknown types never guessed; extra fields ignored (not trusted, not fatal). Wired at BOTH receiving boundaries (content onMessage + SW onMessage). 8 hostile-wire tests.
+- Unknown-field preservation (19513a2): sanitizeRecord no longer whitelist-drops future fields — unknown keys survive import/export round trips under the same names (JSON-safe values, sane key shape, 8 KB per-record budget; known fields always win; validation NOT weakened — textless records still skipped, envelope check stays). 10 compatibility tests across both storage scenarios. Rule: one oversized value never starves the remaining small fields.
+- URL scheme gate (ac0e66d): util.safeOpenUrl allows only http(s)/file (the manifest's own scheme set) on every URL reaching navigation/links — data.ts openArticle/viewRecord. Booklet (safeUrl(g)) and markdown (sourceLink) were ALREADY gated; popup opens only the internal page. Full security audit done: escaping covers text+attribute contexts, React renders content as text nodes, no eval/new Function, permissions minimal and unchanged.
+- noImplicitAny enabled in BOTH tsconfigs (c200c7c): 71 implicit-any errors fixed (66 in store.ts — write queue, raw helpers, per-host maps, change listeners, reader variant — behavior-neutral annotations; the suite is the proof). Remaining anys are the deliberate Record<string, any> record bags at the storage boundary.
+- ESLint tightened (8c4876d): the TS layer now enforces no-unused-vars (catch params exempt — the commented-noop idiom), no-empty, no-unreachable, no-useless-escape, no-prototype-builtins, no-fallthrough, no-case-declarations, prefer-const, no-var; src/shared keeps a narrow documented exemption (classic-emit style). 17 real findings fixed (dead HlSlice-era interfaces, Phase-12-dead harness helpers, unused imports/locals).
+- CI (d3609a6): .github/workflows/ci.yml — install (frozen lockfile) → typecheck → lint → test → build+parity on push/PR; browser rigs stay local (real Chrome + display).
+- Packaging verified: 55 entries, ZERO source maps / test files / harnesses / TS sources in the zip; parity gate inside the chain.
+- data.ts NOT split (§7 judgment): state + actions + side-effect wiring share the module-private store/state closures; extracting backup/export actions would force either a second store instance (more chrome.storage listener sets) or exported mutable internals — ceremony without a boundary gain. The file is the dashboard's application layer, one coherent responsibility. Revisit only if a second page-scale consumer appears.
+- Docs updated (architecture.md: counts, hardening note, CI).
+
+Verification:
+- bun run test 582/0/2300 (25 new hardening tests) · lint 0 (tightened) · typecheck 0 (strict + noImplicitAny) · zip 55 entries (0 maps/tests/harnesses) · real-theme exit 0 · next-compat 16/16 · dashboard smoke OK on the hardened build.
+- Flake watch: the sleep-debounced toolbar probe failed ONCE at the hardening baseline and once during anchor work; not reproduced in 6 subsequent runs. Unrelated to changes (timer-based); left as-is with a note.
+
+Stage Summary:
+- Hardening phase closed. Honest residual debt: (1) records remain Record<string, any> at the engine boundary BY DESIGN (a real schema field would be the trigger to type them — see the migration ponytail note); (2) the toolbar timing test is occasionally flaky under load; (3) CI runs unit/build gates only — browser rigs remain manual/local; (4) popup stays MVC (documented decision, revisit if it grows).
