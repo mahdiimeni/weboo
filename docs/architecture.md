@@ -1,12 +1,12 @@
 # Architecture (end state — post-migration)
 
 The extension is a TypeScript + WXT + React codebase. There is **no global
-registry**: every file is an ES module with real bindings. Branch
-`migration/arch-modernization`; the plan of record is
-`docs/migration-baseline.md` (phases 0–12, all closed — see `worklog.md`),
-followed by an architecture-hardening phase (anchor confidence policy,
-runtime message validation, unknown-field preservation, URL scheme gates,
-noImplicitAny, tightened lint, CI — worklog Task 86).
+registry**: every file is an ES module with real bindings. The architecture
+migration (phases 0–12) and the follow-up hardening work (anchor confidence
+policy, runtime message validation, unknown-field preservation, URL scheme
+gates, noImplicitAny, tightened lint, CI) are complete; the plan of record
+is `docs/migration-baseline.md`, and the historical task-by-task detail is
+preserved in `worklog.md`.
 
 ## Layout
 
