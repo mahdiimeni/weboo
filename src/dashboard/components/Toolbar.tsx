@@ -12,6 +12,7 @@
 import { useRef } from "react";
 import { dash } from "../../../extension/dashboard/dashboard-data.js";
 import { COLOR_KEYS, COLORS } from "../../../extension/shared/constants.js";
+import type { HighlightColor } from "../../types/highlight";
 import { tags as tagRules } from "../../../extension/shared/tags.js";
 import type { Filters } from "../data";
 import { IconSearch } from "./icons";
@@ -39,7 +40,7 @@ export function SearchBox({ onSearch }: { onSearch: (q: string) => void }) {
 export function ColorChips({ colors, onToggle }: { colors: Filters["colors"]; onToggle: (key: string) => void }) {
   return (
     <div className="color-chips" id="color-chips" role="group" aria-label="فیلتر رنگ">
-      {COLOR_KEYS.map((k) => {
+      {(COLOR_KEYS as HighlightColor[]).map((k) => {
         const c = COLORS[k];
         const active = colors.has(k);
         return (

@@ -322,7 +322,7 @@ function createStore(backend, opts) {
     }
     async function removeManyRaw(ids, hostHint) {
         var idSet = {};
-        (ids || []).forEach(function (i) { idSet[i] = 1; });
+        (ids || []).forEach(function (i) { idSet[i] = true; });
         var hosts = hostHint ? [hostHint] : await hostsWithDataRaw();
         var obj = {};
         var any = false;

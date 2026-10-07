@@ -540,7 +540,7 @@ describe("createStoreReader — برش فقط-خواندنی (ISP)", async () =>
     let settingsHits = 0;
     let recordsHits = 0;
     let seenDefault = "";
-    reader.onSettingsChanged(function (s) { settingsHits++; seenDefault = s.defaultColor; });
+    reader.onSettingsChanged(function (s: Record<string, unknown>) { settingsHits++; seenDefault = String(s.defaultColor); });
     reader.onRecordsChanged(function () { recordsHits++; });
 
     await store.setSettings({ defaultColor: "pink" });
