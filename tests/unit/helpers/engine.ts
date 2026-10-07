@@ -85,7 +85,7 @@ type Harvest = (ns: any, HL: any) => void;
 
 const HARVEST: Record<string, Harvest> = {
   "shared/ui/base.js": (ns, HL) => { HL.ui = ns.ui; HL.uiBase = ns.uiBase; /* the widget files mutate `ui` in place */ },
-  "shared/store.js": (ns, HL) => { HL.createStore = ns.createStore; HL.createStoreReader = ns.createStoreReader; },
+  "shared/store.js": (ns, HL) => { HL.createStore = ns.createStore; HL.createStoreReader = ns.createStoreReader; HL.matchesBackupSelection = ns.matchesBackupSelection; },
   "shared/export.js": (ns, HL) => { HL.export = ns.exportTools; },
   "shared/backends/chrome-storage.js": (ns, HL) => { HL.backends = ns.backends; },
   "shared/constants.js": (ns, HL) => { Object.assign(HL, ns); },

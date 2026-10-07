@@ -16,14 +16,20 @@
  *    in an RTL island; NO X button (the owner's call) — overlay click outside
  *    the card and Escape close; the card (tabindex="-1") is the programmatic
  *    focus anchor.
+ *  - BackupModal (selective backup): three checkbox sections (sites /
+ *    articles / tags) over dash.backupSelectionOptions rows; the live count
+ *    and the export itself ride the injected countOf/onExport (the store's
+ *    matchesBackupSelection rule) — the component holds SELECTION state only.
+ *    Same overlay/modal family: Escape + انصراف close; overlay clicks don't.
  *
  * Overlay-click closing is per-modal, exactly as before: ONLY the preview
- * modal closes on a backdrop click; restore/booklet close via their buttons
- * and Escape. Each open modal installs its own Escape listener (the old
- * single chain's modal branches, moved to the owners).
+ * modal closes on a backdrop click; restore/booklet/backup close via their
+ * buttons and Escape. Each open modal installs its own Escape listener (the
+ * old single chain's modal branches, moved to the owners).
  */
 import { useEffect, useRef, useState } from "react";
 import type { HighlightRecord } from "../../types/highlight";
+import type { BackupSelection } from "../../types/storage";
 import { dash } from "../../../extension/dashboard/dashboard-data.js";
 import { format } from "../../../extension/shared/format.js";
 import { APP_NAME, VERSION } from "../../../extension/shared/constants.js";
@@ -40,7 +46,7 @@ function SumRow({ k, v }: { k: string; v: string }) {
 }
 
 interface ModalRequest {
-  kind: "restore" | "booklet";
+  kind: "restore" | "booklet" | "backup";
   backup?: Record<string, unknown>;
 }
 
@@ -144,6 +150,7 @@ export function RestoreModal({ req, onClose, onImport }: {
 
   const count = backup ? ((backup.meta as { count?: number })?.count || Object.keys((backup.highlights as object) || {}).length) : 0;
   const b = backup as { name?: string; exportedAt?: number; version?: string } | undefined;
+  const partial = !!(backup && (backup.meta as { partial?: boolean } | undefined)?.partial);
 
   return (
     <ModalShell id="modal" labelledBy="modal-title" open={req.open} onClose={onClose} overlayCloses={false}>
@@ -153,6 +160,7 @@ export function RestoreModal({ req, onClose, onImport }: {
         <SumRow k="تعداد هایلایت‌ها" v={dash.faNum(count)} />
         <SumRow k="تاریخ خروجی" v={b && b.exportedAt ? format.fmtDateTime(b.exportedAt) : "—"} />
         <SumRow k="نسخه" v={"v" + ((b && b.version) || VERSION)} />
+        {partial ? <SumRow k="نوع" v="بک‌آپ انتخابی (بخشی از کتابخانه)" /> : null}
       </div>
       <div className="radio-list">
         <label className="radio">
@@ -268,6 +276,157 @@ export function BookletModal({ req, onClose, stats, onMarkdown, onBooklet }: {
 
       <div className="modal-actions">
         <button type="button" className="btn btn-ghost" id="bk-cancel" ref={cancelRef} onClick={onClose}>بستن</button>
+      </div>
+    </ModalShell>
+  );
+}
+
+/* ---------- Selective backup modal (بک‌آپ انتخابی) ---------- */
+
+/** The picker's rows — dash.backupSelectionOptions' return shape. */
+export interface BackupSelectionOptions {
+  sites: Array<{ host: string; articles: number }>;
+  articles: Array<{ key: string; host: string; title: string; count: number }>;
+  tags: Array<{ tag: string; count: number }>;
+}
+
+function SelSection({ title, hint, children }: { title: string; hint: string; children: React.ReactNode }) {
+  return (
+    <section className="exp-sec">
+      <h3>{title}</h3>
+      <p className="muted small">{hint}</p>
+      {children}
+    </section>
+  );
+}
+
+function SelEmpty({ text }: { text: string }) {
+  return <p className="muted small sel-none">{text}</p>;
+}
+
+/**
+ * The selective backup window: sites / articles / tags as three checkbox
+ * lists over the dash.backupSelectionOptions rows. Union semantics (a record
+ * matching ANY checked row is exported) is stated in the status line; the
+ * live count and the export run through the injected countOf/onExport — the
+ * data layer's bindings to the store's ONE matching rule, so the component
+ * stays a pure selection surface. Nothing selected (or nothing matching)
+ * keeps the download disabled.
+ */
+export function BackupModal({ req, onClose, options, countOf, onExport }: {
+  req: { open: boolean; payload: ModalRequest | null };
+  onClose: () => void;
+  options: BackupSelectionOptions;
+  countOf: (sel: BackupSelection) => number;
+  onExport: (sel: BackupSelection) => Promise<void>;
+}) {
+  const [hosts, setHosts] = useState<Set<string>>(new Set());
+  const [articles, setArticles] = useState<Set<string>>(new Set());
+  const [tags, setTags] = useState<Set<string>>(new Set());
+
+  /* fresh selection per open — the modal is a one-shot picker */
+  useEffect(() => {
+    if (req.open) { setHosts(new Set()); setArticles(new Set()); setTags(new Set()); }
+  }, [req.open]);
+
+  function toggle(cur: Set<string>, set: (s: Set<string>) => void, v: string): void {
+    const next = new Set(cur);
+    if (next.has(v)) next.delete(v);
+    else next.add(v);
+    set(next);
+  }
+
+  const sel: BackupSelection = { hosts: Array.from(hosts), articles: Array.from(articles), tags: Array.from(tags) };
+  const picked = hosts.size + articles.size + tags.size;
+  const matched = picked ? countOf(sel) : 0;
+  const canGo = picked > 0 && matched > 0;
+  const o = options || { sites: [], articles: [], tags: [] };
+
+  return (
+    <ModalShell id="backup-modal" labelledBy="backup-title" open={req.open} onClose={onClose} overlayCloses={false}>
+      <h2 id="backup-title">بک‌آپ انتخابی</h2>
+      <p className="muted small">بخشی از کتابخانه را خروجی بگیر — هر سایت، مقاله یا برچسبی که انتخاب کنی، هایلایت‌هایش داخل فایل می‌آیند.</p>
+
+      <SelSection title="سایت‌ها" hint="تمام هایلایت‌های این سایت‌ها">
+        {o.sites.length ? (
+          <div className="sel-list" role="group" aria-label="انتخاب سایت‌ها">
+            {o.sites.map((s) => (
+              <label className="sel-item" key={s.host}>
+                <input
+                  type="checkbox"
+                  checked={hosts.has(s.host)}
+                  onChange={() => toggle(hosts, setHosts, s.host)}
+                />
+                <span className="sel-label">{s.host}</span>
+                <span className="muted small">{dash.faNum(s.articles)} مقاله</span>
+              </label>
+            ))}
+          </div>
+        ) : (
+          <SelEmpty text="سایتی ثبت نشده است" />
+        )}
+      </SelSection>
+
+      <SelSection title="مقاله‌ها" hint="هایلایت‌های همین مقاله‌ها">
+        {o.articles.length ? (
+          <div className="sel-list" role="group" aria-label="انتخاب مقاله‌ها">
+            {o.articles.map((a) => (
+              <label className="sel-item" key={a.key}>
+                <input
+                  type="checkbox"
+                  checked={articles.has(a.key)}
+                  onChange={() => toggle(articles, setArticles, a.key)}
+                />
+                <span className="sel-label" dir="auto">{format.excerpt(a.title, 60) || "بدون عنوان"}</span>
+                <span className="muted small sel-side">{a.host}</span>
+                <span className="muted small">{dash.faNum(a.count)} هایلایت</span>
+              </label>
+            ))}
+          </div>
+        ) : (
+          <SelEmpty text="مقاله‌ای ثبت نشده است" />
+        )}
+      </SelSection>
+
+      <SelSection title="برچسب‌ها" hint="تمام هایلایت‌های مقاله‌های دارای این برچسب">
+        {o.tags.length ? (
+          <div className="sel-list" role="group" aria-label="انتخاب برچسب‌ها">
+            {o.tags.map((t) => (
+              <label className="sel-item" key={t.tag}>
+                <input
+                  type="checkbox"
+                  checked={tags.has(t.tag)}
+                  onChange={() => toggle(tags, setTags, t.tag)}
+                />
+                <span className="sel-label" dir="auto">{t.tag}</span>
+                <span className="muted small">{dash.faNum(t.count)} مقاله</span>
+              </label>
+            ))}
+          </div>
+        ) : (
+          <SelEmpty text="برچسبی ثبت نشده است" />
+        )}
+      </SelSection>
+
+      <div className="sel-status muted small" id="backup-status" role="status">
+        {picked === 0
+          ? "حداقل یک مورد را انتخاب کن."
+          : matched === 0
+            ? "هیچ هایلایتی با این انتخاب مطابقت ندارد."
+            : <><strong>{dash.faNum(matched)}</strong> هایلایت در فایل خواهد بود.</>}
+      </div>
+
+      <div className="modal-actions">
+        <button type="button" className="btn btn-ghost" id="backup-cancel" onClick={onClose}>انصراف</button>
+        <button
+          type="button"
+          className="btn btn-primary"
+          id="backup-go"
+          disabled={!canGo}
+          onClick={() => { if (canGo) void onExport(sel).then(onClose); }}
+        >
+          دریافت فایل بک‌آپ
+        </button>
       </div>
     </ModalShell>
   );

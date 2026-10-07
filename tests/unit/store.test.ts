@@ -739,3 +739,119 @@ for (const makeCtx of SCENARIOS) {
   });
 });
 }
+
+/* ---------- Selective backup (بک‌آپ انتخابی) — fresh store per scenario ---------- */
+
+const selRecord = async (id: string, host: string, url: string) =>
+  await makeRecord(id, host, url, { text: "متن " + id });
+
+for (const makeCtx of SCENARIOS) {
+  describe(`بک‌آپ انتخابی — ${makeCtx.name}`, () => {
+    let ctx: Ctx;
+    beforeAll(async () => {
+      setupDom();
+      ctx = await makeCtx();
+      await ctx.store.save(await selRecord("s1a", "site1.com", "https://site1.com/a"));
+      await ctx.store.save(await selRecord("s1b", "site1.com", "https://site1.com/b"));
+      await ctx.store.save(await selRecord("s2a", "site2.org", "https://site2.org/a"));
+      await ctx.store.save(await selRecord("s3a", "site3.net", "https://site3.net/a"));
+      await ctx.store.setArticleTags("https://site1.com/a", ["قرآن", "Tech"]);
+      await ctx.store.setArticleTags("https://site2.org/a", ["Tech"]);
+      await ctx.store.setFavicon("site1.com", { icon: "data:image/png;base64,AAAA", capturedAt: 111 });
+      await ctx.store.setFavicon("site2.org", { icon: "data:image/png;base64,BBBB", capturedAt: 222 });
+      await ctx.store.setFavicon("site3.net", { icon: "data:image/png;base64,CCCC", capturedAt: 333 });
+    });
+
+    test("بدون انتخاب (یا {}) = بک‌آپ کامل — همان شکل تاریخی", async () => {
+      const full = await ctx.store.exportData();
+      expect(full.meta.count).toBe(4);
+      expect(full.meta.partial).toBeUndefined();
+      expect(Object.keys(full.highlights).sort()).toEqual(["s1a", "s1b", "s2a", "s3a"]);
+      expect(Object.keys(full.favicons).sort()).toEqual(["site1.com", "site2.org", "site3.net"]);
+      expect(Object.keys(full.tags).sort()).toEqual(["https://site1.com/a", "https://site2.org/a"]);
+      expect(full.settings).toBeDefined(); /* settings stay part of the envelope */
+
+      const empty = await ctx.store.exportData({});
+      expect(empty.meta.count).toBe(4);
+      expect(empty.meta.partial).toBeUndefined();
+    });
+
+    test("انتخاب سایت: فقط هایلایت‌های همان سایت + داده‌های وابسته به آن", async () => {
+      const b = await ctx.store.exportData({ hosts: ["site1.com"] });
+      expect(b.app).toBe("web-highlighter");
+      expect(b.format).toBe(1);
+      expect(Object.keys(b.highlights).sort()).toEqual(["s1a", "s1b"]);
+      expect(Object.keys(b.favicons)).toEqual(["site1.com"]); /* follows the records */
+      expect(Object.keys(b.tags)).toEqual(["https://site1.com/a"]); /* only articles that HAVE tags */
+      expect(b.settings).toBeDefined(); /* device-global: always exported */
+      expect(b.meta.count).toBe(2);
+      expect(b.meta.partial).toBe(true);
+      expect(b.meta.selection).toEqual({ hosts: ["site1.com"], articles: [], tags: [] });
+    });
+
+    test("انتخاب مقاله: فقط همان مقاله", async () => {
+      const b = await ctx.store.exportData({ articles: ["https://site1.com/a"] });
+      expect(Object.keys(b.highlights)).toEqual(["s1a"]);
+      expect(Object.keys(b.tags)).toEqual(["https://site1.com/a"]);
+      expect(Object.keys(b.favicons)).toEqual(["site1.com"]);
+      expect(b.meta.count).toBe(1);
+    });
+
+    test("انتخاب برچسب: مقاله‌های دارای برچسب + فهرست کامل برچسب‌های آن مقاله", async () => {
+      const b = await ctx.store.exportData({ tags: ["قرآن"] });
+      expect(Object.keys(b.highlights)).toEqual(["s1a"]);
+      expect(b.tags["https://site1.com/a"]).toEqual(["قرآن", "Tech"]); /* the ARTICLE's full list */
+      expect(b.meta.count).toBe(1);
+    });
+
+    test("اتحاد (union): سایت یا برچسب — اجتماع، نه اشتراک", async () => {
+      const b = await ctx.store.exportData({ hosts: ["site2.org"], tags: ["قرآن"] });
+      expect(Object.keys(b.highlights).sort()).toEqual(["s1a", "s2a"]);
+      expect(b.meta.count).toBe(2);
+    });
+
+    test("برچسب‌ها بی‌حساس به حروف انگلیسی (fold مشابه دامنه‌ی برچسب)", async () => {
+      const b = await ctx.store.exportData({ tags: ["tech"] });
+      expect(Object.keys(b.highlights).sort()).toEqual(["s1a", "s2a"]);
+    });
+
+    test("انتخاب ناشناس: بک‌آپ خالی اما سالم (قابل بازیابی)", async () => {
+      const b = await ctx.store.exportData({ hosts: ["nope.io"] });
+      expect(b.meta.count).toBe(0);
+      expect(b.highlights).toEqual({});
+      expect(b.favicons).toEqual({});
+      expect(b.tags).toEqual({});
+      expect(b.app).toBe("web-highlighter");
+      expect(b.meta.partial).toBe(true);
+      const r = await ctx.store.importData(JSON.parse(JSON.stringify(b)), "merge");
+      expect(r.added).toBe(0);
+    });
+
+    test("trim و حذف تکرار: نرمال‌سازی در meta منعکس می‌شود", async () => {
+      const b = await ctx.store.exportData({ hosts: [" site1.com ", "site1.com", ""] });
+      expect(Object.keys(b.highlights).sort()).toEqual(["s1a", "s1b"]);
+      expect(b.meta.selection).toEqual({ hosts: ["site1.com"], articles: [], tags: [] });
+    });
+
+    test("خروجی انتخابی، خروجی کامل را خراب نمی‌کند", async () => {
+      const partial = await ctx.store.exportData({ hosts: ["site3.net"] });
+      expect(partial.meta.count).toBe(1);
+      const full = await ctx.store.exportData();
+      expect(full.meta.count).toBe(4);
+      expect(full.meta.partial).toBeUndefined();
+    });
+
+    test("matchesBackupSelection: قانون واحدِ تطبیق (شامل fallback روی url)", async () => {
+      const matcher = ctx.HL.matchesBackupSelection;
+      const r = await selRecord("x1", "h.io", "https://h.io/p");
+      expect(matcher(r, { hosts: ["h.io"] }, {})).toBe(true);
+      expect(matcher(r, { articles: ["https://h.io/p"] }, {})).toBe(true);
+      expect(matcher(r, {}, {})).toBe(false);
+      /* a record without urlNorm still matches by its url */
+      const legacy = await selRecord("x2", "h.io", "https://h.io/p");
+      delete legacy.urlNorm;
+      expect(matcher(legacy, { articles: ["https://h.io/p"] }, {})).toBe(true);
+      expect(matcher(null, { hosts: ["h.io"] }, {})).toBe(false);
+    });
+  });
+}

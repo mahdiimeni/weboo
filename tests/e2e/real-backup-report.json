@@ -1,0 +1,54 @@
+{
+  "extensionLoaded": true,
+  "noHLGlobal": true,
+  "topbarButton": true,
+  "modalOpens": true,
+  "pickersFedFromRealStorage": true,
+  "liveCountAndArm": true,
+  "partialFileDownloaded": true,
+  "partialFileContent": true,
+  "modalClosesAfterExport": true,
+  "freshSelectionPerOpen": true,
+  "fullBackupStillThere": true,
+  "modalState": {
+    "open": true,
+    "lists": 3,
+    "sites": [
+      "zoomit.ir۲ مقاله",
+      "en.wikipedia.org۱ مقاله"
+    ],
+    "articles": 3,
+    "tags": 2,
+    "goDisabled": true
+  },
+  "armed": {
+    "status": "۲ هایلایت در فایل خواهد بود.",
+    "goDisabled": false
+  },
+  "fileShape": {
+    "name": "web-highlighter-backup-partial-2026-10-07-1106.json",
+    "app": "web-highlighter",
+    "format": 1,
+    "partial": true,
+    "selection": {
+      "hosts": [
+        "zoomit.ir"
+      ],
+      "articles": [],
+      "tags": []
+    },
+    "count": 2,
+    "ids": [
+      "r1",
+      "r2"
+    ],
+    "faviconHosts": [
+      "zoomit.ir"
+    ],
+    "tagKeys": [
+      "https://zoomit.ir/a"
+    ],
+    "settingsPresent": true
+  },
+  "exceptions": []
+}

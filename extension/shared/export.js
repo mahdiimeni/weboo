@@ -39,9 +39,11 @@
     return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes());
   }
 
-  /** Backup file name: web-highlighter-backup-YYYY-MM-DD-HHMM.json */
-  function backupFileName() {
-    return 'web-highlighter-backup-' + stamp() + '.json';
+  /** Backup file name: web-highlighter-backup-YYYY-MM-DD-HHMM.json — or the
+      selective backup's web-highlighter-backup-partial-YYYY-MM-DD-HHMM.json
+      (the partial marker rides the backup object itself: meta.partial). */
+  function backupFileName(partial) {
+    return 'web-highlighter-backup' + (partial ? '-partial' : '') + '-' + stamp() + '.json';
   }
 
   /** Markdown library document name (v0.6.0): web-highlighter-markdown-YYYY-MM-DD-HHMM.md */
@@ -54,9 +56,12 @@
     return 'web-highlighter-booklet-' + stamp() + '.html';
   }
 
-  /** Saves a backup object (the store.exportData output) as a downloadable JSON file */
+  /** Saves a backup object (the store.exportData output) as a downloadable
+      JSON file; a selective backup (meta.partial) gets the -partial file name
+      so a user archiving both kinds never confuses the files. */
   function saveBackup(backup) {
-    downloadText(backupFileName(), JSON.stringify(backup, null, 2));
+    var partial = !!(backup && backup.meta && backup.meta.partial);
+    downloadText(backupFileName(partial), JSON.stringify(backup, null, 2));
   }
 
   /**

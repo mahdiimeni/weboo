@@ -10,6 +10,7 @@ import {
   getData,
   subscribeData,
   setBookletOpen,
+  setBackupOpen,
   setDrawerOpen,
   exportBackup,
   acceptBackupFile,
@@ -17,9 +18,9 @@ import {
   clearAll,
 } from "../data";
 import { toast } from "../toast";
-import { IconBooklet, IconExport, IconSettings, IconDanger } from "./pageIcons";
+import { IconBooklet, IconExport, IconSettings, IconDanger, IconSelectBackup } from "./pageIcons";
 
-/** Region root — mounted into .topbar-actions (the three buttons + badge). */
+/** Region root — mounted into .topbar-actions (the four buttons + badge). */
 export function TopbarActionsRegion() {
   const { bytesInUse } = useSyncExternalStore(subscribeData, getData);
   return (
@@ -30,10 +31,21 @@ export function TopbarActionsRegion() {
       </button>
       <button
         type="button"
+        className="btn btn-ghost"
+        id="btn-backup-select"
+        aria-haspopup="dialog"
+        title="بک‌آپ انتخابی — از سایت‌ها، مقاله‌ها و برچسب‌ها"
+        onClick={() => setBackupOpen(true)}
+      >
+        <IconSelectBackup />
+        خروجی انتخابی
+      </button>
+      <button
+        type="button"
         className="btn btn-primary btn-icon"
         id="btn-export"
         aria-label="خروجی پشتیبان"
-        title="خروجی پشتیبان"
+        title="خروجی پشتیبان (کل کتابخانه)"
         onClick={() => { void exportBackup(); }}
       >
         <IconExport />

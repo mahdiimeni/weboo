@@ -11,8 +11,8 @@ import { describe, test, expect, beforeEach } from "bun:test";
 import { setupDom, loadEngine } from "./helpers/engine";
 import type { HighlightRecord, HighlightAnchor } from "../../src/types/highlight";
 import type { Settings } from "../../src/types/settings";
-import type { StorageBackend as PortBackend } from "../../src/types/storage";
-import type { StorageBackend as MirrorBackend } from "../../src/shared/store"; /* aliased: store.ts cannot import src/types (rootDir src/shared), so it keeps a duplicate port — the assignability test below is the drift tripwire */
+import type { StorageBackend as PortBackend, BackupSelection as PortSelection } from "../../src/types/storage";
+import type { StorageBackend as MirrorBackend, BackupSelection as MirrorSelection } from "../../src/shared/store"; /* aliased: store.ts cannot import src/types (rootDir src/shared), so it keeps a duplicate port — the assignability test below is the drift tripwire */
 import {
   EXTENSION_MESSAGE_TYPES,
   type ExtensionMessage,
@@ -81,6 +81,25 @@ describe("types ↔ runtime contract parity (Phase 1)", () => {
     const portToMirror: MirrorBackend = null as unknown as PortBackend;
     expect(typeof mirrorToPort).toBe("object"); /* the assignability itself is compile-time */
     expect(typeof portToMirror).toBe("object");
+  });
+
+  test("selection mirror: BackupSelection — store.ts mirror ⇄ src/types/storage.ts (compile-time)", () => {
+    /* the selective backup's criteria contract rides the same mirror pattern
+       as the port: both directions assignable, so the two can never drift */
+    const mirrorToPort: PortSelection = null as unknown as MirrorSelection;
+    const portToMirror: MirrorSelection = null as unknown as PortSelection;
+    expect(typeof mirrorToPort).toBe("object");
+    expect(typeof portToMirror).toBe("object");
+    /* the contract's members exist on both sides (structural, optional) */
+    const sel: PortSelection = { hosts: ["a.com"], articles: [], tags: ["ت"] };
+    expect([...sel.hosts!, ...sel.articles!, ...sel.tags!]).toEqual(["a.com", "ت"]);
+  });
+
+  test("matcher runtime: HL.matchesBackupSelection is the exported pure predicate", () => {
+    expect(typeof HL.matchesBackupSelection).toBe("function");
+    const r = { id: "r", host: "h.io", url: "https://h.io/p", urlNorm: "https://h.io/p" };
+    expect(HL.matchesBackupSelection(r, { hosts: ["h.io"] }, {})).toBe(true);
+    expect(HL.matchesBackupSelection(r, { tags: ["x"] }, {})).toBe(false); /* article has no tags */
   });
 
   test("port ISP: memory backend exposes exactly the 5 contract members", () => {

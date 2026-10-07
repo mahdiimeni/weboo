@@ -19,6 +19,10 @@
  * once they are all open). The "load every unloaded highlight" part of the
  * feature needs no data-layer code: the controller passes Infinity through
  * the UNTOUCHED paginate and every remaining/overflow becomes 0.
+ * Selective backup: backupSelectionOptions — the pure picker inventory
+ * (sites / articles / tags with counts) the export modal renders; the
+ * MATCHING rule itself lives in the store (matchesBackupSelection) — this
+ * layer only derives rows that carry the exact comparable values.
  * Per-card item order (v0.4.0): applyItemReversal + itemOrder — the pure
  * transform that reverses ONE article's highlight list (a shallow copy, the
  * base sort's own arrays are never touched) and the pure base+flag →
@@ -379,6 +383,40 @@ import { tags } from "../shared/tags.js"; /* 7c-3 */
     return { total: (records || []).length, notes: notes, pages: pages.size, sites: sites.size };
   }
 
+  /* ---------- Selective backup — the picker's options ---------- */
+
+  /**
+   * The selectable inventory of the «بک‌آپ انتخابی» modal, computed fresh
+   * from the snapshot: { sites, articles, tags }.
+   *   sites    — [{ host, articles }] one row per site, count = its articles;
+   *              busiest site first, ties in Persian locale order.
+   *   articles — [{ key, host, title, count }] one row per article (the
+   *              groupRecords groups themselves — key IS the articleKey
+   *              formula), count = its highlights; 'page' sort = title
+   *              order, a stable list for a picker.
+   *   tags     — reuse of the filter-chip inventory (tagCounts): count =
+   *              number of ARTICLES carrying the tag, count desc.
+   * The rows carry exactly the values the store's matchesBackupSelection
+   * compares (host / articleKey / tag name) — the preview count and the
+   * exported file can never disagree. Pure: never mutates its inputs.
+   */
+  function backupSelectionOptions(records, tagMap) {
+    var groups = groupRecords(records || [], 'page');
+    var sites = [];
+    var tally = Object.create(null);
+    groups.forEach(function (g) {
+      var h = g.host || '';
+      if (!h) return; /* a hostless record matches no selectable site anyway */
+      if (!tally[h]) { tally[h] = { host: h, articles: 0 }; sites.push(tally[h]); }
+      tally[h].articles++;
+    });
+    sites.sort(function (a, b) { return (b.articles - a.articles) || a.host.localeCompare(b.host, 'fa'); });
+    var articles = groups.map(function (g) {
+      return { key: g.key, host: g.host || '', title: g.title || '', count: g.items.length };
+    });
+    return { sites: sites, articles: articles, tags: tags.tagCounts(tagMap) };
+  }
+
   /* ---------- Pagination (v1.2.9 — extracted from the controller's renderList) ---------- */
 
   /**
@@ -432,6 +470,7 @@ import { tags } from "../shared/tags.js"; /* 7c-3 */
     readingOrderItems: readingOrderItems,
     orphanTagKeys: orphanTagKeys,
     computeStats: computeStats,
+    backupSelectionOptions: backupSelectionOptions,
     paginate: paginate
   };
 

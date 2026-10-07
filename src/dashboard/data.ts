@@ -46,8 +46,10 @@ import { APP_ID } from "../../extension/shared/constants.js";
 import { exportTools } from "../../extension/shared/export.js";
 import { markdown } from "../../extension/shared/markdown-export.js";
 import { booklet } from "../../extension/shared/booklet-export.js";
+import { matchesBackupSelection } from "../../extension/shared/store.js";
 import type { HighlightRecord } from "../types/highlight";
 import type { Settings, ThemeKey } from "../types/settings";
+import type { BackupSelection } from "../types/storage";
 import { toast } from "./toast";
 
 const store = createStore(backends.chromeStorage());
@@ -81,6 +83,8 @@ export interface DashboardData {
   /** the settings drawer + booklet modal open states — session chrome */
   drawerOpen: boolean;
   bookletOpen: boolean;
+  /** the selective backup modal's open state — session chrome */
+  backupOpen: boolean;
   /** the validated backup awaiting the restore modal's mode choice */
   stagedBackup: Record<string, unknown> | null;
   /** storage size for the topbar badge (bytes; null until first read) */
@@ -100,6 +104,7 @@ let state: DashboardData = {
   preview: null,
   drawerOpen: false,
   bookletOpen: false,
+  backupOpen: false,
   stagedBackup: null,
   bytesInUse: null,
 };
@@ -399,6 +404,30 @@ export async function exportBackup(): Promise<void> {
     const n = (b.meta && b.meta.count) || 0;
     exportTools.saveBackup(b);
     toast("فایل بک‌آپ با " + dash.faNum(n) + " هایلایت دانلود شد", "success");
+  } catch (e) {
+    toast("خروجی گرفتن ناموفق بود", "error");
+  }
+}
+
+/* ---------- selective backup (بک‌آپ انتخابی) ---------- */
+
+export function setBackupOpen(open: boolean): void {
+  setState({ backupOpen: open });
+}
+
+/** Live preview count for the modal — the SAME rule the store's export
+ *  applies (matchesBackupSelection), run over the current snapshot, so the
+ *  number the user sees is exactly what the file will contain. */
+export function countSelectedBackup(selection: BackupSelection): number {
+  return state.records.filter((r) => matchesBackupSelection(r, selection, state.tagMap)).length;
+}
+
+export async function exportSelectedBackup(selection: BackupSelection): Promise<void> {
+  try {
+    const b = await store.exportData(selection);
+    const n = (b.meta && b.meta.count) || 0;
+    exportTools.saveBackup(b);
+    toast("فایل بک‌آپ انتخابی با " + dash.faNum(n) + " هایلایت دانلود شد", "success");
   } catch (e) {
     toast("خروجی گرفتن ناموفق بود", "error");
   }

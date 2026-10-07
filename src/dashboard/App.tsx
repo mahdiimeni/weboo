@@ -38,6 +38,9 @@ import {
   buildBookletExport,
   clearStagedBackup,
   setBookletOpen,
+  setBackupOpen,
+  countSelectedBackup,
+  exportSelectedBackup,
   toggleCard,
   flipItemOrder,
   toggleSection,
@@ -68,7 +71,7 @@ import { BehaviorSwitches } from "./components/BehaviorSwitches";
 import { ui } from "../../extension/shared/ui/base.js";
 import { Toolbar } from "./components/Toolbar";
 import { DirSection } from "./components/DirSection";
-import { PreviewModal, RestoreModal, BookletModal } from "./components/Modals";
+import { PreviewModal, RestoreModal, BookletModal, BackupModal } from "./components/Modals";
 import { TopbarActionsRegion, RestoreSectionRegion, DangerSectionRegion } from "./components/PageChrome";
 export { TopbarActionsRegion, RestoreSectionRegion, DangerSectionRegion };
 
@@ -219,6 +222,22 @@ export function BookletModalRegion() {
       stats={dash.computeStats(records)}
       onMarkdown={buildMarkdownExport}
       onBooklet={buildBookletExport}
+    />
+  );
+}
+
+/** Region root — the selective backup modal: picker options come fresh from
+ *  the snapshot (dash.backupSelectionOptions), the live count and the export
+ *  ride the data layer's bindings to the store's ONE matching rule. */
+export function BackupModalRegion() {
+  const { backupOpen, records, tagMap } = useSyncExternalStore(subscribeData, getData);
+  return (
+    <BackupModal
+      req={{ open: backupOpen, payload: { kind: "backup" } }}
+      onClose={() => setBackupOpen(false)}
+      options={dash.backupSelectionOptions(records, tagMap)}
+      countOf={countSelectedBackup}
+      onExport={exportSelectedBackup}
     />
   );
 }

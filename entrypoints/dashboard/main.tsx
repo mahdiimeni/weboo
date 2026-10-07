@@ -12,7 +12,7 @@
  * restore/drawer sections, danger zone).
  */
 import { createRoot } from "react-dom/client";
-import { StatsRegion, HostsRegion, BulkRegion, ThemeRegion, DotsRegion, SwitchesRegion, EmptyRegion, MoreRegion, ToolbarRegion, ListRegion, PreviewModalRegion, RestoreModalRegion, BookletModalRegion, TopbarActionsRegion, RestoreSectionRegion, DangerSectionRegion } from "../../src/dashboard/App";
+import { StatsRegion, HostsRegion, BulkRegion, ThemeRegion, DotsRegion, SwitchesRegion, EmptyRegion, MoreRegion, ToolbarRegion, ListRegion, PreviewModalRegion, RestoreModalRegion, BookletModalRegion, BackupModalRegion, TopbarActionsRegion, RestoreSectionRegion, DangerSectionRegion } from "../../src/dashboard/App";
 import { startData } from "../../src/dashboard/data";
 import { initDrawerChrome } from "../../src/dashboard/chrome";
 
@@ -59,6 +59,9 @@ if (restoreModalHost) mounts.push([restoreModalHost, <RestoreModalRegion />]);
 
 const bookletModalHost = document.getElementById("booklet-modal-host");
 if (bookletModalHost) mounts.push([bookletModalHost, <BookletModalRegion />]);
+
+const backupModalHost = document.getElementById("backup-modal-host");
+if (backupModalHost) mounts.push([backupModalHost, <BackupModalRegion />]);
 
 const topbarHost = document.querySelector(".topbar-actions");
 if (topbarHost) mounts.push([topbarHost, <TopbarActionsRegion />]);

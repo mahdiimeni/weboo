@@ -30,6 +30,19 @@ export interface StorageBackend {
 type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
 
 /**
+ * Selective-backup criteria — exact mirror of src/types/storage.ts
+ * BackupSelection (this file cannot import src/types; the compile-time
+ * mutual-assignability tripwire in tests/unit/types-contract.test.ts fails
+ * if the two ever drift). Union semantics: a record is included when its
+ * host, its article (urlNorm) or its article's tags match ANY given list.
+ */
+export interface BackupSelection {
+  hosts?: string[];
+  articles?: string[];
+  tags?: string[];
+}
+
+/**
  *
  * GENERATED TARGET — this source (src/shared/store.ts) compiles to
  * extension/shared/store.js via `bun run build:ext`; edit HERE, never the .js.
@@ -41,7 +54,10 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
  *   hlx:f:<host>  → { icon: dataURL, capturedAt }  ← favicon captured from the page itself
  *   hlx:tags      → { <urlNorm>: [tag, …] }        ← article tags (v1.2.15, article-scoped)
  * Export/Import: versioned JSON backup (favicons and article tags are included
- * in the backup). Tag values are normalized through HL.tags (shared/tags.js —
+ * in the backup). Selective backup: exportData takes an optional BackupSelection
+ * (sites/articles/tags, union semantics — the associated favicons and tag
+ * entries follow the included records; an empty selection IS the full backup).
+ * Tag values are normalized through HL.tags (shared/tags.js —
  * loaded before this file everywhere) — the same integrity-gate pattern as
  * sanitizeFaviconMeta.
  *
@@ -120,6 +136,60 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
 
   function mergeSettings(s: unknown): Record<string, unknown> {
     return Object.assign({}, DEFAULT_SETTINGS, s || {});
+  }
+
+  /* ---------- Selective backup (pure module-scope rules) ---------- */
+
+  /** One selection list: strings only, trimmed, deduped, empties dropped. */
+  function normalizeSelectionList(list: unknown): string[] {
+    if (!Array.isArray(list)) return [];
+    var out: string[] = [];
+    var seen: Record<string, boolean> = {};
+    list.forEach(function (v) {
+      var s = String(v === null || v === undefined ? '' : v).trim();
+      if (!s || seen[s]) return;
+      seen[s] = true;
+      out.push(s);
+    });
+    return out;
+  }
+
+  /**
+   * Cleans a selection contract. Returns null when nothing is selected —
+   * the caller (exportData) treats null as the FULL backup, so exportData()
+   * and exportData({}) are the same call.
+   */
+  function normalizeBackupSelection(sel: BackupSelection | null | undefined): BackupSelection | null {
+    if (!sel || typeof sel !== 'object') return null;
+    var hosts = normalizeSelectionList(sel.hosts);
+    var articles = normalizeSelectionList(sel.articles);
+    var selTags = normalizeSelectionList(sel.tags);
+    if (!hosts.length && !articles.length && !selTags.length) return null;
+    return { hosts: hosts, articles: articles, tags: selTags };
+  }
+
+  /**
+   * The ONE matching rule of the selective backup (union semantics): a record
+   * is included when its host is selected, or its article (urlNorm — the same
+   * key the tags map and the dashboard's article cards use) is selected, or
+   * its article carries any selected tag. Tag matching folds case exactly like
+   * the tag domain (tags.hasActiveTag) — a chip's spelling matches a stored
+   * spelling regardless of ASCII case. Hosts/articles compare exactly: the
+   * picker's options come from the data itself.
+   * Pure: reads its inputs, writes nothing. `sel` is used as given (the
+   * export path normalizes first; direct callers may pass raw arrays).
+   */
+  function matchesBackupSelection(r: Record<string, any>, sel: BackupSelection, tagMap: Record<string, string[]>): boolean {
+    if (!r || !sel) return false;
+    var hosts = normalizeSelectionList(sel.hosts);
+    var articles = normalizeSelectionList(sel.articles);
+    var selTags = normalizeSelectionList(sel.tags);
+    if (hosts.length && hosts.indexOf(String(r.host || '')) !== -1) return true;
+    var key = String(r.urlNorm || r.url || '');
+    if (!key) return false;
+    if (articles.length && articles.indexOf(key) !== -1) return true;
+    if (selTags.length) return tagRules.hasActiveTag(tagMap[key], selTags);
+    return false;
   }
 
   /**
@@ -476,14 +546,49 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
 
     /* ---------- Backup ---------- */
 
-    async function exportData() {
+    /**
+     * Versioned JSON backup. WITHOUT an argument (or with an empty selection)
+     * this is the FULL backup — the exact historical shape. With a selection
+     * (see BackupSelection) the highlights are filtered by the union rule of
+     * matchesBackupSelection and the associated data FOLLOWS the included
+     * records: favicons only for hosts that still have records in the file,
+     * tag entries only for the articles in it. Settings are device-global
+     * and always exported (a replace-mode restore of a partial file rewrites
+     * the same settings — it can never wipe them to defaults). meta marks a
+     * partial file with { partial: true, selection } (count stays first).
+     */
+    async function exportData(selection?: BackupSelection) {
       await drained();
+      var sel = normalizeBackupSelection(selection);
       var settings = await getSettingsRaw();
-      var highlights: Record<string, Record<string, any>> = {};
       var records = await getAllRecordsRaw();
-      records.forEach(function (r: Record<string, any>, id: string) { highlights[id] = r; });
-      var favicons = await getFaviconMapRaw();
-      var tags = await getTagsRaw();
+      var highlights: Record<string, Record<string, any>> = {};
+      var favicons: Record<string, { icon: string; capturedAt: number; host: string }>;
+      var tags: Record<string, string[]>;
+      if (!sel) {
+        records.forEach(function (r: Record<string, any>, id: string) { highlights[id] = r; });
+        favicons = await getFaviconMapRaw();
+        tags = await getTagsRaw();
+      } else {
+        var chosen = sel; /* narrowed copy: TS narrowing doesn't reach the forEach closure */
+        var tagMap = await getTagsRaw();
+        var hostSet: Record<string, boolean> = {};
+        var articleSet: Record<string, boolean> = {};
+        records.forEach(function (r: Record<string, any>, id: string) {
+          if (!matchesBackupSelection(r, chosen, tagMap)) return;
+          highlights[id] = r;
+          if (r.host) hostSet[r.host] = true;
+          var k = String(r.urlNorm || r.url || '');
+          if (k) articleSet[k] = true;
+        });
+        var favAll = await getFaviconMapRaw();
+        favicons = {};
+        Object.keys(favAll).forEach(function (h) { if (hostSet[h]) favicons[h] = favAll[h]; });
+        tags = {};
+        Object.keys(tagMap).forEach(function (k) { if (articleSet[k]) tags[k] = tagMap[k]; });
+      }
+      var meta: Record<string, unknown> = { count: Object.keys(highlights).length };
+      if (sel) { meta.partial = true; meta.selection = sel; }
       return {
         app: APP_ID,
         name: APP_NAME,
@@ -494,7 +599,7 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
         highlights: highlights,
         favicons: favicons,
         tags: tags,
-        meta: { count: Object.keys(highlights).length }
+        meta: meta
       };
     }
 
@@ -715,4 +820,4 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
     };
   }
 
-export { createStore, createStoreReader };
+export { createStore, createStoreReader, matchesBackupSelection };

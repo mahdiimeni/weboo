@@ -21,7 +21,7 @@ import { ThemeRadios } from "../../src/dashboard/components/ThemeRadios";
 import { ColorDots } from "../../src/dashboard/components/ColorDots";
 import { BehaviorSwitches } from "../../src/dashboard/components/BehaviorSwitches";
 import { EmptyState } from "../../src/dashboard/components/EmptyState";
-import { PreviewModal, RestoreModal, BookletModal } from "../../src/dashboard/components/Modals";
+import { PreviewModal, RestoreModal, BookletModal, BackupModal } from "../../src/dashboard/components/Modals";
 import { LoadMore } from "../../src/dashboard/components/LoadMore";
 import { dash } from "../../extension/dashboard/dashboard-data.js";
 
@@ -580,6 +580,139 @@ describe("Modals (Phase 8 slice 5)", () => {
     document.body.appendChild(host);
     let closed = 0;
     const { root } = mount(<PreviewModal rec={REC} onClose={() => { closed++; }} />, host);
+    await tick();
+    document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    await tick();
+    expect(closed).toBe(1);
+    root.unmount();
+  });
+});
+
+describe("BackupModal (بک‌آپ انتخابی)", () => {
+  const OPTIONS = {
+    sites: [{ host: "a.com", articles: 2 }, { host: "b.org", articles: 1 }],
+    articles: [
+      { key: "https://a.com/p1", host: "a.com", title: "مقاله الف", count: 3 },
+      { key: "https://b.org/x", host: "b.org", title: "مقاله پ", count: 1 },
+    ],
+    tags: [{ tag: "قرآن", count: 2 }, { tag: "علم", count: 1 }],
+  };
+
+  test("سه بخش انتخاب با گزینه‌ها و شمارش‌ها رندر می‌شود؛ بدون انتخاب دکمه غیرفعال است", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const { root, host: h } = mount(
+      <BackupModal req={{ open: true, payload: { kind: "backup" } }} onClose={() => {}} options={OPTIONS} countOf={() => 0} onExport={async () => {}} />,
+      host
+    );
+    await tick();
+    expect((h.querySelector("#backup-modal") as HTMLElement).hidden).toBe(false);
+    expect(h.querySelector("#backup-title")?.textContent).toBe("بک‌آپ انتخابی");
+    const groups = [...h.querySelectorAll(".sel-list")];
+    expect(groups.length).toBe(3);
+    expect([...groups[0].querySelectorAll(".sel-item")].map((r) => r.textContent)).toEqual([
+      "a.com" + dash.faNum(2) + " مقاله",
+      "b.org" + dash.faNum(1) + " مقاله",
+    ]);
+    expect((groups[1].querySelector(".sel-item .sel-label") as HTMLElement).textContent).toBe("مقاله الف");
+    expect((h.querySelector("#backup-go") as HTMLButtonElement).disabled).toBe(true);
+    expect(h.querySelector("#backup-status")?.textContent).toContain("حداقل یک مورد");
+    root.unmount();
+  });
+
+  test("انتخاب، countOf را با آرایه‌های انتخاب صدا می‌زند؛ شمار زنده و دکمه فعال می‌شود", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    let seen: any = null;
+    const { root, host: h } = mount(
+      <BackupModal
+        req={{ open: true, payload: { kind: "backup" } }}
+        onClose={() => {}}
+        options={OPTIONS}
+        countOf={(sel) => { seen = sel; return 5; }}
+        onExport={async () => {}}
+      />,
+      host
+    );
+    await tick();
+    (h.querySelector('.sel-list input[type="checkbox"]') as HTMLInputElement).click();
+    await tick();
+    expect(seen).toEqual({ hosts: ["a.com"], articles: [], tags: [] });
+    expect((h.querySelector("#backup-status")?.textContent || "")).toContain(dash.faNum(5));
+    expect((h.querySelector("#backup-go") as HTMLButtonElement).disabled).toBe(false);
+    root.unmount();
+  });
+
+  test("دریافت فایل: onExport با همان انتخاب صدا زده شده و مودال بسته می‌شود", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const calls: any[] = [];
+    const { root, host: h } = mount(
+      <BackupModal
+        req={{ open: true, payload: { kind: "backup" } }}
+        onClose={() => calls.push("close")}
+        options={OPTIONS}
+        countOf={() => 4}
+        onExport={async (sel) => { calls.push(["export", sel]); }}
+      />,
+      host
+    );
+    await tick();
+    const boxes = [...h.querySelectorAll('.sel-list input[type="checkbox"]')] as HTMLInputElement[];
+    boxes[0].click(); await tick();          /* site a.com */
+    boxes[2].click(); await tick();          /* article https://a.com/p1 */
+    boxes[4].click(); await tick();          /* tag قرآن */
+    (h.querySelector("#backup-go") as HTMLElement).click();
+    await tick();
+    expect(calls).toEqual([["export", { hosts: ["a.com"], articles: ["https://a.com/p1"], tags: ["قرآن"] }], "close"]);
+    root.unmount();
+  });
+
+  test("انتخابِ صفرِ منطقی (بدون مطابقت) دکمه را غیرفعال نگه می‌دارد", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const { root, host: h } = mount(
+      <BackupModal req={{ open: true, payload: { kind: "backup" } }} onClose={() => {}} options={OPTIONS} countOf={() => 0} onExport={async () => {}} />,
+      host
+    );
+    await tick();
+    (h.querySelector('.sel-list input[type="checkbox"]') as HTMLInputElement).click();
+    await tick();
+    expect((h.querySelector("#backup-go") as HTMLButtonElement).disabled).toBe(true);
+    expect(h.querySelector("#backup-status")?.textContent).toContain("مطابقت ندارد");
+    root.unmount();
+  });
+
+  test("بازگشایی مودال، انتخاب قبلی را پاک می‌کند", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const { root, host: h } = mount(
+      <BackupModal req={{ open: true, payload: { kind: "backup" } }} onClose={() => {}} options={OPTIONS} countOf={() => 3} onExport={async () => {}} />,
+      host
+    );
+    await tick();
+    (h.querySelector('.sel-list input[type="checkbox"]') as HTMLInputElement).click();
+    await tick();
+    const el = (open: boolean) => (
+      <BackupModal req={{ open, payload: open ? { kind: "backup" } : null }} onClose={() => {}} options={OPTIONS} countOf={() => 3} onExport={async () => {}} />
+    );
+    root.render(el(false));
+    await tick();
+    root.render(el(true));
+    await tick();
+    expect((h.querySelector('.sel-list input[type="checkbox"]') as HTMLInputElement).checked).toBe(false);
+    expect((h.querySelector("#backup-go") as HTMLButtonElement).disabled).toBe(true);
+    root.unmount();
+  });
+
+  test("Escape مودال انتخابی را می‌بندد", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    let closed = 0;
+    const { root } = mount(
+      <BackupModal req={{ open: true, payload: { kind: "backup" } }} onClose={() => { closed++; }} options={OPTIONS} countOf={() => 1} onExport={async () => {}} />,
+      host
+    );
     await tick();
     document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     await tick();

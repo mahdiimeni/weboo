@@ -1015,3 +1015,57 @@ describe("readingOrderItems — ترتیب ارائه‌ی اسناد خروجی
     expect(HL.dash.readingOrderItems(newest).map((r: any) => r.id)).toEqual(["a", "b", "c"]);
   });
 });
+
+/* ---------- بک‌آپ انتخابی — backupSelectionOptions ---------- */
+
+describe("backupSelectionOptions (انتخابی)", () => {
+  test("خالی: سه فهرست خالی", () => {
+    expect(HL.dash.backupSelectionOptions([], {})).toEqual({ sites: [], articles: [], tags: [] });
+  });
+
+  test("سایت‌ها/مقاله‌ها/برچسب‌ها با شمارش درست", () => {
+    const records = [
+      rec("a1", { host: "a.com", url: "https://a.com/p1", urlNorm: "https://a.com/p1", title: "مقاله الف" }),
+      rec("a2", { host: "a.com", url: "https://a.com/p2", urlNorm: "https://a.com/p2", title: "مقاله ب" }),
+      rec("b1", { host: "b.org", url: "https://b.org/x", urlNorm: "https://b.org/x", title: "مقاله پ" }),
+      rec("b2", { host: "b.org", url: "https://b.org/x", urlNorm: "https://b.org/x", title: "مقاله پ" }),
+    ];
+    const tagMap = { "https://a.com/p1": ["قرآن"], "https://b.org/x": ["علم", "قرآن"] };
+    const o = HL.dash.backupSelectionOptions(records, tagMap);
+
+    /* sites: busiest first — b.org has 1 article with 2 highlights, a.com has 2 */
+    expect(o.sites).toEqual([
+      { host: "a.com", articles: 2 },
+      { host: "b.org", articles: 1 },
+    ]);
+
+    /* articles: one row per article group (page sort = title order), count = highlights */
+    expect(o.articles.map((a: any) => [a.key, a.host, a.count])).toEqual([
+      ["https://a.com/p1", "a.com", 1],
+      ["https://a.com/p2", "a.com", 1],
+      ["https://b.org/x", "b.org", 2],
+    ]);
+    expect(o.articles[0].title).toBe("مقاله الف");
+
+    /* tags: the SAME tagCounts inventory — count = articles carrying the tag */
+    expect(o.tags).toEqual([
+      { tag: "قرآن", count: 2 },
+      { tag: "علم", count: 1 },
+    ]);
+  });
+
+  test("بدون tagMap: برچسب‌ها خالی، بقیه سالم", () => {
+    const o = HL.dash.backupSelectionOptions([rec("a1")], undefined);
+    expect(o.tags).toEqual([]);
+    expect(o.sites).toEqual([{ host: "example.com", articles: 1 }]);
+    expect(o.articles.length).toBe(1);
+  });
+
+  test("خالص: ورودی را تغییر نمی‌دهد", () => {
+    const records = [rec("a1")];
+    const tagMap = { "https://example.com/p1": ["قرآن"] };
+    const before = JSON.stringify([records, tagMap]);
+    HL.dash.backupSelectionOptions(records, tagMap);
+    expect(JSON.stringify([records, tagMap])).toBe(before);
+  });
+});

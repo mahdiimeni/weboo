@@ -124,12 +124,16 @@ import { TAG_MAX_LEN, TAG_MAX_PER_ARTICLE } from "./constants.js";
   /**
    * Union semantics (mirrors the color chips): does this article carry ANY
    * of the active tags? Both sides fold, so a chip's display spelling
-   * matches an article's stored spelling regardless of ASCII case.
+   * matches a stored spelling regardless of ASCII case. `active` accepts any
+   * forEach-able collection (the dashboard's Set, the selective backup's
+   * array) — one membership rule for every caller.
    */
-  function hasActiveTag(tags: unknown, active: Set<string> | null | undefined): boolean {
-    if (!active || !active.size) return false;
+  function hasActiveTag(tags: unknown, active: Set<string> | string[] | null | undefined): boolean {
+    if (!active) return false;
+    var list = Array.isArray(active) ? active : Array.from(active);
+    if (!list.length) return false;
     var folded: Record<string, boolean> = Object.create(null);
-    active.forEach(function (a) { folded[fold(a)] = true; });
+    list.forEach(function (a) { folded[fold(a)] = true; });
     return (Array.isArray(tags) ? tags : []).some(function (t) {
       return !!folded[fold(t as string)];
     });

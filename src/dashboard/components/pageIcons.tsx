@@ -18,6 +18,17 @@ export const IconExport = () => (
   </svg>
 );
 
+/** Selective backup — a checklist with a checkmark (subset of the whole). */
+export const IconSelectBackup = () => (
+  <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="4" y1="6" x2="10" y2="6" />
+    <line x1="4" y1="11" x2="10" y2="11" />
+    <line x1="4" y1="16" x2="10" y2="16" />
+    <polyline points="14 11.5 16.5 14 21 8.5" />
+    <line x1="14" y1="16" x2="20" y2="16" />
+  </svg>
+);
+
 export const IconSettings = () => (
   <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="3" />

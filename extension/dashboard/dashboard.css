@@ -893,6 +893,48 @@ body {
 .exp-sec + .exp-sec { margin-top: 2px; }
 .exp-sec .radio-list { margin-bottom: 12px; }
 
+/* ---------- Selective backup modal («بک‌آپ انتخابی») ---------- */
+/* Three checkbox pickers (sites / articles / tags) as scrollable bordered
+   lists — the .radio visual family compacted to one-line rows; the checked
+   row gets the same accent treatment. .sel-status is the live count line
+   (role=status) above the actions. */
+.sel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 168px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 6px;
+}
+.sel-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 8px;
+  padding: 6px 9px;
+  cursor: pointer;
+  transition: background .14s;
+}
+.sel-item:hover { background: var(--hover); }
+.sel-item:has(input:checked) { background: var(--accent-soft); }
+.sel-item input { accent-color: var(--accent); flex: none; }
+.sel-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+}
+.sel-item .small { flex: none; }
+.sel-side { max-width: 30%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sel-none { margin: 0; }
+.sel-status { margin: 12px 0 0; }
+.sel-status strong { color: var(--text); }
+
 /* ---------- Highlight preview modal (v0.6.1 — «متن کامل هایلایت») ---------- */
 /* A floating window over the same .modal overlay family as the restore and
    export modals — but sized for READING: the card is capped to the viewport

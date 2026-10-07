@@ -119,3 +119,23 @@ describe("HL.export.printHtml (v0.6.0 — مسیر PDF)", () => {
     expect(win.document.querySelector('iframe[title="print-frame"]')).toBeNull();
   });
 });
+
+describe("HL.export — بک‌آپ انتخابی (نام فایل partial)", () => {
+  test("backupFileName(true) پسوند partial دارد؛ حالت عادی بدون partial می‌ماند", () => {
+    expect(HL.export.backupFileName(true)).toMatch(/^web-highlighter-backup-partial-\d{4}-\d{2}-\d{2}-\d{4}\.json$/);
+    expect(HL.export.backupFileName()).toMatch(/^web-highlighter-backup-\d{4}-\d{2}-\d{2}-\d{4}\.json$/);
+    expect(HL.export.backupFileName(false)).toMatch(/^web-highlighter-backup-\d{4}-\d{2}-\d{2}-\d{4}\.json$/);
+  });
+
+  test("saveBackup نشان meta.partial را می‌خواند و نام فایل را تعیین می‌کند", async () => {
+    HL.export.saveBackup({ app: "web-highlighter", highlights: {}, meta: { count: 0, partial: true } });
+    let a = win.document.querySelector("a[download]") as any;
+    expect(a.download).toMatch(/^web-highlighter-backup-partial-.*\.json$/);
+    a.remove(); /* the link cleans itself on a timer — outlive it explicitly */
+
+    HL.export.saveBackup({ app: "web-highlighter", highlights: { x: { text: "ت" } }, meta: { count: 1 } });
+    a = win.document.querySelector("a[download]") as any;
+    expect(a.download).toMatch(/^web-highlighter-backup-\d{4}/);
+    expect(a.download).not.toContain("partial");
+  });
+});
