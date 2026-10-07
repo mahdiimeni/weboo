@@ -2,7 +2,7 @@
  * HL.dash tests — dashboard data layer (pure functions)
  */
 import { describe, test, expect, beforeAll } from "bun:test";
-import { setupDom, loadEngine, ext } from "./helpers/engine";
+import { setupDom, loadEngine } from "./helpers/engine";
 
 let HL: any;
 

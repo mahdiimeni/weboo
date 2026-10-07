@@ -229,7 +229,7 @@ export function BookletModalRegion() {
  *  slice 5 ports the hl-modal. */
 export function ListRegion() {
   const s = useSyncExternalStore(subscribeData, getData);
-  const { groups, page, lead } = listModel(s);
+  const { page, lead } = listModel(s);
 
   const handlers: GroupCardHandlers = {
     onOpen: openArticle,

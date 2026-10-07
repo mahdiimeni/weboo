@@ -3,7 +3,7 @@
  * (pickIconHref: pure icon selection; captureSiteFavicon: injected-store flow)
  */
 import { describe, test, expect, beforeEach, afterEach } from "bun:test";
-import { setupDom, loadEngine, evalClassic, ext } from "./helpers/engine";
+import {setupDom, loadEngine, ext} from "./helpers/engine";
 
 let HL: any;
 let win: any;

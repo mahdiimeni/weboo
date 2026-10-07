@@ -191,6 +191,7 @@ export function BookletModal({ req, onClose, stats, onMarkdown, onBooklet }: {
   const [colorMode, setColorMode] = useState("color");
   const [busy, setBusy] = useState(false);
   const cancelRef = useRef<HTMLButtonElement>(null);
+  void setBusy; /* reserved for per-format pending UX; md/bk buttons gate on their own promises */
 
   useEffect(() => {
     if (req.open) {

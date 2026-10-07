@@ -20,15 +20,6 @@ import { TAG_MAX_LEN, TAG_MAX_PER_ARTICLE } from "./constants.js";
 
 
   interface TagCount { tag: string; count: number }
-  interface TagsApi {
-    sanitizeTag: (raw: unknown) => string | null;
-    sanitizeTagList: (list: unknown) => string[];
-    normalizeTagMap: (obj: unknown) => Record<string, string[]>;
-    hasTag: (list: unknown, tag: string | null | undefined) => boolean;
-    toggleTag: (list: unknown, tag: string) => string[];
-    tagCounts: (tagMap: unknown) => TagCount[];
-    hasActiveTag: (tags: unknown, active: Set<string> | null | undefined) => boolean;
-  }
 
 
   /** Comparison key (case-insensitive; identity for Persian text) */

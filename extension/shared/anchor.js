@@ -101,7 +101,7 @@ var normSource = {
     maxBestBefore: 4, /* skip when an exact hit already has context confidence */
     collect: function (ctx) {
         var out = [];
-        var ti = ctx.ti, rec = ctx.rec;
+        var ti = ctx.ti;
         var N = text.normInfo(ti.text);
         var q = text.normInfo(ctx.quote);
         if (!q.norm)

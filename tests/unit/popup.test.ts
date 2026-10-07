@@ -13,7 +13,7 @@
  * header (strong + counter) and RTL ones never get dir (inherit the
  * document's rtl).
  */
-import { describe, test, expect, beforeEach } from "bun:test";
+import { describe, test, expect } from "bun:test";
 import { setupDom, loadEngine, ext, readFile, makeChromeMock, sleep } from "./helpers/engine";
 
 let HL: any;
