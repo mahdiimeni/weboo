@@ -25,6 +25,7 @@ import { favicon } from "./favicon.js";
 /* 7c-1: shared-file wave — the orchestrator's HL.* reads became direct imports.
    store is a local instance injected into the highlighter — no namespace slot. */
 import { MSG, GOTO_HASH_PREFIX } from "../shared/constants.js";
+import { parseMessage } from "../shared/message-guard.js";
 import { backends } from "../shared/backends/chrome-storage.js";
 import { url } from "../shared/url.js";
 import { util } from "../shared/utils.js";
@@ -206,15 +207,16 @@ import { ui } from "../shared/ui/base.js";
   /* ---------- Runtime messages (via the bridge) ---------- */
 
   runtime.onMessage(function (msg, sender, sendResponse) {
-    if (!msg || !msg.type) return false;
-    if (msg.type === MSG.HIGHLIGHT_SELECTION) {
+    const m = parseMessage(msg);
+    if (!m) return false; /* malformed/unknown → ignore (no response) */
+    if (m.type === MSG.HIGHLIGHT_SELECTION) {
       var ctx = state.disabled ? null : hl.selectionCtx();
       if (ctx) hl.createFromCtx(ctx, (state.settings && state.settings.defaultColor) || 'yellow', false);
       sendResponse({ ok: !!ctx });
-    } else if (msg.type === MSG.GET_COUNT) {
+    } else if (m.type === MSG.GET_COUNT) {
       sendResponse({ count: hl.count() });
-    } else if (msg.type === MSG.GOTO) {
-      if (msg.id) gotoHighlight(msg.id, false);
+    } else if (m.type === MSG.GOTO) {
+      gotoHighlight(m.id, false); /* the parser guarantees a sane id */
       sendResponse({ ok: true });
     }
     return false;

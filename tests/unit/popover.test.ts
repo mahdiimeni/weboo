@@ -41,7 +41,7 @@ function present(po: any, id = "x1", over: Record<string, any> = {}) {
   });
 }
 
-const head = (po: any) => po.el.querySelector(".head");
+const _head = (po: any) => po.el.querySelector(".head");
 const grip = (po: any) => po.el.querySelector(".grip");
 
 /** full drag: down/move/up on the given element */

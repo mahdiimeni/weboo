@@ -220,11 +220,14 @@ export function startData(): void {
      (the controller's exact policy). Settings ride their own lighter path. */
   store.onRecordsChanged(util.debounce(() => { void refreshAll(); }, 400));
   store.onTagsChanged(util.debounce(() => { void refreshAll(); }, 400));
-  store.onSettingsChanged((s) => {
-    setState({ settings: s as Settings });
+  store.onSettingsChanged((s: Record<string, unknown>) => {
+    /* mergeSettings guarantees the full shape (DEFAULT_SETTINGS merged in) —
+       the double hop is the contract boundary, not a silent cast */
+    const settings = s as unknown as Settings;
+    setState({ settings: settings });
     /* the controller's live re-apply contract: a theme change from another
        context (or the replace-mode import) takes effect here immediately */
-    applyThemeNow((s as Settings).theme);
+    applyThemeNow(settings.theme);
   });
 }
 
@@ -255,14 +258,16 @@ export async function setSettings(patch: Partial<Settings>): Promise<void> {
 /* ---------- list actions (the controller's handlers, verbatim) ---------- */
 
 export function openArticle(g: { url?: string }): void {
-  if (!g.url) { toast("آدرس این صفحه ثبت نشده است", "error"); return; }
-  try { window.open(g.url, "_blank"); }
+  const url = util.safeOpenUrl(g.url);
+  if (!url) { toast("آدرس این صفحه ثبت نشده است", "error"); return; }
+  try { window.open(url, "_blank"); }
   catch (e) { toast("بازکردن صفحه ناموفق بود", "error"); }
 }
 
 export function viewRecord(rec: { url?: string; id: string }): void {
-  if (!rec.url) { toast("آدرس این هایلایت ثبت نشده است", "error"); return; }
-  try { window.open(rec.url + "#" + GOTO_HASH_PREFIX + rec.id, "_blank"); }
+  const url = util.safeOpenUrl(rec.url);
+  if (!url) { toast("آدرس این هایلایت ثبت نشده است", "error"); return; }
+  try { window.open(url + "#" + GOTO_HASH_PREFIX + rec.id, "_blank"); }
   catch (e) { toast("بازکردن صفحه ناموفق بود", "error"); }
 }
 
@@ -444,11 +449,11 @@ export async function importBackup(backup: Record<string, unknown>, mode: string
 async function exportGroups() {
   const m = await store.getAllRecords();
   const records = Array.from(m.values());
-  const tagMap = (await store.getTags()) || {};
+  const tagMap: Record<string, string[]> = (await store.getTags()) || {};
   const gs = dash.groupRecords(records, "newest");
   gs.forEach((g: { key: string; items: never; tags?: string[] }) => {
     (g as unknown as { items: unknown[] }).items = dash.readingOrderItems(g);
-    g.tags = tagMap[g.key] || [];
+    g.tags = tagMap[String(g.key)] || []; // tagMap: Record<string, string[]> — String() satisfies the index
   });
   return gs;
 }

@@ -48,8 +48,6 @@ const readSrc = (f: string): string => {
   if (c === undefined) { c = readFileSync(f, "utf-8"); srcCache.set(f, c); }
   return c;
 };
-const RE_TOP_IMPORT = /^import\s/m;
-const RE_TOP_MODULE = /^(?:import|export)\s/m;
 
 /* ---------- namespace harvest (Phase 12) ----------
    The product no longer assigns a globalThis.HL registry: every engine file
@@ -61,29 +59,7 @@ const RE_TOP_MODULE = /^(?:import|export)\s/m;
    globalThis.HL.applyThemeNow itself; its contribution is merged as-is and is
    the ONLY globalThis.HL writer in the product. */
 
-/* relative specifiers a file pulls in (extension code: no bare imports) */
-function staticImports(src: string): string[] {
-  const out: string[] = [];
-  for (const m of src.matchAll(/^import\s+(?:[^"'*\n][^"\n]*?\s+from\s+)?["']([^"']+)["']/gm)) out.push(m[1]);
-  for (const m of src.matchAll(/^export\s+[^;\n]*?\s+from\s+["']([^"']+)["']/gm)) out.push(m[1]);
-  return out;
-}
-
 type WorldCache = Map<string, SourceTextModule>;
-
-/* files reachable (via relative imports) from the import-bearing members */
-function graphMembers(paths: string[]): Set<string> {
-  const set = new Set<string>();
-  const walk = (p: string): void => {
-    if (set.has(p)) return;
-    set.add(p);
-    for (const spec of staticImports(readSrc(p))) {
-      if (spec.startsWith(".")) walk(fileURLToPath(new URL(spec, pathToFileURL(p))));
-    }
-  };
-  paths.filter((p) => RE_TOP_IMPORT.test(readSrc(p))).forEach(walk);
-  return set;
-}
 
 /* load file + its relative deps as ONE freshly-evaluated vm graph for this
    world; already-evaluated members are reused (linking against them is legal) */
@@ -332,7 +308,6 @@ export function loadEngine(opts: EngineOptions = {}): Promise<any> {
   if (opts.chrome !== undefined) g.chrome = opts.chrome;
   const paths = [...(opts.files ?? DEFAULT_FILES), ...(opts.extraFiles || [])]
     .map((f) => (f.startsWith("/") || /^[A-Za-z]:/.test(f) ? f : ext(f)));
-  const members = graphMembers(paths);
   const cache: WorldCache = new Map();
   return (async () => {
     for (const p of paths) await loadGraph(p, cache);

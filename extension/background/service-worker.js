@@ -16,6 +16,7 @@
 import { APP_ID, DEFAULT_SETTINGS, MSG } from '../shared/constants.js';
 import { backends } from '../shared/backends/chrome-storage.js';
 import { createStoreReader } from '../shared/store.js';
+import { parseMessage } from '../shared/message-guard.js';
 
 /* Composition root: the read-only reader (ISP) — the SW never writes;
    utils/format/clipboard/export are not loaded at all for this layer.
@@ -171,9 +172,10 @@ const reader = createStoreReader(backends.chromeStorage());
   try {
     chrome.runtime.onMessage.addListener(function (msg, sender) {
       try {
-        if (!msg || msg.type !== MSG.COUNT_REPORT) return false;
+        const m = parseMessage(msg);
+        if (!m || m.type !== MSG.COUNT_REPORT) return false; /* parser rejects malformed payloads */
         if (!sender || !sender.tab || sender.tab.id == null) return false;
-        updateBadge(sender.tab.id, Number(msg.count) || 0);
+        updateBadge(sender.tab.id, m.count);
       } catch (e) { /* noop */ }
       return false; /* we never respond (the message channel closes) */
     });

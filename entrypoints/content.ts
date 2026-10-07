@@ -36,6 +36,7 @@ import "../extension/shared/ui/popover.js";
 import "../extension/shared/store.js";
 import "../extension/shared/runtime-bridge.js";
 import "../extension/shared/highlighter.js";
+import "../extension/shared/message-guard.js";
 import "../extension/content/favicon.js";
 import "../extension/content/content.js";
 import "../extension/content/mark-style.css";

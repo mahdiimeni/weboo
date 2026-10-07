@@ -106,7 +106,7 @@ describe("HL.util (پریمیتیوهای هسته)", () => {
   test("debounce: فقط آخرین فراخوانی اجرا می‌شود", async () => {
     setupDom();
     const HL = await loadEngine({});
-    let calls: number[] = [];
+    const calls: number[] = [];
     const fn = HL.util.debounce((n: number) => calls.push(n), 30);
     fn(1);
     fn(2);
@@ -124,7 +124,8 @@ describe("HL.util (پریمیتیوهای هسته)", () => {
   test("utils دیگر اعضای جابه‌جاشده را ندارد (قرارداد تفکیک)", async () => {
     setupDom();
     const HL = await loadEngine({});
-    expect(Object.keys(HL.util).sort()).toEqual(["cssEscape", "debounce", "escapeHtml", "newId"]);
+    expect(Object.keys(HL.util).sort()).toEqual(["cssEscape",
+    "debounce", "escapeHtml", "newId", "safeOpenUrl"]); /* sorted — the ISP surface contract */
   });
 });
 

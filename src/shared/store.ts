@@ -95,8 +95,8 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
      pre-versioning shape — no data rewritten when versioning landed). */
   var SCHEMA_VERSION = 1;
 
-  function dataKey(host) { return P_DATA + host; }
-  function faviconKey(host) { return P_FAVICON + host; }
+  function dataKey(host: string) { return P_DATA + host; }
+  function faviconKey(host: string) { return P_FAVICON + host; }
 
   /* Local views; full models live in src/types */
   interface StoreOpts { schemaVersion?: number; migrations?: MigrationStep[] }
@@ -152,7 +152,7 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
       for (var i = 0; i < steps.length; i++) if (steps[i] && steps[i].from === v) step = steps[i];
       if (!step || typeof step.run !== 'function' || !(step.to > v) || step.to > target) return v; /* gap: no stamp */
       await step.run(backend);
-      var stamp = {};
+      var stamp: Record<string, unknown> = {};
       stamp[K_SCHEMA] = step.to;
       await backend.set(stamp);
       v = step.to;
@@ -195,7 +195,7 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
     }
 
     /** Runs the job at the tail of the write queue; a previous error doesn't break the chain */
-    function enqueueWrite(job) {
+    function enqueueWrite(job: () => Promise<unknown>) {
       /* every write first passes the migration gate — ordering without touching call sites */
       var run = writeTail.then(migrated, migrated).then(job);
       writeTail = run.then(function () { /* noop */ }, function () { /* noop */ });
@@ -211,20 +211,20 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
 
     /* ---------- Raw reads (for inside queue jobs) ---------- */
 
-    function getRaw(key, def) {
+    function getRaw(key: string, def: unknown) {
       return backend.get(key).then(function (o) {
         return (o && key in o) ? o[key] : def;
       });
     }
 
-    async function setRaw(obj) {
+    async function setRaw(obj: Record<string, unknown>) {
       if (!obj || !Object.keys(obj).length) return;
       await backend.set(obj);
     }
 
     function getAllRaw() { return backend.get(null); }
 
-    function makeObj(k, v) { var o = {}; o[k] = v; return o; }
+    function makeObj(k: string, v: unknown) { var o: Record<string, unknown> = {}; o[k] = v; return o; }
 
     async function getSettingsRaw() {
       var s = await getRaw(K_SETTINGS, {});
@@ -236,9 +236,9 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
       return (m || {}) as Record<string, any>;
     }
 
-    async function getForUrlRaw(urlNorm, host) {
+    async function getForUrlRaw(urlNorm: string, host: string) {
       var m = await getHostMapRaw(host);
-      var out = new Map();
+      var out = new Map<string, any>();
       Object.keys(m).forEach(function (id) {
         var r = m[id];
         if (r && r.urlNorm === urlNorm) out.set(id, r);
@@ -246,12 +246,12 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
       return out;
     }
 
-    async function getFaviconRaw(host) {
+    async function getFaviconRaw(host: string) {
       var m = await getRaw(faviconKey(host), null);
       return sanitizeFaviconMeta(m && Object.assign({}, m, { host: host }));
     }
 
-    async function setFaviconRaw(host, meta) {
+    async function setFaviconRaw(host: string, meta: { icon: unknown; capturedAt: unknown }) {
       var clean = sanitizeFaviconMeta(Object.assign({}, meta || {}, { host: host }));
       if (!clean) return null;
       await setRaw(makeObj(faviconKey(host), clean));
@@ -260,7 +260,7 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
 
     async function getFaviconMapRaw() {
       var all = await getAllRaw();
-      var out = {};
+      var out: Record<string, { icon: string; capturedAt: number; host: string }> = {};
       Object.keys(all).forEach(function (k) {
         if (k.indexOf(P_FAVICON) !== 0) return;
         var clean = sanitizeFaviconMeta(Object.assign({}, all[k], { host: k.slice(P_FAVICON.length) }));
@@ -276,7 +276,7 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
       return tagRules.normalizeTagMap(m);
     }
 
-    async function setArticleTagsRaw(urlNorm, tags) {
+    async function setArticleTagsRaw(urlNorm: string, tags: Record<string, string[]>) {
       var key = String(urlNorm || '');
       if (!key) return;
       var clean = tagRules.sanitizeTagList(tags);
@@ -287,7 +287,7 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
       return m;
     }
 
-    async function removeArticleTagsRaw(urlNorm) {
+    async function removeArticleTagsRaw(urlNorm: string) {
       var key = String(urlNorm || '');
       if (!key) return false;
       var m = await getTagsRaw();
@@ -318,22 +318,22 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
 
     /* ---------- Raw writes (for inside queue jobs) ---------- */
 
-    async function setSettingsRaw(patch) {
+    async function setSettingsRaw(patch: Record<string, unknown>) {
       var cur = await getSettingsRaw();
       var next = Object.assign({}, cur, patch || {});
       await setRaw(makeObj(K_SETTINGS, next));
       return next;
     }
 
-    async function saveManyRaw(recs) {
+    async function saveManyRaw(recs: Record<string, any>[]) {
       if (!recs || !recs.length) return;
-      var byHost = {};
+      var byHost: Record<string, Record<string, any>> = {};
       recs.forEach(function (r) {
         if (!r || !r.id || !r.host) return;
         byHost[r.host] = byHost[r.host] || {};
         byHost[r.host][r.id] = r;
       });
-      var obj = {};
+      var obj: Record<string, unknown> = {};
       var hosts = Object.keys(byHost);
       for (var i = 0; i < hosts.length; i++) {
         var h = hosts[i];
@@ -344,9 +344,9 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
       await setRaw(obj);
     }
 
-    async function removeRaw(id, hostHint) {
+    async function removeRaw(id: string, hostHint?: string) {
       var hosts = hostHint ? [hostHint] : await hostsWithDataRaw();
-      var obj = {};
+      var obj: Record<string, unknown> = {};
       var found = false;
       for (var i = 0; i < hosts.length; i++) {
         var m = await getHostMapRaw(hosts[i]);
@@ -356,11 +356,11 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
       return found;
     }
 
-    async function removeManyRaw(ids, hostHint) {
-      var idSet = {};
-      (ids || []).forEach(function (i) { idSet[i] = 1; });
+    async function removeManyRaw(ids: string[], hostHint?: string) {
+      var idSet: Record<string, boolean> = {};
+      (ids || []).forEach(function (i: string) { idSet[i] = true; });
       var hosts = hostHint ? [hostHint] : await hostsWithDataRaw();
-      var obj = {};
+      var obj: Record<string, unknown> = {};
       var any = false;
       for (var i = 0; i < hosts.length; i++) {
         var m = await getHostMapRaw(hosts[i]);
@@ -371,9 +371,9 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
       if (any) await setRaw(obj);
     }
 
-    async function removeForUrlRaw(urlNorm, host) {
+    async function removeForUrlRaw(urlNorm: string, host: string) {
       var m = await getHostMapRaw(host);
-      var out = {};
+      var out: Record<string, any> = {};
       var changed = false;
       Object.keys(m).forEach(function (id) {
         var r = m[id];
@@ -399,26 +399,26 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
       return getSettingsRaw();
     }
 
-    function setSettings(patch) {
+    function setSettings(patch: Record<string, unknown>) {
       return enqueueWrite(function () { return setSettingsRaw(patch); });
     }
 
-    async function getHostMap(host) {
+    async function getHostMap(host: string) {
       await drained();
       return getHostMapRaw(host);
     }
 
-    async function getForUrl(urlNorm, host) {
+    async function getForUrl(urlNorm: string, host: string) {
       await drained();
       return getForUrlRaw(urlNorm, host);
     }
 
-    async function getFavicon(host) {
+    async function getFavicon(host: string) {
       await drained();
       return getFaviconRaw(host);
     }
 
-    function setFavicon(host, meta) {
+    function setFavicon(host: string, meta: { icon: unknown; capturedAt: unknown }) {
       return enqueueWrite(function () { return setFaviconRaw(host, meta); });
     }
 
@@ -432,11 +432,11 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
       return getTagsRaw();
     }
 
-    function setArticleTags(urlNorm, tags) {
+    function setArticleTags(urlNorm: string, tags: Record<string, string[]>) {
       return enqueueWrite(function () { return setArticleTagsRaw(urlNorm, tags); });
     }
 
-    function removeArticleTags(urlNorm) {
+    function removeArticleTags(urlNorm: string) {
       return enqueueWrite(function () { return removeArticleTagsRaw(urlNorm); });
     }
 
@@ -450,23 +450,23 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
       return hostsWithDataRaw();
     }
 
-    function save(rec) {
+    function save(rec: Record<string, any>) {
       return enqueueWrite(function () { return saveManyRaw([rec]); });
     }
 
-    function saveMany(recs) {
+    function saveMany(recs: Record<string, any>[]) {
       return enqueueWrite(function () { return saveManyRaw(recs); });
     }
 
-    function remove(id, hostHint) {
+    function remove(id: string, hostHint?: string) {
       return enqueueWrite(function () { return removeRaw(id, hostHint); });
     }
 
-    function removeMany(ids, hostHint) {
+    function removeMany(ids: string[], hostHint?: string) {
       return enqueueWrite(function () { return removeManyRaw(ids, hostHint); });
     }
 
-    function removeForUrl(urlNorm, host) {
+    function removeForUrl(urlNorm: string, host: string) {
       return enqueueWrite(function () { return removeForUrlRaw(urlNorm, host); });
     }
 
@@ -479,9 +479,9 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
     async function exportData() {
       await drained();
       var settings = await getSettingsRaw();
-      var highlights = {};
+      var highlights: Record<string, Record<string, any>> = {};
       var records = await getAllRecordsRaw();
-      records.forEach(function (r, id) { highlights[id] = r; });
+      records.forEach(function (r: Record<string, any>, id: string) { highlights[id] = r; });
       var favicons = await getFaviconMapRaw();
       var tags = await getTagsRaw();
       return {
@@ -500,6 +500,35 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
 
     var RECORD_FIELDS = ['id', 'host', 'site', 'url', 'urlNorm', 'title', 'text', 'prefix', 'suffix', 'start', 'end', 'anchor', 'color', 'note', 'createdAt', 'updatedAt'];
 
+    /* Unknown-field preservation (hardening phase — data-safety contract):
+       fields this version does not know are FUTURE data, not garbage — a
+       newer build's records must survive an older build's import/export
+       round trip. Sanity rules only: JSON-safe values, sane key shape, and a
+       per-record serialized budget (8 KB) so a hostile backup cannot bloat
+       the store through this door. Known fields always win. */
+    var UNKNOWN_FIELDS_BUDGET = 8192;
+
+    function preserveUnknownFields(r: Record<string, any>, out: Record<string, any>): void {
+      var budget = UNKNOWN_FIELDS_BUDGET;
+      for (var k in r) {
+        if (!Object.prototype.hasOwnProperty.call(r, k)) continue;
+        if (RECORD_FIELDS.indexOf(k) !== -1) continue;
+        if (!/^[A-Za-z0-9_-]{1,64}$/.test(k)) continue; /* sane key shape */
+        var v = r[k];
+        var t = typeof v;
+        var size = -1;
+        if (v === null || t === 'string' || t === 'number' || t === 'boolean') {
+          size = String(v).length + k.length;
+        } else if (t === 'object') {
+          try {
+            var s = JSON.stringify(v);
+            if (s) size = s.length + k.length;
+          } catch (e) { /* unserializable → dropped by the budget rules */ }
+        }
+        if (size !== -1 && size <= budget) { out[k] = v; budget -= size; }
+      }
+    }
+
     function sanitizeRecord(r: Record<string, any>, id: string): Record<string, any> {
       var out: Record<string, any> = {};
       RECORD_FIELDS.forEach(function (f) { if (r[f] !== undefined) out[f] = r[f]; });
@@ -516,6 +545,7 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
       out.note = String(r.note || '');
       out.createdAt = Number(r.createdAt) || Date.now();
       out.updatedAt = Number(r.updatedAt) || out.createdAt;
+      preserveUnknownFields(r, out);
       return out;
     }
 
@@ -555,7 +585,7 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
       /* Backup favicons: only valid metas; in merge the newer version (capturedAt) wins */
       if (backup.favicons && typeof backup.favicons === 'object') {
         var curFav = await getFaviconMapRaw();
-        var favObj = {};
+        var favObj: Record<string, unknown> = {};
         Object.keys(backup.favicons).forEach(function (h) {
           var clean = sanitizeFaviconMeta(Object.assign({}, backup.favicons[h], { host: h }));
           if (!clean) return;
@@ -591,21 +621,21 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
 
     /* ---------- Change listening (backend-agnostic) ---------- */
 
-    function onSettingsChanged(cb) {
-      return backend.onChange(function (changes) {
+    function onSettingsChanged(cb: (value: Record<string, unknown>) => void) {
+      return backend.onChange(function (changes: Record<string, { oldValue?: unknown; newValue?: unknown }>) {
         if (changes[K_SETTINGS]) cb(mergeSettings(changes[K_SETTINGS].newValue));
       });
     }
 
-    function onRecordsChanged(cb) {
-      return backend.onChange(function (changes) {
-        var keys = Object.keys(changes).filter(function (k) { return k.indexOf(P_DATA) === 0; });
+    function onRecordsChanged(cb: () => void) {
+      return backend.onChange(function (changes: Record<string, { oldValue?: unknown; newValue?: unknown }>) {
+        var keys = Object.keys(changes).filter(function (k: string) { return k.indexOf(P_DATA) === 0; });
         if (keys.length) cb();
       });
     }
 
-    function onTagsChanged(cb) {
-      return backend.onChange(function (changes) {
+    function onTagsChanged(cb: () => void) {
+      return backend.onChange(function (changes: Record<string, { oldValue?: unknown; newValue?: unknown }>) {
         if (changes[K_TAGS]) cb();
       });
     }
@@ -665,15 +695,15 @@ type ReaderBackend = Pick<StorageBackend, "get" | "onChange">;
       return mergeSettings((o && K_SETTINGS in o) ? o[K_SETTINGS] : {});
     }
 
-    function onSettingsChanged(cb) {
-      return backend.onChange(function (changes) {
+    function onSettingsChanged(cb: (value: Record<string, unknown>) => void) {
+      return backend.onChange(function (changes: Record<string, { oldValue?: unknown; newValue?: unknown }>) {
         if (changes[K_SETTINGS]) cb(mergeSettings(changes[K_SETTINGS].newValue));
       });
     }
 
-    function onRecordsChanged(cb) {
-      return backend.onChange(function (changes) {
-        var keys = Object.keys(changes).filter(function (k) { return k.indexOf(P_DATA) === 0; });
+    function onRecordsChanged(cb: () => void) {
+      return backend.onChange(function (changes: Record<string, { oldValue?: unknown; newValue?: unknown }>) {
+        var keys = Object.keys(changes).filter(function (k: string) { return k.indexOf(P_DATA) === 0; });
         if (keys.length) cb();
       });
     }

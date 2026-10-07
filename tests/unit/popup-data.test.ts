@@ -8,7 +8,7 @@
  * constants + format + detect-dir — nothing else.
  */
 import { describe, test, expect, beforeEach } from "bun:test";
-import { setupDom, loadEngine, ext } from "./helpers/engine";
+import { setupDom, loadEngine } from "./helpers/engine";
 
 let HL: any;
 

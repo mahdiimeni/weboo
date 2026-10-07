@@ -3,7 +3,10 @@
 The extension is a TypeScript + WXT + React codebase. There is **no global
 registry**: every file is an ES module with real bindings. Branch
 `migration/arch-modernization`; the plan of record is
-`docs/migration-baseline.md` (phases 0–12, all closed — see `worklog.md`).
+`docs/migration-baseline.md` (phases 0–12, all closed — see `worklog.md`),
+followed by an architecture-hardening phase (anchor confidence policy,
+runtime message validation, unknown-field preservation, URL scheme gates,
+noImplicitAny, tightened lint, CI — worklog Task 86).
 
 ## Layout
 
@@ -55,7 +58,7 @@ DOM widgets) and an injected store — see `docs/anchor-engine.md`.
 
 ## Testing
 
-- `bun run test` — 557 unit tests over bun:test + happy-dom. The harness
+- `bun run test` — 582 unit tests over bun:test + happy-dom (strict + noImplicitAny across both tsconfigs). The harness
   (`tests/unit/helpers/engine.ts`) evaluates each file as a real ES-module
   graph (vm.SourceTextModule) per test world and HARVESTS the module bindings
   into the `HL` shape the tests read — identity preserved by construction.
@@ -67,6 +70,8 @@ DOM widgets) and an injected store — see `docs/anchor-engine.md`.
 - Real Chrome (`tests/e2e/`): `real-theme` (the popup theme cycle, hard-gated
   probes), `next-compat` (16 SPA/remount scenarios), and the dashboard smoke
   (real storage injection → React render → modals via the real UI).
+- CI (`.github/workflows/ci.yml`): install → typecheck → lint → test →
+  build + parity on every push/PR; browser rigs stay local by design.
 - `bun run zip` rebuilds `.output/chrome-mv3` through the parity gate and
   packs `dist/`; the release zip is a tracked artifact refreshed on release
   commits only.

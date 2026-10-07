@@ -121,3 +121,68 @@ describe("OCP — resolvers are data", () => {
     expect(HL.anchor.resolve(ti, { text: quote })).toBeNull(); /* and back */
   });
 });
+
+describe("confidence policy (hardening phase — MIN_CONFIDENCE derived from the scorer's 5/6.5 seam)", () => {
+  /* the same duplicate fixture idea as highlighter.test's visibility block:
+     two identical copies, one hidden — the twin-retarget contract's territory */
+  const DUP_HTML =
+    `<div id="hid" style="display:none"><p id="ph">متن آزمایشی تکراری برای تست دیده‌شدن</p></div>` +
+    `<div id="vis"><p id="pv">متن آزمایشی تکراری برای تست دیده‌شدن</p></div>`;
+
+  test("strong match: the saved offsets still hold the exact text → offsets wins (score 9 ≥ floor)", () => {
+    const ti = HL.text.build(art);
+    const start = ti.text.indexOf("پاراگراف دوم");
+    const f = HL.anchor.resolve(ti, { text: "پاراگراف دوم", start: start, prefix: "است", suffix: "برای" });
+    expect(f).not.toBeNull();
+    expect(f.method).toBe("offsets"); /* the saved position verified — strongest signal */
+  });
+
+  test("worst visible case: stale offsets far away + zero context → 6.5, still ≥ floor (accepted)", () => {
+    const ti = HL.text.build(art);
+    const quote = "پاراگراف دوم"; /* unique in the doc, but rec.start points somewhere far */
+    const f = HL.anchor.resolve(ti, { text: quote, start: 0 });
+    expect(f).not.toBeNull(); /* 8 visible − 1.5 proximity = 6.5 — the seam's floor case */
+    expect(f.method).toBe("exact");
+  });
+
+  test("ambiguous match: two visible copies, no distinguishing context → deterministic earliest-visible (the twin-invariant evidence floor)", () => {
+    win = setupDom({ html: DUP_HTML });
+    const ti = HL.text.build(win.document.body);
+    const f = HL.anchor.resolve(ti, { text: "متن آزمایشی تکراری" });
+    expect(f).not.toBeNull(); /* visibility alone IS evidence — orphaning here would break twin-retarget */
+    expect(f.score).toBeGreaterThanOrEqual(5.5);
+    expect(f.range.toString()).toBe("متن آزمایشی تکراری");
+    /* the fixture's FIRST copy is the hidden div; the VISIBLE one wins the
+       score (8 vs 0) — deterministic visibility-first, reproducible */
+    const hiddenIdx = ti.text.indexOf("متن آزمایشی تکراری");
+    const visibleIdx = ti.text.indexOf("متن آزمایشی تکراری", hiddenIdx + 1);
+    expect(f.start).toBe(visibleIdx);
+  });
+
+  test("context mismatch: saved prefix no longer matches either copy → still the visible copy (no evidence lost)", () => {
+    win = setupDom({ html: DUP_HTML });
+    const ti = HL.text.build(win.document.body);
+    const f = HL.anchor.resolve(ti, { text: "متن آزمایشی تکراری", prefix: "زمینه‌ای که دیگر وجود ندارد" });
+    expect(f).not.toBeNull(); /* prefix miss costs 2, not confidence */
+    expect(f.method).toBe("exact"); /* exact hit (score 8) skips the norm scan (maxBestBefore 4) */
+  });
+
+  test("candidate below confidence: the ONLY occurrence is hidden → orphan (no DOM wrap the invariant would reject)", () => {
+    win = setupDom({ html: `<div style="display:none"><p id="hp">متن پنهان برای آزمون توقوف</p></div>` });
+    const ti = HL.text.build(win.document.body);
+    const f = HL.anchor.resolve(ti, { text: "متن پنهان برای آزمون توقوف" });
+    expect(f).toBeNull(); /* hidden max = 5 < 5.5 — the resolver orphans directly */
+  });
+
+  test("candidate below confidence: multiple candidates, ALL hidden → orphan (never best-available)", () => {
+    win = setupDom({ html: `<div style="display:none"><p>متن آزمایشی تکراری الف</p><p>متن آزمایشی تکراری ب</p></div>` });
+    const ti = HL.text.build(win.document.body);
+    const f = HL.anchor.resolve(ti, { text: "متن آزمایشی تکراری" });
+    expect(f).toBeNull();
+  });
+
+  test("correct orphan behavior end-to-end: changed page without the quote → null (nothing to score)", () => {
+    const ti = HL.text.build(art);
+    expect(HL.anchor.resolve(ti, { text: "متنی که دیگر وجود ندارد در صفحه" })).toBeNull();
+  });
+});

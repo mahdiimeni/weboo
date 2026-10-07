@@ -307,7 +307,7 @@ describe("ThemeRadios + ColorDots + BehaviorSwitches (Phase 8 slice 7)", () => {
     labels.forEach((lab, i) => {
       const key = THEME_KEYS[i];
       expect(lab.querySelector("input")?.getAttribute("value")).toBe(key);
-      expect(lab.querySelector("strong")?.textContent).toBe(THEMES[key].label);
+      expect(lab.querySelector("strong")?.textContent).toBe((THEMES as Record<string, { label: string }>)[key].label);
       expect(lab.querySelector(".muted.small")?.textContent).toBe(THEME_HINTS[key]);
       expect((lab.querySelector("input") as HTMLInputElement).checked).toBe(key === "auto");
     });

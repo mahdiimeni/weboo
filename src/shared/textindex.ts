@@ -32,10 +32,6 @@
     offsetOf(node: Node, offset: number): number;
     offsetsOfRange(range: Range): TextOffsets | null;
   }
-  interface HlSlice {
-    dom?: { isHidden(el: Node): boolean };
-    text?: unknown;
-  }
 
   /** Tags whose text does not count as "document text" */
   var SKIP_TAGS: Record<string, 1> = {

@@ -35,9 +35,21 @@ function cssEscape(s) {
         return String(s);
     }
 }
+/**
+ * Scheme gate for URLs that reach navigation/link contexts (the dashboard's
+ * open buttons, the popup's view, the booklet's article links). Records can
+ * carry imported data — a hostile backup must not turn a link into
+ * `javascript:`/`data:` execution. The allow-list mirrors the manifest's
+ * content-script matches (http/https/file).
+ */
+function safeOpenUrl(url) {
+    var s = String(url == null ? '' : url).trim();
+    return /^(https?:\/\/|file:\/\/)/i.test(s) ? s : null;
+}
 export const util = {
     newId: newId,
     debounce: debounce,
     escapeHtml: escapeHtml,
-    cssEscape: cssEscape
+    cssEscape: cssEscape,
+    safeOpenUrl: safeOpenUrl
 };

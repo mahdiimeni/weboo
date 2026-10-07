@@ -254,7 +254,6 @@ function composite(fg: string, bg: string): RGB {
   const b = parseColor(bg);
   const mix = (x: { rgb: RGB; a: number }, base: RGB): RGB =>
     [0, 1, 2].map((i) => Math.round(x.rgb[i] * x.a + base[i] * (1 - x.a))) as RGB;
-  const rgbStr = (r: RGB) => `rgb(${r[0]}, ${r[1]}, ${r[2]})`;
   return mix(f, mix(b, [255, 255, 255]));
 }
 
@@ -485,7 +484,6 @@ describe("قرارداد پنجره‌ی شناور کاملاً هوشمند �
   const dashCss = () => readFile(ext("dashboard", "dashboard.css"));
   /* Phase 8: the page skeleton is the WXT entrypoint template now
      (subdir index.html — WXT's convention; emits dashboard.html at root) */
-  const dashHtml = () => readFile(ext("..", "entrypoints", "dashboard", "index.html"));
 
   test("عنوان پنجره: ۱۵px (کوچک‌تر) + بی text-align قفل‌شده — چینش از dir خودِ متن", () => {
     const m = dashCss().match(/\.hl-head h2\s*\{([^}]*)\}/);

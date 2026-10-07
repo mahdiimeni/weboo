@@ -12,20 +12,6 @@
 import { COLORS } from "./constants.js";
 
 
-  interface ColorEntry { label?: string; dot?: string }
-  interface FormatApi {
-    faNum: (n?: number | string | null) => string;
-    fmtBytes: (b?: number | string | null) => string;
-    fmtDateTime: (ts: number) => string;
-    fmtDate: (ts: number) => string;
-    isoDate: (ts: number) => string;
-    excerpt: (s: unknown, n: number) => string;
-    oneLine: (s: unknown) => string;
-    dotColorOf: (key: string) => string;
-    faviconLetter: (host?: string | null) => string;
-    displayUrl: (url?: string | null) => string;
-    displayHost: (url?: string | null) => string;
-  }
 
 
   /* ---------- Numbers and sizes ---------- */
