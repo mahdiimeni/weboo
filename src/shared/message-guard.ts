@@ -30,6 +30,9 @@ export type ParsedMessage =
 /** Highlight-record ids are engine-generated (host + base64url segment);
  *  a sane inbound id is short, non-empty and has no control characters. */
 function isValidId(id: unknown): id is string {
+  /* the control-char class is the POINT of this guard (reject ids that could
+     smuggle newlines into log/display contexts) — narrowly overridden */
+  // eslint-disable-next-line no-control-regex
   return typeof id === "string" && id.length > 0 && id.length <= 200 && !/[\u0000-\u001f]/.test(id);
 }
 

@@ -124,7 +124,8 @@ describe("HL.util (پریمیتیوهای هسته)", () => {
   test("utils دیگر اعضای جابه‌جاشده را ندارد (قرارداد تفکیک)", async () => {
     setupDom();
     const HL = await loadEngine({});
-    expect(Object.keys(HL.util).sort()).toEqual(["cssEscape", "debounce", "escapeHtml", "newId"]);
+    expect(Object.keys(HL.util).sort()).toEqual(["cssEscape",
+    "debounce", "escapeHtml", "newId", "safeOpenUrl"]); /* sorted — the ISP surface contract */
   });
 });
 

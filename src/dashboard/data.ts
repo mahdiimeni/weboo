@@ -255,14 +255,16 @@ export async function setSettings(patch: Partial<Settings>): Promise<void> {
 /* ---------- list actions (the controller's handlers, verbatim) ---------- */
 
 export function openArticle(g: { url?: string }): void {
-  if (!g.url) { toast("آدرس این صفحه ثبت نشده است", "error"); return; }
-  try { window.open(g.url, "_blank"); }
+  const url = util.safeOpenUrl(g.url);
+  if (!url) { toast("آدرس این صفحه ثبت نشده است", "error"); return; }
+  try { window.open(url, "_blank"); }
   catch (e) { toast("بازکردن صفحه ناموفق بود", "error"); }
 }
 
 export function viewRecord(rec: { url?: string; id: string }): void {
-  if (!rec.url) { toast("آدرس این هایلایت ثبت نشده است", "error"); return; }
-  try { window.open(rec.url + "#" + GOTO_HASH_PREFIX + rec.id, "_blank"); }
+  const url = util.safeOpenUrl(rec.url);
+  if (!url) { toast("آدرس این هایلایت ثبت نشده است", "error"); return; }
+  try { window.open(url + "#" + GOTO_HASH_PREFIX + rec.id, "_blank"); }
   catch (e) { toast("بازکردن صفحه ناموفق بود", "error"); }
 }
 
