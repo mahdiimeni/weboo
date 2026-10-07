@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 /**
- * Web Highlighter — real-browser compatibility E2E on a Next.js (React) stack
+ * Weboo — real-browser compatibility E2E on a Next.js (React) stack
  *
  * Everything real: Chrome for Testing + the real loaded extension (extension/)
  * + the real fixture Next.js App-Router site (tests/e2e/fixtures/next-app).
@@ -165,7 +165,7 @@ for (let i = 0; i < 80 && !extId; i++) {
   for (const c of cands) {
     try {
       const { sessionId } = await browser.send('Target.attachToTarget', { targetId: c.targetId, flatten: true });
-      const r = await browser.send('Runtime.evaluate', { expression: 'globalThis.__HLX_APP === "web-highlighter"', returnByValue: true }, sessionId);
+      const r = await browser.send('Runtime.evaluate', { expression: 'globalThis.__HLX_APP === "weboo"', returnByValue: true }, sessionId);
       if (r.result && r.result.value === true) { extId = c.url.split('/')[2]; break; }
     } catch (e) { /* foreign */ }
   }

@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — content script (platform shell on every page)
+ * Weboo — content script (platform shell on every page)
  *
  * After the v1.1.0 refactor, shared logic lives in shared/highlighter.js;
  * this file only holds "extension-specific" concerns:

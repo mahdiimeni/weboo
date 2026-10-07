@@ -15,7 +15,7 @@ import { pop } from "./popup-data.js";
 import { popView as view } from "./popup-view.js";
 
 /**
- * Web Highlighter — popup controller (platform-specific page)
+ * Weboo — popup controller (platform-specific page)
  *
  * After the v1.2.9 split (SRP/MVC — the same trio the dashboard uses since v1.1.0):
  *   popup-data.js  → pure policy on HL.pop (supported sites, theme validation,

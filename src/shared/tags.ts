@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — article-tag domain rules (pure: no DOM, no storage)
+ * Weboo — article-tag domain rules (pure: no DOM, no storage)
  *
  * v1.2.15: an article (a dashboard card / a urlNorm) can carry user tags —
  * categorization of the ARTICLE itself, orthogonal to the highlight colors.

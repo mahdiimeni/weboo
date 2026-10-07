@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — shared UI infrastructure (Shadow DOM host + icons + widget theming)
+ * Weboo — shared UI infrastructure (Shadow DOM host + icons + widget theming)
  *
  * SRP: only the "home" of the floating widgets — makeHost and the SVG icons.
  * The actual widgets live in their sibling files:

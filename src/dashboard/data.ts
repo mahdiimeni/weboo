@@ -42,7 +42,7 @@ import { tags as tagRules } from "../../extension/shared/tags.js";
 import { util } from "../../extension/shared/utils.js";
 import { clipboard } from "../../extension/shared/clipboard.js";
 import { GOTO_HASH_PREFIX, TAG_MAX_LEN, TAG_MAX_PER_ARTICLE } from "../../extension/shared/constants.js";
-import { APP_ID } from "../../extension/shared/constants.js";
+import { BACKUP_APP_IDS } from "../../extension/shared/constants.js";
 import { exportTools } from "../../extension/shared/export.js";
 import { markdown } from "../../extension/shared/markdown-export.js";
 import { booklet, BOOKLET_FONTS } from "../../extension/shared/booklet-export.js";
@@ -442,7 +442,7 @@ export function acceptBackupFile(file: File): void {
   reader.onload = () => {
     let data: Record<string, unknown> | null = null;
     try { data = JSON.parse(String(reader.result)); } catch (e) { data = null; }
-    if (!data || data.app !== APP_ID || !data.highlights || typeof data.highlights !== "object") {
+    if (!data || typeof data.app !== "string" || !BACKUP_APP_IDS.includes(data.app) || !data.highlights || typeof data.highlights !== "object") {
       toast("فایل معتبر نیست", "error");
       return;
     }

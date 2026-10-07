@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — print booklet builder (v0.6.0)
+ * Weboo — print booklet builder (v0.6.0)
  *
  * SRP: groups → ONE self-contained HTML document string. Pure, DOM-free,
  * storage-free — takes the already-grouped, already-ordered articles

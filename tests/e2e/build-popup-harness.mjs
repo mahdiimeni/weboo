@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Web Highlighter — popup E2E harness builder
+ * Weboo — popup E2E harness builder
  *
  * The extension popup depends on chrome.tabs/runtime and storage and won't
  * open in a regular browser; this script builds a copy of popup.html with a

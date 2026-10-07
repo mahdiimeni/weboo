@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Web Highlighter — "real" E2E test for content widget theming (v1.2.1)
+ * Weboo — "real" E2E test for content widget theming (v1.2.1)
  *
  * Proving the real user path (everything real — no mocks):
  *   1) real Chrome + the real loaded extension (the extension/ folder)
@@ -59,7 +59,7 @@ const INDEX_HTML = `<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset
 <title>مقاله آزمایشی تم هایلایتر</title>
 <style>body{font-family:sans-serif;max-width:680px;margin:40px auto;line-height:2;direction:rtl}
 h1{color:#333}p{color:#222;font-size:17px}</style></head><body>
-<h1>مقاله آزمایشی برای تم ویجت‌های وب هایلایتر</h1>
+<h1>مقاله آزمایشی برای تم ویجت‌های وبو</h1>
 <p>این متن اول برای انتخاب و هایلایت کردن است و باید به‌سادگی با ماوس انتخاب شود.</p>
 <p>این متن دوم برای باز کردن پاپ‌اور یادداشت است و روی آن کلیک می‌کنیم.</p>
 <p>این متن سوم صرفاً برای طولانی‌تر شدن صفحه است تا رفتار اسکرول هم قابل ارزیابی باشد.</p>
@@ -165,7 +165,7 @@ for (let i = 0; i < 40 && !extId; i++) {
   for (const c of cands) {
     try {
       const { sessionId } = await browser.send('Target.attachToTarget', { targetId: c.targetId, flatten: true });
-      const ours = await evalIn(sessionId, 'globalThis.__HLX_APP === "web-highlighter"');
+      const ours = await evalIn(sessionId, 'globalThis.__HLX_APP === "weboo"');
       if (ours === true) { extId = c.url.split('/')[2]; break; }
     } catch (e) { /* foreign extension — ignore */ }
   }

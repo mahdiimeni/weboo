@@ -55,10 +55,12 @@ describe, which injects v1→N chains):
 
 ## Import/export
 
-Backup JSON v1: `{ app: 'web-highlighter', name, format: 1, version,
+Backup JSON v1: `{ app: 'weboo', name, format: 1, version,
 exportedAt, settings, highlights: { <host>: { <id>: Record } }, favicons,
-tags, meta: { count } }`. The page validates the envelope (`app` id, the
-highlights object) before staging; `store.importData` sanitizes every record
+tags, meta: { count } }`. The page validates the envelope (`app` id — the
+`BACKUP_APP_IDS` gate accepts the current `'weboo'` AND the pre-v0.8.0
+`'web-highlighter'` so older exports keep importing — plus the highlights
+object) before staging; `store.importData` sanitizes every record
 through the field whitelist, resolves merge duplicates by `updatedAt`
 (newer wins), and `replace` mode rewrites wholesale (settings included, by
 explicit user choice in the modal). The backup format is versioned
@@ -77,7 +79,7 @@ tag entries only for the articles in the file. Settings are device-global
 and always exported (a replace-mode restore of a partial file rewrites the
 same settings — it can never wipe them to defaults). A partial file marks
 itself `meta: { count, partial: true, selection }`; the delivery layer names
-it `web-highlighter-backup-partial-*.json` and the restore modal shows a
+it `weboo-backup-partial-*.json` and the restore modal shows a
 «بک‌آپ انتخابی» row. An empty/absent selection IS the full backup —
 `exportData()` and `exportData({})` produce the exact historical shape. The
 dashboard's picker (`dash.backupSelectionOptions`) derives its rows from the

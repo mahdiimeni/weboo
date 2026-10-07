@@ -104,7 +104,7 @@ describe("HL.booklet — جلد", () => {
     const out = doc({ groups: [g], exportedAt: T0 });
     expect(out).toContain("کتابچه هایلایت‌ها");
     expect(out).toContain("۲ هایلایت · ۱ مقاله · ۱ یادداشت");
-    expect(out).toContain("وب هایلایتر");
+    expect(out).toContain("وبو");
     expect(out).toContain("نسخه " + HL.VERSION); /* رشته‌ی خام — ارقام فارسی‌سازی NaN نمی‌شود */
     expect(out).toContain('class="cover-date"');
   });

@@ -1,4 +1,4 @@
-// Web Highlighter — ESLint flat config.
+// Weboo — ESLint flat config.
 // Lints the actual project sources: the classic browser scripts under
 // extension/, the TypeScript unit tests, and tooling.
 // Note: extension/ scripts are classic no-bundler browser scripts that rely on

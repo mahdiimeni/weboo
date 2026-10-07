@@ -65,7 +65,7 @@ describe("HL.markdown — ساختار سند", () => {
     const gs = [group("https://a.example.com/1", [rec("a1"), rec("a2", { note: "n" })]), group("https://b.example.com/2", [rec("b1")])];
     const out = HL.markdown.buildLibraryMarkdown({ groups: gs, exportedAt: T0 });
     expect(out.startsWith("---\n")).toBe(true);
-    expect(out).toContain('app: "وب هایلایتر"');
+    expect(out).toContain('app: "وبو"');
     expect(out).toContain('version: "' + HL.VERSION + '"');
     expect(out).toContain('exported_at: "2024-10-27"');
     expect(out).toContain("highlights: 3");
@@ -78,7 +78,7 @@ describe("HL.markdown — ساختار سند", () => {
     const gs = [group("https://a.example.com/1", [rec("a1")])];
     const out = HL.markdown.buildLibraryMarkdown({ groups: gs, exportedAt: 0 });
     expect(out).not.toContain("exported_at");
-    expect(out).toContain("> خروجی از «وب هایلایتر» — ۱ هایلایت از ۱ مقاله\n");
+    expect(out).toContain("> خروجی از «وبو» — ۱ هایلایت از ۱ مقاله\n");
   });
 
   test("عنوان H1 + خط خلاصه با ارقام فارسی", () => {

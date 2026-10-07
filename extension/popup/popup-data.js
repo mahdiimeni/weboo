@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — popup data layer (pure functions, no DOM, no storage)
+ * Weboo — popup data layer (pure functions, no DOM, no storage)
  *
  * SRP/MVC (the same trio the dashboard uses since v1.1.0): the popup's policy —
  * supported-site check, theme validation, page summary counts, the smart

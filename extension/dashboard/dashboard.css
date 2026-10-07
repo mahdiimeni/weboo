@@ -1,4 +1,4 @@
-/* Web Highlighter — dashboard styles (RTL, responsive down to 380px)
+/* Weboo — dashboard styles (RTL, responsive down to 380px)
    Theme: auto = follow the system (default); light/dark = user's forced choice (data-theme).
    ⚠️ The «:root[data-theme="dark"]» block must stay in sync with the dark palette inside the media query. */
 

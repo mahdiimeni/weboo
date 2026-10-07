@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — theme boot (anti-flash, CSP-safe)
+ * Weboo — theme boot (anti-flash, CSP-safe)
  *
  * MV3 blocks inline scripts on extension pages (script-src 'self');
  * so the anti-flash theme step is an external file loaded in <head>, right

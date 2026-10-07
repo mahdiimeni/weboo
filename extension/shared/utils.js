@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — general utilities core (SRP: shared stateless primitives)
+ * Weboo — general utilities core (SRP: shared stateless primitives)
  *
  * After the v1.1.1 split, only "low-level helpers shared by all modules"
  * remain here; specialized concerns moved to their own modules:

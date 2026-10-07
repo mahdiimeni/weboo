@@ -5,13 +5,13 @@
    the two ever drift. ReaderBackend = Pick of exactly the members the reader
    validates. File contract: see the header below.
    ============================================================ */
-import { APP_ID, APP_NAME, BACKUP_FORMAT, VERSION, COLORS, DEFAULT_SETTINGS } from "./constants.js";
+import { APP_ID, APP_NAME, BACKUP_APP_IDS, BACKUP_FORMAT, VERSION, COLORS, DEFAULT_SETTINGS } from "./constants.js";
 import { tags as tagRules } from "./tags.js";
 /**
  *
  * GENERATED TARGET — this source (src/shared/store.ts) compiles to
  * extension/shared/store.js via `bun run build:ext`; edit HERE, never the .js.
- * Web Highlighter — storage domain layer (pure of chrome.*)
+ * Weboo — storage domain layer (pure of chrome.*)
  *
  * Per-host partitioning for fast reads of the same site's data:
  *   hlx:settings  → user settings
@@ -620,8 +620,8 @@ function createStore(backend, opts) {
      */
     async function importDataRaw(backup, mode) {
         var report = { added: 0, updated: 0, skipped: 0, removed: 0 };
-        if (!backup || backup.app !== APP_ID || !backup.highlights || typeof backup.highlights !== 'object') {
-            throw new Error('فایل پشتیبان معتبر «وب هایلایتر» نیست.');
+        if (!backup || !BACKUP_APP_IDS.includes(backup.app) || !backup.highlights || typeof backup.highlights !== 'object') {
+            throw new Error('فایل پشتیبان معتبر «وبو» نیست.');
         }
         var current = await getAllRecordsRaw();
         if (mode === 'replace') {

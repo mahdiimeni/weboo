@@ -1,6 +1,6 @@
-# وب هایلایتر — Web Highlighter
+# وبو — Weboo
 
-A Persian/RTL web-highlighter MV3 extension: 5 highlight colors, notes,
+A Persian/RTL web-highlighting MV3 extension: 5 highlight colors, notes,
 article tags, JSON backup/restore (full or selective — by sites, articles
 and tags), booklet export (selectable articles, clickable index, print font
 choice) — 100% local storage, no server, no account.
@@ -9,7 +9,8 @@ choice) — 100% local storage, no server, no account.
 
 | path | loadable? | what it is |
 |---|---|---|
-| `dist/highlighter-extension-v<version>.zip` | ✅ extract, then load the folder | the release artifact |
+| `dist/weboo-v<version>.zip` | ✅ extract, then load the folder | the release artifact |
+| `dist/highlighter-extension-v<version>.zip` | ✅ extract, then load the folder | frozen artifacts from before the v0.8.0 «وبو» rebrand (old naming) |
 | `.output/chrome-mv3/` | ✅ load unpacked | the WXT build (dev) |
 | `extension/` | ❌ **source tree — not loadable** | product SOURCE: the content files are ES modules (MV3 content scripts are always classic) and `dashboard.html` is GENERATED from `entrypoints/dashboard/` at build time |
 

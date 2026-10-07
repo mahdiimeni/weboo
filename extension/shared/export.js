@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — file export (SRP: getting data out of the app)
+ * Weboo — file export (SRP: getting data out of the app)
  *
  * Consumers: popup and dashboard (JSON backup export) and the dashboard's
  * reading exports (v0.6.0): the Markdown library document and the print
@@ -39,21 +39,21 @@
     return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + '-' + p(d.getHours()) + p(d.getMinutes());
   }
 
-  /** Backup file name: web-highlighter-backup-YYYY-MM-DD-HHMM.json — or the
-      selective backup's web-highlighter-backup-partial-YYYY-MM-DD-HHMM.json
+  /** Backup file name: weboo-backup-YYYY-MM-DD-HHMM.json — or the
+      selective backup's weboo-backup-partial-YYYY-MM-DD-HHMM.json
       (the partial marker rides the backup object itself: meta.partial). */
   function backupFileName(partial) {
-    return 'web-highlighter-backup' + (partial ? '-partial' : '') + '-' + stamp() + '.json';
+    return 'weboo-backup' + (partial ? '-partial' : '') + '-' + stamp() + '.json';
   }
 
-  /** Markdown library document name (v0.6.0): web-highlighter-markdown-YYYY-MM-DD-HHMM.md */
+  /** Markdown library document name (v0.6.0): weboo-markdown-YYYY-MM-DD-HHMM.md */
   function markdownFileName() {
-    return 'web-highlighter-markdown-' + stamp() + '.md';
+    return 'weboo-markdown-' + stamp() + '.md';
   }
 
-  /** Print booklet name (v0.6.0): web-highlighter-booklet-YYYY-MM-DD-HHMM.html */
+  /** Print booklet name (v0.6.0): weboo-booklet-YYYY-MM-DD-HHMM.html */
   function bookletFileName() {
-    return 'web-highlighter-booklet-' + stamp() + '.html';
+    return 'weboo-booklet-' + stamp() + '.html';
   }
 
   /** Saves a backup object (the store.exportData output) as a downloadable

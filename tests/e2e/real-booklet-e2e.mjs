@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Web Highlighter — real E2E rig for the BOOKLET upgrades (Task 88):
+ * Weboo — real E2E rig for the BOOKLET upgrades (Task 88):
  * the article picker, the clickable TOC and the print font choice.
  *
  * The real user path, everything real (no mocks):
@@ -148,7 +148,7 @@ for (let i = 0; i < 40 && !extId; i++) {
   for (const c of cands) {
     try {
       const { sessionId } = await browser.send('Target.attachToTarget', { targetId: c.targetId, flatten: true });
-      const ours = await evalIn(sessionId, 'globalThis.__HLX_APP === "web-highlighter"');
+      const ours = await evalIn(sessionId, 'globalThis.__HLX_APP === "weboo"');
       if (ours === true) { extId = c.url.split('/')[2]; swSession = sessionId; break; }
     } catch (e) { /* foreign extension — ignore */ }
   }
@@ -231,7 +231,7 @@ await shot(D, 'real-booklet-modal.png'); /* visual evidence: the open picker + f
 
 /* 2) real download #1 — NOTHING selected (all articles), default font */
 const listBookletFiles = () => {
-  try { return readdirSync(DL_DIR).filter((n) => /^web-highlighter-booklet-.*\.html$/.test(n)); }
+  try { return readdirSync(DL_DIR).filter((n) => /^weboo-booklet-.*\.html$/.test(n)); }
   catch (e) { return []; }
 };
 await browser.send('Browser.setDownloadBehavior', { behavior: 'allow', downloadPath: DL_DIR });

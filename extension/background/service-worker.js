@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — Service Worker (MV3, module)
+ * Weboo — Service Worker (MV3, module)
  *
  * Responsibilities:
  *  - the "Highlight selection" context-menu item

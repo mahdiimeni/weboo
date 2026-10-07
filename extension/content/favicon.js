@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — site favicon capture (content-script module, v1.2.9)
+ * Weboo — site favicon capture (content-script module, v1.2.9)
  *
  * Extracted from content.js (SRP): the orchestrator keeps only the one-time
  * page policy; pick → fetch → validate → store lives here.

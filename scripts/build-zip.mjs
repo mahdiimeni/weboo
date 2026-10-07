@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Web Highlighter — release zip builder
+ * Weboo — release zip builder
  *
  * Packs the WXT product output .output/chrome-mv3 (Phase 7a: the shipped
  * artifact IS the WXT build — content/background ship as the parity-gated
@@ -21,7 +21,7 @@
  * — never hardcode a version here; parity proves the output manifest equal).
  * Output:
  *
- *     dist/highlighter-extension-v${VERSION}.zip
+ *     dist/weboo-v${VERSION}.zip
  *
  * Usage:   node scripts/build-zip.mjs   (or: bun run zip)
  * Requires the `zip` CLI on PATH.
@@ -44,7 +44,7 @@ if (!existsSync(join(OUT_DIR, "manifest.json"))) {
 const VERSION = JSON.parse(readFileSync(join(EXT, "manifest.json"), "utf-8")).version;
 
 const DIST = join(ROOT, "dist");
-const OUT = join(DIST, `highlighter-extension-v${VERSION}.zip`);
+const OUT = join(DIST, `weboo-v${VERSION}.zip`);
 
 /* test tooling inside extension/ — never shipped */
 const EXCLUDES = ["popup/_e2e_harness.html"];
@@ -63,5 +63,5 @@ execFileSync(
 /* release-contract numbers: entry count + exact size */
 const entries = execFileSync("unzip", ["-Z1", OUT]).toString().split("\n").filter(Boolean);
 const size = statSync(OUT).size;
-console.log(`zip built: dist/highlighter-extension-v${VERSION}.zip`);
+console.log(`zip built: dist/weboo-v${VERSION}.zip`);
 console.log(`entries: ${entries.length}   size: ${size} bytes   (v${VERSION})`);

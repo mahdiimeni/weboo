@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — runtime bridge
+ * Weboo — runtime bridge
  *
  * The only place chrome.runtime is touched in the shared layers
  * (content/popup/dashboard); the rest of the code only talks to HL.runtime.

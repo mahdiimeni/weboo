@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — Toast (short message at the bottom of the page)
+ * Weboo — Toast (short message at the bottom of the page)
  *
  * SRP: one widget = one file. Theme: palettes as CSS custom properties on
  * :host — the popup.css pattern (light base; system dark in media unless

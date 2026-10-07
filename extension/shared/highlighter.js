@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — shared highlight orchestrator (content script and programmatic embedders)
+ * Weboo — shared highlight orchestrator (content script and programmatic embedders)
  *
  * This module keeps the shared logic in one place (SRP/DRY):
  *   - creating highlights from selected text (toolbar / programmatic)

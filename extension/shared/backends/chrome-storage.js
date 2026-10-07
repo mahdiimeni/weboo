@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — Chrome backend for the storage port
+ * Weboo — Chrome backend for the storage port
  *
  * Port contract (every backend must implement exactly these 5 members — minimal ISP):
  *   get(key|null) → Promise<object>      — one key's value, or all items

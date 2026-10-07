@@ -206,7 +206,7 @@ describe("HL.export (خروجی فایل)", () => {
   test("backupFileName: الگوی نام فایل بک‌آپ", async () => {
     setupDom();
     const HL = await loadExport();
-    expect(HL.export.backupFileName()).toMatch(/^web-highlighter-backup-\d{4}-\d{2}-\d{2}-\d{4}\.json$/);
+    expect(HL.export.backupFileName()).toMatch(/^weboo-backup-\d{4}-\d{2}-\d{2}-\d{4}\.json$/);
   });
 
   test("saveBackup: JSON زیبا با نام بک‌آپ دانلود می‌شود", async () => {
@@ -224,9 +224,9 @@ describe("HL.export (خروجی فایل)", () => {
       if (ev.target && ev.target.tagName === "A") clicked.push(ev.target.getAttribute("download"));
     }, true);
     const HL = await loadExport();
-    HL.export.saveBackup({ app: "web-highlighter", meta: { count: 2 } });
+    HL.export.saveBackup({ app: "weboo", meta: { count: 2 } });
     expect(clicked.length).toBe(1);
-    expect(String(clicked[0])).toMatch(/^web-highlighter-backup-/);
+    expect(String(clicked[0])).toMatch(/^weboo-backup-/);
     expect(clicked[0]).toMatch(/\.json$/);
     /* createObjectURL is restored to its previous state; revokeObjectURL stays a noop (see above) */
     if (origCreate) g.URL.createObjectURL = origCreate;

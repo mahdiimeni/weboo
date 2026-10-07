@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — text anchoring engine
+ * Weboo — text anchoring engine
  * Turns page text into a character index so we can:
  *   1) compute a Range's offsets (at save time)
  *   2) restore the equivalent Range from the saved text (on page reload)

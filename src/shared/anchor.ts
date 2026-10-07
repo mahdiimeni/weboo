@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — anchor resolution (Phase 3 extraction).
+ * Weboo — anchor resolution (Phase 3 extraction).
  *
  * Single place that answers: "where does this saved highlight live NOW?"
  * Resolution order (v0.6.7 behavior — audited from highlighter.applyRecord +

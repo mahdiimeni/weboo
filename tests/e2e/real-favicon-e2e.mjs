@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Web Highlighter — "real" favicon E2E test (root-cause research edition)
+ * Weboo — "real" favicon E2E test (root-cause research edition)
  *
  * Unlike the harness: real Chrome + the real loaded extension (the extension/
  * folder) + the real content script on a real HTTP site + drag-selection with
@@ -71,7 +71,7 @@ const INDEX_HTML = `<!DOCTYPE html><html lang="fa" dir="rtl"><head><meta charset
 <link rel="icon" type="image/png" href="/favicon.png">
 <style>body{font-family:sans-serif;max-width:680px;margin:40px auto;line-height:2;direction:rtl}
 h1{color:#333}p{color:#444;font-size:17px}</style></head><body>
-<h1>مقاله آزمایشی برای وب هایلایتر</h1>
+<h1>مقاله آزمایشی برای وبو</h1>
 <p>این متن اول برای انتخاب و هایلایت کردن است و باید به‌سادگی با ماوس انتخاب شود.</p>
 <p>این متن دوم برای یادداشت است و بعد از هایلایت می‌توان روی آن یادداشت نوشت.</p>
 <p>این متن سوم صرفاً برای طولانی‌تر شدن صفحه است تا رفتار اسکرول هم قابل ارزیابی باشد.</p>

@@ -157,7 +157,7 @@ for (const makeCtx of SCENARIOS) {
 
     test("exportData شکل نسخه‌دار کامل دارد", async () => {
       const b = await ctx.store.exportData();
-      expect(b.app).toBe("web-highlighter");
+      expect(b.app).toBe("weboo");
       expect(b.format).toBe(1);
       expect(b.version).toBe(ctx.HL.VERSION);
       expect(typeof b.exportedAt).toBe("number");
@@ -213,6 +213,11 @@ for (const makeCtx of SCENARIOS) {
     test("importData نامعتبر → خطا با پیام فارسی", async () => {
       await expect(ctx.store.importData({ app: "other-app", highlights: {} }, "merge")).rejects.toThrow("فایل پشتیبان");
       await expect(ctx.store.importData(null, "merge")).rejects.toThrow();
+    });
+
+    test("importData — شناسه‌ی فعلی و قدیمی (پیش از ری‌برند v0.8.0) هر دو پذیرفته می‌شوند", async () => {
+      await expect(ctx.store.importData({ app: "weboo", highlights: {} }, "merge")).resolves.toBeDefined();
+      await expect(ctx.store.importData({ app: "web-highlighter", highlights: {} }, "merge")).resolves.toBeDefined();
     });
 
     test("sanitizeRecord: رنگ نامعتبر → yellow؛ جبران فیلدها", async () => {
@@ -778,7 +783,7 @@ for (const makeCtx of SCENARIOS) {
 
     test("انتخاب سایت: فقط هایلایت‌های همان سایت + داده‌های وابسته به آن", async () => {
       const b = await ctx.store.exportData({ hosts: ["site1.com"] });
-      expect(b.app).toBe("web-highlighter");
+      expect(b.app).toBe("weboo");
       expect(b.format).toBe(1);
       expect(Object.keys(b.highlights).sort()).toEqual(["s1a", "s1b"]);
       expect(Object.keys(b.favicons)).toEqual(["site1.com"]); /* follows the records */
@@ -821,7 +826,7 @@ for (const makeCtx of SCENARIOS) {
       expect(b.highlights).toEqual({});
       expect(b.favicons).toEqual({});
       expect(b.tags).toEqual({});
-      expect(b.app).toBe("web-highlighter");
+      expect(b.app).toBe("weboo");
       expect(b.meta.partial).toBe(true);
       const r = await ctx.store.importData(JSON.parse(JSON.stringify(b)), "merge");
       expect(r.added).toBe(0);

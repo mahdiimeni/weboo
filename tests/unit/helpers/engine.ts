@@ -1,5 +1,5 @@
 /**
- * Unit-test infrastructure for «وب هایلایتر» (Web Highlighter)
+ * Unit-test infrastructure for «وبو» (Weboo)
  *
  * Core scripts are classic scripts mounted on globalThis.HL;
  * this helper prepares a simulated DOM (happy-dom), loads the modules

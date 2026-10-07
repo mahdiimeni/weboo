@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — NotePopover (note popover on each highlight)
+ * Weboo — NotePopover (note popover on each highlight)
  *
  * SRP: one widget = one file. View/edit note, change color (from the
  * HL.COLORS registry — OCP), two-step delete confirmation, copy.

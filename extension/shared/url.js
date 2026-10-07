@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — page URL normalization (SRP: the URL concern only)
+ * Weboo — page URL normalization (SRP: the URL concern only)
  *
  * Consumers: content script (current page context — normalizeUrl at boot and
  * watchHref for SPA navigations) and popup (active tab URL).

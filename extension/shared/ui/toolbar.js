@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — FloatingToolbar (toolbar above the selected text)
+ * Weboo — FloatingToolbar (toolbar above the selected text)
  *
  * SRP: one widget = one file. 5 colors + note + copy; the buttons are built
  * from the HL.COLORS registry (OCP: a new color = one registry entry).

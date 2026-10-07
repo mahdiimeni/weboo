@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — dashboard data layer (pure functions, no DOM, no storage)
+ * Weboo — dashboard data layer (pure functions, no DOM, no storage)
  *
  * SRP: filtering/grouping/stats/domain validation are split out here so they
  * are testable without a browser and the controller stays "orchestration" only.

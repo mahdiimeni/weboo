@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — minimal DOM helpers (SRP: createElement sweeteners)
+ * Weboo — minimal DOM helpers (SRP: createElement sweeteners)
  *
  * Consumers: dashboard-view and the popup — replacing their two duplicated
  * local versions. Deliberately kept small and stable; any more complex

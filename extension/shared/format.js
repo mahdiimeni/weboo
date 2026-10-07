@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — display formats (SRP: data → display-string conversion)
+ * Weboo — display formats (SRP: data → display-string conversion)
  *
  * Pure, DOM-free functions; consumers: the core popover (ui/popover),
  * the popup, the dashboard (via HL.dash) and tests.

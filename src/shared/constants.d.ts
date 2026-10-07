@@ -6,6 +6,7 @@
 export const APP_NAME: string;
 export const APP_ID: string;
 export const BACKUP_FORMAT: number;
+export const BACKUP_APP_IDS: string[];
 export const VERSION: string;
 export const GOTO_HASH_PREFIX: string;
 export const MSG: Record<string, any>;

@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — content display-direction detection (SRP: the direction decision, separate from applying it)
+ * Weboo — content display-direction detection (SRP: the direction decision, separate from applying it)
  *
  * Two pure, DOM-free functions:
  *  - detectTextDir(s): dominant direction of a string ('ltr' | 'rtl' | '' neutral)

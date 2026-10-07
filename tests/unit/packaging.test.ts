@@ -198,3 +198,17 @@ describe("نسخه‌ی واحد در کل افزونه", () => {
     expect(dash).toContain(`v${V}`);
   });
 });
+
+describe("برند یک‌جا در کل افزونه (APP_NAME)", () => {
+  test("manifest + popup + dashboard هم‌ارز APP_NAME هستند", () => {
+    const manifest = JSON.parse(readFile(ext("manifest.json")));
+    expect(manifest.short_name).toBe(HL.APP_NAME);
+    expect(manifest.action.default_title).toBe(HL.APP_NAME);
+    expect(manifest.name).toBe(HL.APP_NAME + " — هایلایت و یادداشت محلی");
+    const popup = readFile(ext("popup", "popup.html"));
+    expect(popup).toContain("<title>" + HL.APP_NAME + "</title>");
+    expect(popup).toContain('<strong class="brand-name">' + HL.APP_NAME + "</strong>");
+    const dash = readFile(ext("..", "entrypoints", "dashboard", "index.html"));
+    expect(dash).toContain("<title>داشبورد — " + HL.APP_NAME + "</title>");
+  });
+});

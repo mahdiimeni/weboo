@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — Markdown document builder (v0.6.0)
+ * Weboo — Markdown document builder (v0.6.0)
  *
  * SRP: groups → ONE Markdown string. Pure, DOM-free, storage-free — takes the
  * already-grouped, already-ordered articles (groupRecords output with the

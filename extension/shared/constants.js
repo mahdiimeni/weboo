@@ -1,13 +1,20 @@
 /**
- * Web Highlighter — shared constants and conventions
+ * Weboo — shared constants and conventions
  * Every consumer (content bundle, pages, service worker, TS sources) imports
  * these bindings as an ES module.
  */
 
-  export const APP_NAME = 'وب هایلایتر';
-  export const APP_ID = 'web-highlighter';
-  export const VERSION = '0.7.0';
+  export const APP_NAME = 'وبو';
+  export const APP_ID = 'weboo';
+  export const VERSION = '0.8.0';
   export const BACKUP_FORMAT = 1;
+  /**
+   * Every app id the backup import gate accepts (v0.8.0 rebrand: exports
+   * carry APP_ID = 'weboo'; 'web-highlighter' stays accepted so backups
+   * exported by older versions keep importing — never drop an id from this
+   * list, it is the data-compat contract).
+   */
+  export const BACKUP_APP_IDS = ['weboo', 'web-highlighter'];
 
   /** Runtime message types */
   export const MSG = {

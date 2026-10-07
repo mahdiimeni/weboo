@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — clipboard text copy (SRP: the single copy implementation)
+ * Weboo — clipboard text copy (SRP: the single copy implementation)
  *
  * Contract: HL.clipboard.copyText(text) → Promise<boolean>
  *   true = copied, false = both paths failed (Async Clipboard API and

@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — popup view layer (DOM rendering, no state, no storage)
+ * Weboo — popup view layer (DOM rendering, no state, no storage)
  *
  * SRP/MVC (the same trio the dashboard uses since v1.1.0): this module only
  * renders. Policy lives in popup-data.js (HL.pop) and orchestration (chrome,

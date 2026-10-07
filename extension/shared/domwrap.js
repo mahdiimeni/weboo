@@ -1,5 +1,5 @@
 /**
- * Web Highlighter — DOM tools
+ * Weboo — DOM tools
  * - Wrapping (marking) a Range's extent with <mark> elements
  * - Fast XPath anchoring (serialize/resolve)
  * - Unwrapping a highlight, changing color, note marker, flash effect

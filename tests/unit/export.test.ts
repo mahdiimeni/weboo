@@ -44,10 +44,10 @@ describe("HL.export — قرارداد", () => {
 });
 
 describe("HL.export — نام فایل‌ها", () => {
-  test("الگوی مشترک: web-highlighter-<kind>-YYYY-MM-DD-HHMM.<ext>", () => {
-    expect(HL.export.backupFileName()).toMatch(/^web-highlighter-backup-\d{4}-\d{2}-\d{2}-\d{4}\.json$/);
-    expect(HL.export.markdownFileName()).toMatch(/^web-highlighter-markdown-\d{4}-\d{2}-\d{2}-\d{4}\.md$/);
-    expect(HL.export.bookletFileName()).toMatch(/^web-highlighter-booklet-\d{4}-\d{2}-\d{2}-\d{4}\.html$/);
+  test("الگوی مشترک: weboo-<kind>-YYYY-MM-DD-HHMM.<ext>", () => {
+    expect(HL.export.backupFileName()).toMatch(/^weboo-backup-\d{4}-\d{2}-\d{2}-\d{4}\.json$/);
+    expect(HL.export.markdownFileName()).toMatch(/^weboo-markdown-\d{4}-\d{2}-\d{2}-\d{4}\.md$/);
+    expect(HL.export.bookletFileName()).toMatch(/^weboo-booklet-\d{4}-\d{2}-\d{2}-\d{4}\.html$/);
   });
 
   test("هم‌مهرِ زمانی بین سه نام (یک stamp — سه خروجی هم‌لحظه)", () => {
@@ -86,11 +86,11 @@ describe("HL.export.downloadText", () => {
 
 describe("HL.export.saveBackup", () => {
   test("JSON زیبا با نام بک‌آپ", async () => {
-    HL.export.saveBackup({ app: "web-highlighter", highlights: { x: { text: "ت" } } });
+    HL.export.saveBackup({ app: "weboo", highlights: { x: { text: "ت" } } });
     expect(captured.length).toBe(1);
     expect(HL.export.backupFileName).toBeDefined();
     const a = win.document.querySelector("a[download]") as any;
-    expect(a.download).toMatch(/^web-highlighter-backup-.*\.json$/);
+    expect(a.download).toMatch(/^weboo-backup-.*\.json$/);
     expect(await captured[0].text()).toContain('"highlights"');
   });
 });
@@ -122,20 +122,20 @@ describe("HL.export.printHtml (v0.6.0 — مسیر PDF)", () => {
 
 describe("HL.export — بک‌آپ انتخابی (نام فایل partial)", () => {
   test("backupFileName(true) پسوند partial دارد؛ حالت عادی بدون partial می‌ماند", () => {
-    expect(HL.export.backupFileName(true)).toMatch(/^web-highlighter-backup-partial-\d{4}-\d{2}-\d{2}-\d{4}\.json$/);
-    expect(HL.export.backupFileName()).toMatch(/^web-highlighter-backup-\d{4}-\d{2}-\d{2}-\d{4}\.json$/);
-    expect(HL.export.backupFileName(false)).toMatch(/^web-highlighter-backup-\d{4}-\d{2}-\d{2}-\d{4}\.json$/);
+    expect(HL.export.backupFileName(true)).toMatch(/^weboo-backup-partial-\d{4}-\d{2}-\d{2}-\d{4}\.json$/);
+    expect(HL.export.backupFileName()).toMatch(/^weboo-backup-\d{4}-\d{2}-\d{2}-\d{4}\.json$/);
+    expect(HL.export.backupFileName(false)).toMatch(/^weboo-backup-\d{4}-\d{2}-\d{2}-\d{4}\.json$/);
   });
 
   test("saveBackup نشان meta.partial را می‌خواند و نام فایل را تعیین می‌کند", async () => {
-    HL.export.saveBackup({ app: "web-highlighter", highlights: {}, meta: { count: 0, partial: true } });
+    HL.export.saveBackup({ app: "weboo", highlights: {}, meta: { count: 0, partial: true } });
     let a = win.document.querySelector("a[download]") as any;
-    expect(a.download).toMatch(/^web-highlighter-backup-partial-.*\.json$/);
+    expect(a.download).toMatch(/^weboo-backup-partial-.*\.json$/);
     a.remove(); /* the link cleans itself on a timer — outlive it explicitly */
 
-    HL.export.saveBackup({ app: "web-highlighter", highlights: { x: { text: "ت" } }, meta: { count: 1 } });
+    HL.export.saveBackup({ app: "weboo", highlights: { x: { text: "ت" } }, meta: { count: 1 } });
     a = win.document.querySelector("a[download]") as any;
-    expect(a.download).toMatch(/^web-highlighter-backup-\d{4}/);
+    expect(a.download).toMatch(/^weboo-backup-\d{4}/);
     expect(a.download).not.toContain("partial");
   });
 });

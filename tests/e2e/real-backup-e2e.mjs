@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Web Highlighter — real E2E rig for the SELECTIVE backup (بک‌آپ انتخابی)
+ * Weboo — real E2E rig for the SELECTIVE backup (بک‌آپ انتخابی)
  *
  * The real user path, everything real (no mocks):
  *   1) real Chrome + the real built extension (.output/chrome-mv3, parity-gated)
@@ -127,7 +127,7 @@ for (let i = 0; i < 40 && !extId; i++) {
   for (const c of cands) {
     try {
       const { sessionId } = await browser.send('Target.attachToTarget', { targetId: c.targetId, flatten: true });
-      const ours = await evalIn(sessionId, 'globalThis.__HLX_APP === "web-highlighter"');
+      const ours = await evalIn(sessionId, 'globalThis.__HLX_APP === "weboo"');
       if (ours === true) { extId = c.url.split('/')[2]; swSession = sessionId; break; }
     } catch (e) { /* foreign extension — ignore */ }
   }
@@ -254,9 +254,9 @@ if (backupFile) {
   };
 }
 probes.partialFileDownloaded = !!fileShape &&
-  /^web-highlighter-backup-partial-\d{4}-\d{2}-\d{2}-\d{4}\.json$/.test(fileShape.name || '');
+  /^weboo-backup-partial-\d{4}-\d{2}-\d{2}-\d{4}\.json$/.test(fileShape.name || '');
 probes.partialFileContent = !!fileShape &&
-  fileShape.app === 'web-highlighter' && fileShape.format === 1 &&
+  fileShape.app === 'weboo' && fileShape.format === 1 &&
   fileShape.partial === true &&
   fileShape.count === 2 &&
   JSON.stringify(fileShape.ids) === '["r1","r2"]' &&
