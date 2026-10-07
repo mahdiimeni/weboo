@@ -1069,3 +1069,66 @@ describe("backupSelectionOptions (انتخابی)", () => {
     expect(JSON.stringify([records, tagMap])).toBe(before);
   });
 });
+
+/* ---------- کتابچه — ردیف‌های انتخاب + قانون فیلتر (Task 88) ---------- */
+
+describe("articleOptions (ردیف‌های انتخاب مقاله — Task 88)", () => {
+  test("یک ردیف به‌ازای هر مقاله: key/host/title/count", () => {
+    const records = [
+      rec("a1", { url: "https://a.com/p1", urlNorm: "https://a.com/p1", title: "مقاله الف" }),
+      rec("a2", { url: "https://a.com/p1", urlNorm: "https://a.com/p1", title: "مقاله الف" }),
+      rec("b1", { host: "b.org", url: "https://b.org/x", urlNorm: "https://b.org/x", title: "مقاله پ" }),
+    ];
+    expect(HL.dash.articleOptions(records)).toEqual([
+      { key: "https://a.com/p1", host: "example.com", title: "مقاله الف", count: 2 },
+      { key: "https://b.org/x", host: "b.org", title: "مقاله پ", count: 1 },
+    ]);
+  });
+
+  test("هم‌ارز backupSelectionOptions().articles (یک استخراج، دو مصرف‌کننده — DRY)", () => {
+    const records = [rec("a1"), rec("b1", { url: "https://b.org/x", urlNorm: "https://b.org/x", title: "پ" })];
+    expect(HL.dash.articleOptions(records)).toEqual(HL.dash.backupSelectionOptions(records, {}).articles);
+  });
+
+  test("خالی/بدون ورودی → آرایه‌ی خالی", () => {
+    expect(HL.dash.articleOptions([])).toEqual([]);
+    expect(HL.dash.articleOptions(undefined)).toEqual([]);
+  });
+
+  test("خالص: ورودی جهش نمی‌کند", () => {
+    const records = [rec("a1")];
+    const before = JSON.stringify(records);
+    HL.dash.articleOptions(records);
+    expect(JSON.stringify(records)).toBe(before);
+  });
+});
+
+describe("filterGroupsByKeys (قانون انتخاب مقاله‌ی کتابچه — Task 88)", () => {
+  const g = (key: string) => ({ key, host: "h", title: key, url: key, items: [rec("r")], notes: 0 });
+  const groups = () => [g("https://a/1"), g("https://b/2"), g("https://c/3")];
+
+  test("انتخاب زیرمجموعه: فقط کلیدهای خواسته، با حفظ ترتیب آرایه (نه ترتیب کلیدها)", () => {
+    const out = HL.dash.filterGroupsByKeys(groups(), ["https://c/3", "https://a/1"]);
+    expect(out.map((x: any) => x.key)).toEqual(["https://a/1", "https://c/3"]);
+  });
+
+  test("انتخاب خالی/ناموجود = همه (قانون default-all، یک خانه)", () => {
+    const gs = groups();
+    expect(HL.dash.filterGroupsByKeys(gs, [])).toBe(gs); /* identity — همان آرایه */
+    expect(HL.dash.filterGroupsByKeys(gs, undefined)).toBe(gs);
+  });
+
+  test("کلید ناشناخته حذف می‌شود؛ انتخاب کاملاً کهنه → خالی (گارد کنترلر)", () => {
+    expect(HL.dash.filterGroupsByKeys(groups(), ["https://b/2", "nope"]).map((x: any) => x.key)).toEqual(["https://b/2"]);
+    expect(HL.dash.filterGroupsByKeys(groups(), ["gone"])).toEqual([]);
+    expect(HL.dash.filterGroupsByKeys(undefined, ["gone"])).toEqual([]);
+  });
+
+  test("خالص: گروه‌ها و کلیدها جهش نمی‌کنند", () => {
+    const gs = groups();
+    const keys = ["https://b/2"];
+    const before = JSON.stringify([gs, keys]);
+    HL.dash.filterGroupsByKeys(gs, keys);
+    expect(JSON.stringify([gs, keys])).toBe(before);
+  });
+});

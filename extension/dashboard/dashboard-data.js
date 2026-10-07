@@ -23,6 +23,11 @@
  * (sites / articles / tags with counts) the export modal renders; the
  * MATCHING rule itself lives in the store (matchesBackupSelection) — this
  * layer only derives rows that carry the exact comparable values.
+ * Booklet selection (Task 88): articleOptions — the ONE derivation of the
+ * picker rows both selection modals render (backup + booklet; DRY, the same
+ * one-definition discipline as byPage/readingOrderItems) — and
+ * filterGroupsByKeys, the booklet's pure "which articles the print carries"
+ * rule (empty selection = ALL articles, one home).
  * Per-card item order (v0.4.0): applyItemReversal + itemOrder — the pure
  * transform that reverses ONE article's highlight list (a shallow copy, the
  * base sort's own arrays are never touched) and the pure base+flag →
@@ -383,6 +388,48 @@ import { tags } from "../shared/tags.js"; /* 7c-3 */
     return { total: (records || []).length, notes: notes, pages: pages.size, sites: sites.size };
   }
 
+  /* ---------- Picker rows + booklet selection (Task 88) ---------- */
+
+  /**
+   * The picker rows over ALREADY-GROUPED articles (groupRecords output):
+   * { key, host, title, count } — key IS the articleKey formula, count = the
+   * article's highlights. The rows carry exactly the comparable values, so
+   * whatever a modal previews from them is exactly what a selection produces.
+   * Pure: never mutates the input.
+   */
+  function articleOptionsOf(groups) {
+    return (groups || []).map(function (g) {
+      return { key: g.key, host: g.host || '', title: g.title || '', count: g.items.length };
+    });
+  }
+
+  /**
+   * One row per article for the selection modals — 'page' sort = title
+   * order, a stable list for a picker. ONE derivation, two consumers (DRY):
+   * backupSelectionOptions (بک‌آپ انتخابی) and the booklet modal's article
+   * picker render the same rows. Pure: never mutates its inputs.
+   */
+  function articleOptions(records) {
+    return articleOptionsOf(groupRecords(records || [], 'page'));
+  }
+
+  /**
+   * The booklet's article-selection rule — pure, order-preserving filter of
+   * export groups by the picker's article keys.
+   * EMPTY/absent keys → the groups UNCHANGED: "nothing selected = all
+   * articles" is the default-all semantic and lives HERE, in one place, so
+   * the modal's default state and the produced document can never disagree.
+   * Unknown keys (an article deleted after the picker opened) match nothing
+   * and drop out — a fully-stale selection yields [] and the controller
+   * guards it. Pure: never mutates the input.
+   */
+  function filterGroupsByKeys(groups, keys) {
+    var list = groups || [];
+    if (!keys || !keys.length) return list;
+    var has = new Set(keys);
+    return list.filter(function (g) { return has.has(g.key); });
+  }
+
   /* ---------- Selective backup — the picker's options ---------- */
 
   /**
@@ -390,10 +437,9 @@ import { tags } from "../shared/tags.js"; /* 7c-3 */
    * from the snapshot: { sites, articles, tags }.
    *   sites    — [{ host, articles }] one row per site, count = its articles;
    *              busiest site first, ties in Persian locale order.
-   *   articles — [{ key, host, title, count }] one row per article (the
-   *              groupRecords groups themselves — key IS the articleKey
-   *              formula), count = its highlights; 'page' sort = title
-   *              order, a stable list for a picker.
+   *   articles — the shared picker rows (articleOptionsOf over the same
+   *              'page' groups — the ONE derivation the booklet picker
+   *              renders too).
    *   tags     — reuse of the filter-chip inventory (tagCounts): count =
    *              number of ARTICLES carrying the tag, count desc.
    * The rows carry exactly the values the store's matchesBackupSelection
@@ -411,10 +457,7 @@ import { tags } from "../shared/tags.js"; /* 7c-3 */
       tally[h].articles++;
     });
     sites.sort(function (a, b) { return (b.articles - a.articles) || a.host.localeCompare(b.host, 'fa'); });
-    var articles = groups.map(function (g) {
-      return { key: g.key, host: g.host || '', title: g.title || '', count: g.items.length };
-    });
-    return { sites: sites, articles: articles, tags: tags.tagCounts(tagMap) };
+    return { sites: sites, articles: articleOptionsOf(groups), tags: tags.tagCounts(tagMap) };
   }
 
   /* ---------- Pagination (v1.2.9 — extracted from the controller's renderList) ---------- */
@@ -471,6 +514,8 @@ import { tags } from "../shared/tags.js"; /* 7c-3 */
     orphanTagKeys: orphanTagKeys,
     computeStats: computeStats,
     backupSelectionOptions: backupSelectionOptions,
+    articleOptions: articleOptions,
+    filterGroupsByKeys: filterGroupsByKeys,
     paginate: paginate
   };
 

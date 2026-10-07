@@ -41,6 +41,7 @@ import {
   setBackupOpen,
   countSelectedBackup,
   exportSelectedBackup,
+  bookletFontOptions,
   toggleCard,
   flipItemOrder,
   toggleSection,
@@ -213,6 +214,11 @@ export function RestoreModalRegion() {
   );
 }
 
+/** Region root — the booklet modal (Task 88): the article picker's rows come
+ *  fresh from the snapshot (dash.articleOptions — the SAME derivation the
+ *  backup picker renders), the font options ride the builder's registry
+ *  through the data layer; the export itself keeps reading storage fresh at
+ *  click time (the same contract the other export flows follow). */
 export function BookletModalRegion() {
   const { bookletOpen, records } = useSyncExternalStore(subscribeData, getData);
   return (
@@ -220,6 +226,8 @@ export function BookletModalRegion() {
       req={{ open: bookletOpen, payload: { kind: "booklet" } }}
       onClose={() => setBookletOpen(false)}
       stats={dash.computeStats(records)}
+      articleOptions={dash.articleOptions(records)}
+      fontOptions={bookletFontOptions()}
       onMarkdown={buildMarkdownExport}
       onBooklet={buildBookletExport}
     />

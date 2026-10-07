@@ -45,11 +45,12 @@ import { GOTO_HASH_PREFIX, TAG_MAX_LEN, TAG_MAX_PER_ARTICLE } from "../../extens
 import { APP_ID } from "../../extension/shared/constants.js";
 import { exportTools } from "../../extension/shared/export.js";
 import { markdown } from "../../extension/shared/markdown-export.js";
-import { booklet } from "../../extension/shared/booklet-export.js";
+import { booklet, BOOKLET_FONTS } from "../../extension/shared/booklet-export.js";
 import { matchesBackupSelection } from "../../extension/shared/store.js";
 import type { HighlightRecord } from "../types/highlight";
 import type { Settings, ThemeKey } from "../types/settings";
 import type { BackupSelection } from "../types/storage";
+import type { BookletBuildOptions, BookletFontId } from "../types/booklet";
 import { toast } from "./toast";
 
 const store = createStore(backends.chromeStorage());
@@ -504,13 +505,17 @@ export async function buildMarkdownExport(): Promise<void> {
   }
 }
 
-export async function buildBookletExport(format: string, mode: string): Promise<void> {
-  const gs = await exportGroups();
-  if (!gs.length) { toast("هایلایتی برای خروجی وجود ندارد", "error"); return; }
+export async function buildBookletExport(format: string, mode: string, options?: BookletBuildOptions): Promise<void> {
+  const all = await exportGroups();
+  if (!all.length) { toast("هایلایتی برای خروجی وجود ندارد", "error"); return; }
+  /* the selection rule's ONE home is the pure layer (empty selection = all) —
+     the modal's default state and this filter can never disagree */
+  const gs = dash.filterGroupsByKeys(all, (options && options.articles) || []);
+  if (!gs.length) { toast("مقاله‌ای برای کتابچه انتخاب نشده است", "error"); return; }
   let total = 0;
   gs.forEach((g: { items: unknown[] }) => { total += g.items.length; });
   try {
-    const html = booklet.buildBookletHtml({ groups: gs, mode: mode, exportedAt: Date.now() });
+    const html = booklet.buildBookletHtml({ groups: gs, mode: mode, exportedAt: Date.now(), font: options && options.font });
     if (format === "pdf") {
       exportTools.printHtml(html);
       toast("پنجره‌ی چاپ باز شد — برای PDF گزینه‌ی «Save as PDF» را انتخاب کن", "info");
@@ -521,6 +526,14 @@ export async function buildBookletExport(format: string, mode: string): Promise<
   } catch (e) {
     toast("ساخت کتابچه ناموفق بود", "error");
   }
+}
+
+/** The booklet font picker's options — straight from the builder's registry
+ *  (one source; parity with the BookletFontId union is pinned by
+ *  types-contract). Static data, so the modal stays a pure selection surface. */
+export function bookletFontOptions(): Array<{ id: BookletFontId; label: string }> {
+  const reg = BOOKLET_FONTS as Record<string, { label: string; stack: string }>;
+  return Object.keys(reg).map((id) => ({ id: id as BookletFontId, label: reg[id].label }));
 }
 
 /* ---------- article tags (v1.2.15) — validation + persistence ---------- */

@@ -11,6 +11,7 @@ import { describe, test, expect, beforeEach } from "bun:test";
 import { setupDom, loadEngine } from "./helpers/engine";
 import type { HighlightRecord, HighlightAnchor } from "../../src/types/highlight";
 import type { Settings } from "../../src/types/settings";
+import type { BookletBuildOptions, BookletFontId } from "../../src/types/booklet";
 import type { StorageBackend as PortBackend, BackupSelection as PortSelection } from "../../src/types/storage";
 import type { StorageBackend as MirrorBackend, BackupSelection as MirrorSelection } from "../../src/shared/store"; /* aliased: store.ts cannot import src/types (rootDir src/shared), so it keeps a duplicate port — the assignability test below is the drift tripwire */
 import {
@@ -21,7 +22,7 @@ import {
 
 describe("types ↔ runtime contract parity (Phase 1)", () => {
   let HL: any;
-  beforeEach(async () => { setupDom(); HL = await loadEngine({}); });
+  beforeEach(async () => { setupDom(); HL = await loadEngine({ extraFiles: ["shared/booklet-export.js"] }); });
 
   test("HL.MSG values == typed message union (exact set)", () => {
     const runtime = Object.values(HL.MSG).slice().sort();
@@ -108,5 +109,23 @@ describe("types ↔ runtime contract parity (Phase 1)", () => {
     /* the shape is assignable to the port type (compile-time, verified by typecheck) */
     const port: PortBackend = m;
     expect(typeof port.get).toBe("function");
+  });
+
+  test("booklet fonts: HL.BOOKLET_FONTS keys == BookletFontId union (exact set)", () => {
+    /* the font registry is hand-written JS outside the TS compile — the union
+       in src/types/booklet.ts is its hand mirror, this test the drift tripwire
+       (the same runtime↔type split as BackupSelection) */
+    const typed: BookletFontId[] = ["segoe", "system", "tahoma", "vazir"];
+    expect(Object.keys(HL.BOOKLET_FONTS).sort()).toEqual(typed);
+    /* every registry entry carries the picker's shape: a Persian label + a stack */
+    typed.forEach((id) => {
+      expect(typeof HL.BOOKLET_FONTS[id].label).toBe("string");
+      expect(HL.BOOKLET_FONTS[id].label.length).toBeGreaterThan(0);
+      expect(typeof HL.BOOKLET_FONTS[id].stack).toBe("string");
+    });
+    /* the contract constructs (compile-time — typecheck verifies the rest) */
+    const opts: BookletBuildOptions = { articles: ["https://a/1"], font: "tahoma" };
+    const onlyArticles: BookletBuildOptions = { articles: [] };
+    expect([opts.font, onlyArticles.font]).toEqual(["tahoma", undefined]);
   });
 });

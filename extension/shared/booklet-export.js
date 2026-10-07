@@ -19,6 +19,19 @@
  *     mode-bw (grayscale, ink-saving) — one stylesheet, switched by a body
  *     class over CSS custom properties (OCP: a new mode is one class + one
  *     var set, no builder branching beyond the class itself)
+ *   - INTERACTIVE TOC (Task 88): every «فهرست مقالات» entry is an internal
+ *     anchor to its article (href="#art-N" ↔ the section's id="art-N"; both
+ *     derive from the same groups array, so the number in the TOC, the
+ *     anchor and the article counter can never disagree) — in the browser it
+ *     scrolls to the article's highlights, and Chrome's «Save as PDF»
+ *     carries the same links into the PDF as internal links
+   *   - FONT registry (Task 88): BOOKLET_FONTS — the print typeface is a
+   *     per-build choice (ctx.font) over system font stacks; nothing is
+   *     bundled or linked, so the document keeps its zero-external-resources
+   *     invariant. OCP: a new font is ONE registry entry (its body class and
+   *     --bk-font override are generated from the registry); a build without
+   *     ctx.font — or with the DEFAULT_BOOKLET_FONT / an unknown id — renders
+   *     with the exact pre-registry stack and carries no font class
  *   - zero scripts, zero external resources → prints identically anywhere,
  *     CSP-safe in every context
  *
@@ -85,6 +98,35 @@ import { format } from "./format.js"; /* 7c-3 */
     return parts.join(' · ');
   }
 
+  /* ---------- Font registry (Task 88) ----------
+     The print typeface is a per-build choice (ctx.font → the export modal's
+     radio), never a bundled webfont: the booklet stays one self-contained
+     document with zero external resources and renders with whatever the
+     user's system actually has (a missing font degrades down the stack).
+     OCP: a new font is ONE entry here — its body class and --bk-font
+     override are generated from the registry. The vazir stack IS the
+     pre-registry font-family verbatim, so builds without ctx.font render
+     exactly as before. */
+  var BOOKLET_FONTS = {
+    vazir:  { label: 'وزیرمتن',    stack: '"Vazirmatn", "Segoe UI", Tahoma, "Helvetica Neue", system-ui, sans-serif' },
+    tahoma: { label: 'تاهوما',     stack: 'Tahoma, "Vazirmatn", "Segoe UI", sans-serif' },
+    segoe:  { label: 'Segoe UI',  stack: '"Segoe UI", "Vazirmatn", Tahoma, sans-serif' },
+    system: { label: 'فونت سیستم', stack: 'system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif' }
+  };
+
+  /** One override rule per registry entry — the class the body carries when
+      ctx.font names this font (the var falls back to vazir's stack without
+      one, the pre-registry behavior). */
+  var FONT_CSS = Object.keys(BOOKLET_FONTS).map(function (id) {
+    return 'body.font-' + id + ' { --bk-font: ' + BOOKLET_FONTS[id].stack + '; }';
+  }).join('\n');
+
+  /** The default font id — the body rule's var fallback IS this entry's
+   *  stack, so a build choosing it (or choosing nothing, or an unknown id)
+   *  carries NO font class and renders exactly the pre-registry markup: a
+   *  class would only re-assert the fallback. */
+  var DEFAULT_BOOKLET_FONT = 'vazir';
+
   /* ---------- Inline style / attrs per element ---------- */
 
   /** Per-highlight inline palette — color mode paints the bar + tint from the
@@ -114,13 +156,15 @@ import { format } from "./format.js"; /* 7c-3 */
   var CSS = [
     '* { box-sizing: border-box; margin: 0; padding: 0; }',
     'html { -webkit-text-size-adjust: 100%; }',
-    'body { font-family: "Vazirmatn", "Segoe UI", Tahoma, "Helvetica Neue", system-ui, sans-serif;',
+    'body { font-family: var(--bk-font, "Vazirmatn", "Segoe UI", Tahoma, "Helvetica Neue", system-ui, sans-serif);',
     '  line-height: 1.95; color: var(--ink); background: var(--scr-bg); }',
     '/* MODES — one class + one var set each (OCP) */',
     'body.mode-color { --ink: #2a2313; --muted: #83775a; --accent: #9a6d00; --paper: #fffdf6;',
     '  --paper2: #f7f1e0; --line: #e6dcbf; --scr-bg: #efe9db; }',
     'body.mode-bw { --ink: #1b1b1b; --muted: #5c5c5c; --accent: #1b1b1b; --paper: #ffffff;',
     '  --paper2: #f4f4f4; --line: #cfcfcf; --scr-bg: #e9e9e9; }',
+    '/* FONTS — one class per BOOKLET_FONTS entry (OCP; no class → the default stack) */',
+    FONT_CSS,
     '',
     '/* ---- Screen: a centered "paper" sheet; print: the page IS the paper ---- */',
     '.sheet { max-width: 186mm; margin: 28px auto; background: var(--paper);',
@@ -141,7 +185,9 @@ import { format } from "./format.js"; /* 7c-3 */
     '.cover-date { margin-top: 8px; font-size: 13px; color: var(--muted); }',
     '.cover-toc { margin-top: auto; }',
     '.toc-title { font-size: 15px; font-weight: 800; margin-bottom: 8px; }',
-    '.toc-row { display: flex; align-items: baseline; gap: 8px; padding: 6px 0; }',
+    '.toc-row { display: flex; align-items: baseline; gap: 8px; padding: 6px 0;',
+    '  color: inherit; text-decoration: none; }',
+    '.toc-row:hover .toc-t { color: var(--accent); }',
     '.toc-n { min-width: 1.7em; font-size: 12px; color: var(--muted); }',
     '.toc-t { font-weight: 600; font-size: 13.5px; }',
     '.toc-fill { flex: 1; border-bottom: 1px dotted var(--muted); opacity: .55; }',
@@ -215,7 +261,9 @@ import { format } from "./format.js"; /* 7c-3 */
       lines.push('  <div class="cover-toc">');
       lines.push('    <h2 class="toc-title">فهرست مقالات</h2>');
       toc.forEach(function (row) {
-        lines.push('    <div class="toc-row"><span class="toc-n">' + esc(row.n) + '</span><span class="toc-t">' + esc(row.title) + '</span><span class="toc-fill"></span><span class="toc-count">' + esc(row.count) + '</span></div>');
+        /* an internal anchor per entry (row.i ↔ articleSection's id) — the
+           index the reader clicks is the exact page the counter printed */
+        lines.push('    <a class="toc-row" href="#art-' + row.i + '"><span class="toc-n">' + esc(row.n) + '</span><span class="toc-t">' + esc(row.title) + '</span><span class="toc-fill"></span><span class="toc-count">' + esc(row.count) + '</span></a>');
       });
       lines.push('  </div>');
     }
@@ -224,7 +272,9 @@ import { format } from "./format.js"; /* 7c-3 */
     return lines.join('\n');
   }
 
-  function articleSection(g, mode) {
+  /** n: the article's 1-based position — the TOC's anchor target (id="art-n")
+   *  and the CSS counter's printed number are the same number by construction. */
+  function articleSection(g, mode, n) {
     var t = titleOf(g);
     var dir = g.dir === 'ltr' ? 'ltr' : 'rtl';
     var host = hostOf(g);
@@ -232,7 +282,7 @@ import { format } from "./format.js"; /* 7c-3 */
     var tags = (g.tags || []).filter(function (x) { return fmt.oneLine(x); }).slice(0, 8);
 
     var lines = [];
-    lines.push('<section class="article" dir="' + dir + '" aria-label="' + esc(t) + '">');
+    lines.push('<section class="article" id="art-' + n + '" dir="' + dir + '" aria-label="' + esc(t) + '">');
     lines.push('  <header class="art-head">');
     lines.push('    <h2 class="art-title">' + esc(t) + '</h2>');
     lines.push('    <p class="art-meta" dir="rtl">');
@@ -268,20 +318,25 @@ import { format } from "./format.js"; /* 7c-3 */
 
   /**
    * Builds the whole booklet HTML document.
-   * ctx: { groups: Group[], mode: 'color'|'bw', exportedAt: number }
+   * ctx: { groups: Group[], mode: 'color'|'bw', exportedAt: number,
+   *        font?: string }
    * Group = groupRecords output ({ key, host, title, url, items, dir, … }),
-   * optionally carrying `tags` ([string]). mode defaults to 'color'.
+   * optionally carrying `tags` ([string]). mode defaults to 'color'. font is
+   * a BOOKLET_FONTS id — absent or unknown degrades to the default stack
+   * (no body class, the pre-registry rendering).
    * Articles render in the GIVEN array order (the library's newest-first),
    * each article's items in the GIVEN order (reading order — the caller's
    * dash.readingOrderItems). The TOC is included from 2 articles up (a
    * single-article booklet doesn't need a directory — over-application guard,
-   * the same rule the card's order pill follows).
+   * the same rule the card's order pill follows); its entries anchor to the
+   * articles (id="art-N", 1-based — the counter's number).
    * Pure: never mutates the input, never reads the clock (exportedAt injected).
    */
   function buildBookletHtml(ctx) {
     var groups = (ctx && ctx.groups) || [];
     var mode = (ctx && ctx.mode) === 'bw' ? 'bw' : 'color';
     var exportedAt = (ctx && ctx.exportedAt) || 0;
+    var font = (ctx && BOOKLET_FONTS[ctx.font] && ctx.font !== DEFAULT_BOOKLET_FONT) ? ctx.font : null;
 
     var stats = { total: 0, articles: groups.length, notes: 0 };
     groups.forEach(function (g) {
@@ -292,7 +347,7 @@ import { format } from "./format.js"; /* 7c-3 */
     var toc = null;
     if (groups.length > 1) {
       toc = groups.map(function (g, i) {
-        return { n: fmt.faNum(i + 1) + '.', title: titleOf(g), count: fmt.faNum((g.items || []).length) + ' هایلایت' };
+        return { i: i + 1, n: fmt.faNum(i + 1) + '.', title: titleOf(g), count: fmt.faNum((g.items || []).length) + ' هایلایت' };
       });
     }
 
@@ -301,7 +356,7 @@ import { format } from "./format.js"; /* 7c-3 */
     if (!groups.length) {
       body.push('<p class="doc-empty" dir="rtl">هنوز هایلایتی ثبت نشده است.</p>');
     } else {
-      groups.forEach(function (g) { body.push(articleSection(g, mode)); });
+      groups.forEach(function (g, i) { body.push(articleSection(g, mode, i + 1)); });
     }
     body.push('<footer class="foot" dir="rtl">ساخته‌شده با «' + esc(APP_NAME) + '» — همه‌ی داده‌ها فقط روی دستگاه شما ذخیره می‌شوند.</footer>');
 
@@ -317,7 +372,7 @@ import { format } from "./format.js"; /* 7c-3 */
       CSS,
       '</style>',
       '</head>',
-      '<body class="mode-' + mode + '">',
+      '<body class="mode-' + mode + (font ? ' font-' + font : '') + '">',
       '<div class="sheet">',
       body.join('\n'),
       '</div>',
@@ -329,4 +384,6 @@ import { format } from "./format.js"; /* 7c-3 */
   export const booklet = {
     buildBookletHtml: buildBookletHtml
   };
+
+  export { BOOKLET_FONTS };
 

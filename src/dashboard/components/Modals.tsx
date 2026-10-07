@@ -7,8 +7,11 @@
  *  - RestoreModal: h2#modal-title + .modal-summary#modal-summary (the
  *    fillModalSummary rows) + the imp-mode radio list + imp-cancel/imp-go
  *  - BookletModal: h2#booklet-title + summary + the Markdown/booklet sections
- *    with the bk-format/bk-color radio groups (radios read at click time —
- *    the imp-mode contract)
+ *    with the bk-format/bk-color/bk-font radio groups; the booklet block also
+ *    carries the ARTICLE PICKER (Task 88 — the shared .sel-list family over
+ *    dash.articleOptions rows; nothing picked = ALL articles, the pure layer's
+ *    default-all rule) — radios and selection read at click time (the
+ *    imp-mode contract)
  *  - PreviewModal (v0.6.1–v0.6.4): the FULLY direction-smart window — the
  *    frame carries the record text's own direction, the title is the
  *    article's own (articleTitleOf, excerpt 60, per-text dir), the quote and
@@ -30,6 +33,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { HighlightRecord } from "../../types/highlight";
 import type { BackupSelection } from "../../types/storage";
+import type { BookletBuildOptions, BookletFontId } from "../../types/booklet";
 import { dash } from "../../../extension/dashboard/dashboard-data.js";
 import { format } from "../../../extension/shared/format.js";
 import { APP_NAME, VERSION } from "../../../extension/shared/constants.js";
@@ -43,6 +47,16 @@ function SumRow({ k, v }: { k: string; v: string }) {
       <strong>{v}</strong>
     </div>
   );
+}
+
+/** Immutable Set toggle — the ONE state helper behind every picker checkbox
+ *  (BackupModal + BookletModal): a fresh Set each click so snapshot identity
+ *  drives the re-render. */
+function toggleInSet(cur: Set<string>, v: string): Set<string> {
+  const next = new Set(cur);
+  if (next.has(v)) next.delete(v);
+  else next.add(v);
+  return next;
 }
 
 interface ModalRequest {
@@ -186,17 +200,31 @@ export function RestoreModal({ req, onClose, onImport }: {
   );
 }
 
-/* ---------- Booklet & Markdown export modal (v0.6.0) ---------- */
+/* ---------- Booklet & Markdown export modal (v0.6.0; picker + font — Task 88) ---------- */
 
-export function BookletModal({ req, onClose, stats, onMarkdown, onBooklet }: {
+/**
+ * The booklet window: the Markdown block (unchanged), the booklet's article
+ * picker (the shared .sel-list family over the dash.articleOptions rows —
+ * nothing picked means ALL articles, the pure layer's default-all rule,
+ * surfaced in the status line), and the booklet block's radio groups
+ * (format / color / font) read at click time. The component is a pure
+ * selection surface: options and the export ride injected props (the same
+ * contract as BackupModal); the live highlight count is summed from the rows
+ * themselves — they carry the exact comparable values.
+ */
+export function BookletModal({ req, onClose, stats, articleOptions, fontOptions, onMarkdown, onBooklet }: {
   req: { open: boolean; payload: ModalRequest | null };
   onClose: () => void;
   stats: { total: number; notes: number; pages: number; sites: number };
+  articleOptions: BackupSelectionOptions["articles"];
+  fontOptions: Array<{ id: BookletFontId; label: string }>;
   onMarkdown: () => Promise<void>;
-  onBooklet: (format: string, mode: string) => Promise<void>;
+  onBooklet: (format: string, mode: string, options: BookletBuildOptions) => Promise<void>;
 }) {
   const [fmt, setFmt] = useState("html");
   const [colorMode, setColorMode] = useState("color");
+  const [articles, setArticles] = useState<Set<string>>(new Set());
+  const [font, setFont] = useState<BookletFontId>("vazir");
   const [busy, setBusy] = useState(false);
   const cancelRef = useRef<HTMLButtonElement>(null);
   void setBusy; /* reserved for per-format pending UX; md/bk buttons gate on their own promises */
@@ -205,11 +233,17 @@ export function BookletModal({ req, onClose, stats, onMarkdown, onBooklet }: {
     if (req.open) {
       setFmt("html");
       setColorMode("color");
+      setArticles(new Set()); /* fresh picker per open — the one-shot pattern */
+      setFont("vazir");
       try { cancelRef.current?.focus(); } catch (e) { /* noop */ }
     }
   }, [req.open]);
 
   const s = stats || { total: 0, notes: 0, pages: 0, sites: 0 };
+  const ao = articleOptions || [];
+  const fo = fontOptions || [];
+  const pickedCount = articles.size;
+  const pickedHighlights = ao.reduce((sum, a) => (articles.has(a.key) ? sum + a.count : sum), 0);
 
   return (
     <ModalShell id="booklet-modal" labelledBy="booklet-title" open={req.open} onClose={onClose} overlayCloses={false}>
@@ -227,6 +261,32 @@ export function BookletModal({ req, onClose, stats, onMarkdown, onBooklet }: {
           دریافت فایل Markdown
         </button>
       </section>
+
+      <SelSection title="مقاله‌های کتابچه" hint="بدون انتخاب، همه‌ی مقاله‌ها در کتابچه می‌آیند؛ با انتخاب، فقط همین‌ها.">
+        {ao.length ? (
+          <div className="sel-list" role="group" aria-label="انتخاب مقاله‌های کتابچه">
+            {ao.map((a) => (
+              <label className="sel-item" key={a.key}>
+                <input
+                  type="checkbox"
+                  checked={articles.has(a.key)}
+                  onChange={() => setArticles(toggleInSet(articles, a.key))}
+                />
+                <span className="sel-label" dir="auto">{format.excerpt(a.title, 60) || "بدون عنوان"}</span>
+                <span className="muted small sel-side">{a.host}</span>
+                <span className="muted small">{dash.faNum(a.count)} هایلایت</span>
+              </label>
+            ))}
+          </div>
+        ) : (
+          <SelEmpty text="مقاله‌ای ثبت نشده است" />
+        )}
+        <div className="sel-status muted small" id="booklet-status" role="status">
+          {pickedCount === 0
+            ? "همه‌ی مقاله‌ها در کتابچه خواهند بود."
+            : <><strong>{dash.faNum(pickedHighlights)}</strong> هایلایت از <strong>{dash.faNum(pickedCount)}</strong> مقاله در کتابچه خواهد بود.</>}
+        </div>
+      </SelSection>
 
       <section className="exp-sec">
         <h3>کتابچه چاپی</h3>
@@ -263,12 +323,23 @@ export function BookletModal({ req, onClose, stats, onMarkdown, onBooklet }: {
             </span>
           </label>
         </div>
+        <div className="radio-list" role="radiogroup" aria-label="فونت کتابچه">
+          {fo.map((f) => (
+            <label className="radio" key={f.id}>
+              <input type="radio" name="bk-font" value={f.id} checked={font === f.id} onChange={() => setFont(f.id)} />
+              <span className="radio-txt">
+                <strong>{f.label}</strong>
+                {f.id === "vazir" ? <span className="muted small">پیش‌فرض — اگر روی سیستم نصب نباشد، مرورگر فونت مشابهی نشان می‌دهد</span> : null}
+              </span>
+            </label>
+          ))}
+        </div>
         <button
           type="button"
           className="btn btn-primary"
           id="bk-go"
           disabled={busy}
-          onClick={() => { void onBooklet(fmt, colorMode).then(onClose); }}
+          onClick={() => { void onBooklet(fmt, colorMode, { articles: Array.from(articles), font: font }).then(onClose); }}
         >
           ساخت کتابچه
         </button>
@@ -329,13 +400,6 @@ export function BackupModal({ req, onClose, options, countOf, onExport }: {
     if (req.open) { setHosts(new Set()); setArticles(new Set()); setTags(new Set()); }
   }, [req.open]);
 
-  function toggle(cur: Set<string>, set: (s: Set<string>) => void, v: string): void {
-    const next = new Set(cur);
-    if (next.has(v)) next.delete(v);
-    else next.add(v);
-    set(next);
-  }
-
   const sel: BackupSelection = { hosts: Array.from(hosts), articles: Array.from(articles), tags: Array.from(tags) };
   const picked = hosts.size + articles.size + tags.size;
   const matched = picked ? countOf(sel) : 0;
@@ -355,7 +419,7 @@ export function BackupModal({ req, onClose, options, countOf, onExport }: {
                 <input
                   type="checkbox"
                   checked={hosts.has(s.host)}
-                  onChange={() => toggle(hosts, setHosts, s.host)}
+                  onChange={() => setHosts(toggleInSet(hosts, s.host))}
                 />
                 <span className="sel-label">{s.host}</span>
                 <span className="muted small">{dash.faNum(s.articles)} مقاله</span>
@@ -375,7 +439,7 @@ export function BackupModal({ req, onClose, options, countOf, onExport }: {
                 <input
                   type="checkbox"
                   checked={articles.has(a.key)}
-                  onChange={() => toggle(articles, setArticles, a.key)}
+                  onChange={() => setArticles(toggleInSet(articles, a.key))}
                 />
                 <span className="sel-label" dir="auto">{format.excerpt(a.title, 60) || "بدون عنوان"}</span>
                 <span className="muted small sel-side">{a.host}</span>
@@ -396,7 +460,7 @@ export function BackupModal({ req, onClose, options, countOf, onExport }: {
                 <input
                   type="checkbox"
                   checked={tags.has(t.tag)}
-                  onChange={() => toggle(tags, setTags, t.tag)}
+                  onChange={() => setTags(toggleInSet(tags, t.tag))}
                 />
                 <span className="sel-label" dir="auto">{t.tag}</span>
                 <span className="muted small">{dash.faNum(t.count)} مقاله</span>

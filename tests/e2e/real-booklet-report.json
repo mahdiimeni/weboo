@@ -1,0 +1,49 @@
+{
+  "extensionLoaded": true,
+  "noHLGlobal": true,
+  "modalOpens": true,
+  "pickerFedFromRealStorage": true,
+  "fontRadiosDefaultVazir": true,
+  "defaultAllStatus": true,
+  "fullFileDownloaded": true,
+  "tocAnchorsWork": true,
+  "threeArticlesInFile": true,
+  "defaultFontNoClass": true,
+  "modalClosesAfterExport": true,
+  "freshPickerPerOpen": true,
+  "liveCountOnSelection": true,
+  "escapeCloses": true,
+  "selectedFileDownloaded": true,
+  "fontClassApplied": true,
+  "selectionFiltered": true,
+  "tocGuardForSingleArticle": true,
+  "modalClosesAfterExport2": true,
+  "markdownStillThere": true,
+  "modalState": {
+    "open": true,
+    "rows": [
+      "مقاله زومیت الفzoomit.ir۱ هایلایت",
+      "مقاله زومیت بzoomit.ir۱ هایلایت",
+      "Book - Wikipediaen.wikipedia.org۱ هایلایت"
+    ],
+    "status": "همه‌ی مقاله‌ها در کتابچه خواهند بود.",
+    "fonts": [
+      "vazir",
+      "tahoma",
+      "segoe",
+      "system"
+    ],
+    "vazirChecked": true,
+    "goDisabled": false
+  },
+  "armed": {
+    "status": "۱ هایلایت از ۱ مقاله در کتابچه خواهد بود.",
+    "vazirChecked": false,
+    "tahomaChecked": true
+  },
+  "file1": "web-highlighter-booklet-2026-10-07-1236.html",
+  "file2": "web-highlighter-booklet-2026-10-07-1236.html",
+  "doc1Body": "<body class=\"mode-color\">",
+  "doc2Body": "<body class=\"mode-color font-tahoma\">",
+  "exceptions": []
+}

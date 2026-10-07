@@ -22,6 +22,7 @@ import { ColorDots } from "../../src/dashboard/components/ColorDots";
 import { BehaviorSwitches } from "../../src/dashboard/components/BehaviorSwitches";
 import { EmptyState } from "../../src/dashboard/components/EmptyState";
 import { PreviewModal, RestoreModal, BookletModal, BackupModal } from "../../src/dashboard/components/Modals";
+import type { BookletFontId, BookletBuildOptions } from "../../src/types/booklet";
 import { LoadMore } from "../../src/dashboard/components/LoadMore";
 import { dash } from "../../extension/dashboard/dashboard-data.js";
 
@@ -548,14 +549,16 @@ describe("Modals (Phase 8 slice 5)", () => {
   test("BookletModal: summary from the SAME computeStats + radio groups read at click time", async () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
-    const calls: Array<[string, string]> = [];
+    const calls: Array<[string, string, BookletBuildOptions]> = [];
     const { root, host: h } = mount(
       <BookletModal
         req={{ open: true, payload: { kind: "booklet" } }}
         onClose={() => {}}
         stats={{ total: 7, notes: 2, pages: 5, sites: 3 }}
-        onMarkdown={async () => { calls.push(["md", ""]); }}
-        onBooklet={async (f, m) => { calls.push([f, m]); }}
+        articleOptions={[{ key: "https://a.com/p1", host: "a.com", title: "مقاله الف", count: 3 }]}
+        fontOptions={FONTS}
+        onMarkdown={async () => { calls.push(["md", "", { articles: [], font: "vazir" }]); }}
+        onBooklet={async (f, m, o) => { calls.push([f, m, o]); }}
       />,
       host
     );
@@ -565,13 +568,17 @@ describe("Modals (Phase 8 slice 5)", () => {
     expect(rows[0]).toContain(dash.faNum(7));
     expect(h.querySelectorAll('input[name="bk-format"]').length).toBe(2);
     expect(h.querySelectorAll('input[name="bk-color"]').length).toBe(2);
+    expect(h.querySelectorAll('input[name="bk-font"]').length).toBe(FONTS.length);
     (h.querySelector('input[name="bk-format"][value="pdf"]') as HTMLInputElement).click();
     await tick();
     (h.querySelector("#bk-go") as HTMLElement).click();
     await tick();
     (h.querySelector("#md-go") as HTMLElement).click();
     await tick();
-    expect(calls).toEqual([["pdf", "color"], ["md", ""]]);
+    expect(calls).toEqual([
+      ["pdf", "color", { articles: [], font: "vazir" }],
+      ["md", "", { articles: [], font: "vazir" }],
+    ]);
     root.unmount();
   });
 
@@ -717,6 +724,137 @@ describe("BackupModal (بک‌آپ انتخابی)", () => {
     document.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
     await tick();
     expect(closed).toBe(1);
+    root.unmount();
+  });
+});
+
+/* ---------- BookletModal — انتخاب مقاله‌ها + فونت (Task 88) ---------- */
+
+const FONTS: Array<{ id: BookletFontId; label: string }> = [
+  { id: "vazir", label: "وزیرمتن" },
+  { id: "tahoma", label: "تاهوما" },
+  { id: "segoe", label: "Segoe UI" },
+  { id: "system", label: "فونت سیستم" },
+];
+
+describe("BookletModal — انتخاب مقاله‌ها و فونت (Task 88)", () => {
+  const ARTICLES = [
+    { key: "https://a.com/p1", host: "a.com", title: "مقاله الف", count: 3 },
+    { key: "https://b.org/x", host: "b.org", title: "مقاله پ", count: 1 },
+    { key: "https://c.io/y", host: "c.io", title: "مقاله ت", count: 2 },
+  ];
+
+  function booklet(capture: { o?: any }) {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    return mount(
+      <BookletModal
+        req={{ open: true, payload: { kind: "booklet" } }}
+        onClose={() => {}}
+        stats={{ total: 6, notes: 0, pages: 3, sites: 3 }}
+        articleOptions={ARTICLES}
+        fontOptions={FONTS}
+        onMarkdown={async () => {}}
+        onBooklet={async (_f, _m, o) => { capture.o = o; }}
+      />,
+      host
+    );
+  }
+
+  test("انتخاب مقاله‌ها: رندر از options + وضعیت پیش‌فرض «همه‌ی مقاله‌ها» (default-all)", async () => {
+    const capture: { o?: any } = {};
+    const { root, host: h } = booklet(capture);
+    await tick();
+    const rows = [...h.querySelectorAll(".sel-list .sel-item")].map((r) => r.textContent);
+    expect(rows.length).toBe(3);
+    expect(rows[0]).toContain("مقاله الف");
+    expect(rows[0]).toContain(dash.faNum(3));
+    expect((h.querySelector("#booklet-status") as HTMLElement).textContent).toContain("همه‌ی مقاله‌ها");
+    (h.querySelector("#bk-go") as HTMLElement).click();
+    await tick();
+    expect(capture.o).toEqual({ articles: [], font: "vazir" }); /* بدون انتخاب = همه */
+    root.unmount();
+  });
+
+  test("انتخاب دو مقاله: وضعیت زنده از خود ردیف‌ها + onBooklet دقیقاً همان کلیدها", async () => {
+    const capture: { o?: any } = {};
+    const { root, host: h } = booklet(capture);
+    await tick();
+    const boxes = [...h.querySelectorAll('.sel-list input[type="checkbox"]')] as HTMLInputElement[];
+    boxes[0].click(); await tick();
+    boxes[1].click(); await tick();
+    const status = (h.querySelector("#booklet-status") as HTMLElement).textContent || "";
+    expect(status).toContain(dash.faNum(4)); /* ۳ + ۱ هایلایت */
+    expect(status).toContain(dash.faNum(2)); /* از ۲ مقاله */
+    (h.querySelector("#bk-go") as HTMLElement).click();
+    await tick();
+    expect(capture.o).toEqual({ articles: ["https://a.com/p1", "https://b.org/x"], font: "vazir" });
+    root.unmount();
+  });
+
+  test("فونت: پیش‌فرض وزیرمتن؛ تغییر به تاهوما به onBooklet می‌رسد", async () => {
+    const capture: { o?: any } = {};
+    const { root, host: h } = booklet(capture);
+    await tick();
+    const radios = [...h.querySelectorAll('input[name="bk-font"]')] as HTMLInputElement[];
+    expect(radios.length).toBe(4);
+    expect((h.querySelector('input[name="bk-font"][value="vazir"]') as HTMLInputElement).checked).toBe(true);
+    (h.querySelector('input[name="bk-font"][value="tahoma"]') as HTMLInputElement).click();
+    await tick();
+    (h.querySelector("#bk-go") as HTMLElement).click();
+    await tick();
+    expect(capture.o).toEqual({ articles: [], font: "tahoma" });
+    root.unmount();
+  });
+
+  test("باز شدن دوباره: انتخاب و فونت به پیش‌فرض برمی‌گردند (one-shot picker)", async () => {
+    const capture: { o?: any } = {};
+    const { root, host: h } = booklet(capture);
+    await tick();
+    (h.querySelector('.sel-list input[type="checkbox"]') as HTMLInputElement).click();
+    await tick();
+    (h.querySelector('input[name="bk-font"][value="tahoma"]') as HTMLInputElement).click();
+    await tick();
+    const base = {
+      onClose: () => {},
+      stats: { total: 6, notes: 0, pages: 3, sites: 3 },
+      articleOptions: ARTICLES,
+      fontOptions: FONTS,
+      onMarkdown: async () => {},
+      onBooklet: async () => {},
+    };
+    root.render(<BookletModal req={{ open: false, payload: null }} {...base} />);
+    await tick();
+    root.render(<BookletModal req={{ open: true, payload: { kind: "booklet" } }} {...base} />);
+    await tick();
+    expect((h.querySelector('.sel-list input[type="checkbox"]') as HTMLInputElement).checked).toBe(false);
+    expect((h.querySelector('input[name="bk-font"][value="vazir"]') as HTMLInputElement).checked).toBe(true);
+    expect((h.querySelector("#booklet-status") as HTMLElement).textContent).toContain("همه‌ی مقاله‌ها");
+    root.unmount();
+  });
+
+  test("Markdown مستقل است: بدون مقاله پیام خالی می‌آید و دکمه‌ی md کار می‌کند", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    let md = 0;
+    const { root, host: h } = mount(
+      <BookletModal
+        req={{ open: true, payload: { kind: "booklet" } }}
+        onClose={() => {}}
+        stats={{ total: 0, notes: 0, pages: 0, sites: 0 }}
+        articleOptions={[]}
+        fontOptions={FONTS}
+        onMarkdown={async () => { md++; }}
+        onBooklet={async () => {}}
+      />,
+      host
+    );
+    await tick();
+    expect(h.querySelector(".sel-list")).toBeNull(); /* بدون مقاله → پیام خالی */
+    expect(h.querySelector(".sel-none")?.textContent).toBe("مقاله‌ای ثبت نشده است");
+    (h.querySelector("#md-go") as HTMLElement).click();
+    await tick();
+    expect(md).toBe(1);
     root.unmount();
   });
 });
