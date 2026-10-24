@@ -212,3 +212,23 @@ describe("برند یک‌جا در کل افزونه (APP_NAME)", () => {
     expect(dash).toContain("<title>داشبورد — " + HL.APP_NAME + "</title>");
   });
 });
+
+describe("قرارداد میزبان‌های داشبورد (region mounts)", () => {
+  test("سه بخشِ ثابتِ کشو، تیتر و میزبانِ درونی دارند؛ React بخش را نمی‌بلعد", () => {
+    /* the shell owns the section chrome — h3s + the flex wrapper */
+    const shell = readFile(ext("..", "entrypoints", "dashboard", "index.html"));
+    expect(shell).toContain("<h3>ظاهر</h3>");
+    expect(shell).toContain("<h3>رنگ پیش‌فرض هایلایت</h3>");
+    expect(shell).toContain("<h3>رفتار</h3>");
+    expect(shell).toContain('<div class="color-dots" id="color-dots" role="radiogroup" aria-label="رنگ پیش‌فرض هایلایت">');
+    expect(shell).toContain('id="theme-radios"');
+    expect(shell).toContain('id="behavior-host"');
+    /* the regions mount INTO the inner hosts — a section-level mount erased
+       the h3s + the wrapper and stacked the bare dots (v0.8.2 regression) */
+    const main = readFile(ext("..", "entrypoints", "dashboard", "main.tsx"));
+    for (const id of ["theme-radios", "color-dots", "behavior-host"]) {
+      expect(main).toContain('getElementById("' + id + '")');
+    }
+    expect(main).not.toContain('getElementById("color-dots")?.closest');
+  });
+});

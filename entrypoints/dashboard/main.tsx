@@ -30,13 +30,18 @@ if (hostsHost) mounts.push([hostsHost, <HostsRegion />]);
 const bulkHost = document.querySelector(".list-bar");
 if (bulkHost) mounts.push([bulkHost, <BulkRegion />]);
 
-const themeHost = document.getElementById("theme-radios")?.closest(".set-sec");
+/* The three settings regions mount into their INNER hosts (not the
+   .set-sec section): createRoot takes over the host's children, so a
+   section-level mount erased the shell's h3 headings and the .color-dots
+   flex wrapper — the bare dots then stacked as rows of the column-flex
+   section (v0.8.2 regression). The shell owns the section chrome. */
+const themeHost = document.getElementById("theme-radios");
 if (themeHost) mounts.push([themeHost, <ThemeRegion />]);
 
-const dotsHost = document.getElementById("color-dots")?.closest(".set-sec");
+const dotsHost = document.getElementById("color-dots");
 if (dotsHost) mounts.push([dotsHost, <DotsRegion />]);
 
-const switchesHost = document.getElementById("set-toolbar")?.closest(".set-sec");
+const switchesHost = document.getElementById("behavior-host");
 if (switchesHost) mounts.push([switchesHost, <SwitchesRegion />]);
 
 const toolbarHost = document.querySelector(".toolbar");
