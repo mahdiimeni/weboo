@@ -232,3 +232,31 @@ describe("قرارداد میزبان‌های داشبورد (region mounts)", 
     expect(main).not.toContain('getElementById("color-dots")?.closest');
   });
 });
+
+describe("README contract", () => {
+  test("دوزبانه: به هم لینک می‌دهند، برند کهنه ندارند، اسناد ارجاع‌شده وجود دارند", () => {
+    const readme = readFile(ext("..", "README.md"));
+    const fa = readFile(ext("..", "README.fa.md"));
+    /* the language switcher, both directions */
+    expect(readme).toContain("[فارسی](README.fa.md)");
+    expect(fa).toContain("[English](README.md)");
+    /* the release naming (and never the pre-rebrand BRAND — the frozen
+       pre-rebrand zip filenames may be EXPLAINED, never recommended) */
+    for (const doc of [readme, fa]) {
+      expect(doc).toContain("dist/weboo-v");
+      expect(doc).not.toContain("وب هایلایتر");
+      expect(doc).not.toContain("Web Highlighter");
+    }
+    /* every local doc the READMEs reference exists */
+    for (const f of [
+      "docs/architecture.md",
+      "docs/storage.md",
+      "docs/anchor-engine.md",
+      "docs/benchmarks.md",
+      "LICENSE",
+      "README.fa.md",
+    ]) {
+      expect(exists(ext("..", f))).toBe(true);
+    }
+  });
+});
