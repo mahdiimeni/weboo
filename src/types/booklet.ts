@@ -9,8 +9,11 @@
  * red there — never silently.
  */
 
-/** The booklet font picker's options — ids of the BOOKLET_FONTS registry. */
-export type BookletFontId = "vazir" | "tahoma" | "segoe" | "system";
+/** The booklet font picker's options — 'vazir' is the BOOKLET_FONTS
+ *  registry's sole preset (the primary/default typeface); 'custom' selects a
+ *  user-typed LOCAL font (BookletBuildOptions.customFont) and is handled
+ *  outside the registry. */
+export type BookletFontId = "vazir" | "custom";
 
 /**
  * The per-build booklet options the export modal sends at click time:
@@ -19,10 +22,15 @@ export type BookletFontId = "vazir" | "tahoma" | "segoe" | "system";
  *              default-all rule lives in ONE place: dash.filterGroupsByKeys).
  *   font     — a BookletFontId; absent/unknown → the builder's default stack
  *              (vazir), which renders identically to the pre-Task-88 booklet.
+ *   customFont — with font:'custom': the user-typed LOCAL font name. The
+ *              builder sanitizes it (no quotes/braces/semicolons survive) and
+ *              wraps it in the vazir stack; empty/unsanitizable → the default
+ *              stack, exactly like an unknown id.
  * Both members are per-print choices (like the format/color radios) —
  * deliberately NOT settings: the booklet document itself is the artifact.
  */
 export interface BookletBuildOptions {
   articles?: string[];
   font?: BookletFontId;
+  customFont?: string;
 }

@@ -568,7 +568,7 @@ describe("Modals (Phase 8 slice 5)", () => {
     expect(rows[0]).toContain(dash.faNum(7));
     expect(h.querySelectorAll('input[name="bk-format"]').length).toBe(2);
     expect(h.querySelectorAll('input[name="bk-color"]').length).toBe(2);
-    expect(h.querySelectorAll('input[name="bk-font"]').length).toBe(FONTS.length);
+    expect(h.querySelectorAll('input[name="bk-font"]').length).toBe(FONTS.length + 1); /* presets + the custom local-font row */
     (h.querySelector('input[name="bk-format"][value="pdf"]') as HTMLInputElement).click();
     await tick();
     (h.querySelector("#bk-go") as HTMLElement).click();
@@ -732,9 +732,6 @@ describe("BackupModal (بک‌آپ انتخابی)", () => {
 
 const FONTS: Array<{ id: BookletFontId; label: string }> = [
   { id: "vazir", label: "وزیرمتن" },
-  { id: "tahoma", label: "تاهوما" },
-  { id: "segoe", label: "Segoe UI" },
-  { id: "system", label: "فونت سیستم" },
 ];
 
 describe("BookletModal — انتخاب مقاله‌ها و فونت (Task 88)", () => {
@@ -797,13 +794,49 @@ describe("BookletModal — انتخاب مقاله‌ها و فونت (Task 88)"
     const { root, host: h } = booklet(capture);
     await tick();
     const radios = [...h.querySelectorAll('input[name="bk-font"]')] as HTMLInputElement[];
-    expect(radios.length).toBe(4);
+    expect(radios.length).toBe(2); /* vazir preset + the custom local-font row */
     expect((h.querySelector('input[name="bk-font"][value="vazir"]') as HTMLInputElement).checked).toBe(true);
-    (h.querySelector('input[name="bk-font"][value="tahoma"]') as HTMLInputElement).click();
-    await tick();
     (h.querySelector("#bk-go") as HTMLElement).click();
     await tick();
-    expect(capture.o).toEqual({ articles: [], font: "tahoma" });
+    expect(capture.o).toEqual({ articles: [], font: "vazir", customFont: undefined });
+    root.unmount();
+  });
+
+  test("فونت دلخواه: تا نام نوشته نشود دکمه غیرفعال است؛ با نام، onBooklet دقیقاً همان را می‌برد", async () => {
+    const capture: { o?: any } = {};
+    const { root, host: h } = booklet(capture);
+    await tick();
+    (h.querySelector('input[name="bk-font"][value="custom"]') as HTMLInputElement).click();
+    await tick();
+    const input = h.querySelector("#bk-custom-font") as HTMLInputElement;
+    expect(input.disabled).toBe(false); /* enabled once the custom radio is picked */
+    expect((h.querySelector("#bk-go") as HTMLButtonElement).disabled).toBe(true); /* no name yet */
+    /* controlled input: React's value tracker dedupes a plain .value write —
+       go through the native setter so onChange really fires */
+    const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")!.set!;
+    nativeSetter.call(input, "B Nazanin");
+    input.dispatchEvent(new window.Event("input", { bubbles: true }));
+    await tick();
+    const go = h.querySelector("#bk-go") as HTMLButtonElement;
+    expect(go.disabled).toBe(false);
+    go.click();
+    await tick();
+    expect(capture.o).toEqual({ articles: [], font: "custom", customFont: "B Nazanin" });
+    root.unmount();
+  });
+
+  test("فونت دلخواه: نام خالیِ پس از پاک‌سازی، درخت را به پیش‌فرض برنمی‌گرداند — گیت جلویش را می‌گیرد", async () => {
+    const capture: { o?: any } = {};
+    const { root, host: h } = booklet(capture);
+    await tick();
+    (h.querySelector('input[name="bk-font"][value="custom"]') as HTMLInputElement).click();
+    await tick();
+    const input = h.querySelector("#bk-custom-font") as HTMLInputElement;
+    input.value = '   ";{}  '; /* sanitizes to nothing */
+    input.dispatchEvent(new window.Event("input", { bubbles: true }));
+    await tick();
+    expect((h.querySelector("#bk-go") as HTMLButtonElement).disabled).toBe(true);
+    expect(capture.o).toBeUndefined();
     root.unmount();
   });
 
@@ -813,7 +846,7 @@ describe("BookletModal — انتخاب مقاله‌ها و فونت (Task 88)"
     await tick();
     (h.querySelector('.sel-list input[type="checkbox"]') as HTMLInputElement).click();
     await tick();
-    (h.querySelector('input[name="bk-font"][value="tahoma"]') as HTMLInputElement).click();
+    (h.querySelector('input[name="bk-font"][value="custom"]') as HTMLInputElement).click();
     await tick();
     const base = {
       onClose: () => {},

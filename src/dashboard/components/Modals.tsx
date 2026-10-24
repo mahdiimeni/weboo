@@ -37,6 +37,7 @@ import type { BookletBuildOptions, BookletFontId } from "../../types/booklet";
 import { dash } from "../../../extension/dashboard/dashboard-data.js";
 import { format } from "../../../extension/shared/format.js";
 import { APP_NAME, VERSION } from "../../../extension/shared/constants.js";
+import { sanitizeFontFamily } from "../../../extension/shared/booklet-export.js";
 import { IconQuote } from "./icons";
 import { articleTitleOf } from "./GroupCard";
 
@@ -225,6 +226,7 @@ export function BookletModal({ req, onClose, stats, articleOptions, fontOptions,
   const [colorMode, setColorMode] = useState("color");
   const [articles, setArticles] = useState<Set<string>>(new Set());
   const [font, setFont] = useState<BookletFontId>("vazir");
+  const [customFont, setCustomFont] = useState("");
   const [busy, setBusy] = useState(false);
   const cancelRef = useRef<HTMLButtonElement>(null);
   void setBusy; /* reserved for per-format pending UX; md/bk buttons gate on their own promises */
@@ -235,6 +237,7 @@ export function BookletModal({ req, onClose, stats, articleOptions, fontOptions,
       setColorMode("color");
       setArticles(new Set()); /* fresh picker per open — the one-shot pattern */
       setFont("vazir");
+      setCustomFont("");
       try { cancelRef.current?.focus(); } catch (e) { /* noop */ }
     }
   }, [req.open]);
@@ -328,18 +331,35 @@ export function BookletModal({ req, onClose, stats, articleOptions, fontOptions,
             <label className="radio" key={f.id}>
               <input type="radio" name="bk-font" value={f.id} checked={font === f.id} onChange={() => setFont(f.id)} />
               <span className="radio-txt">
-                <strong>{f.label}</strong>
-                {f.id === "vazir" ? <span className="muted small">پیش‌فرض — اگر روی سیستم نصب نباشد، مرورگر فونت مشابهی نشان می‌دهد</span> : null}
+                <strong>{f.label} — پیش‌فرض</strong>
+                <span className="muted small">اگر روی سیستم نصب نباشد، مرورگر فونت مشابهی نشان می‌دهد</span>
               </span>
             </label>
           ))}
+          <label className="radio">
+            <input type="radio" name="bk-font" value="custom" checked={font === "custom"} onChange={() => setFont("custom")} />
+            <span className="radio-txt">
+              <strong>فونت دلخواه</strong>
+              <span className="muted small">هر فونتی که روی دستگاه شما نصب است — نامش را دقیق بنویسید</span>
+              <input
+                type="text"
+                id="bk-custom-font"
+                dir="auto"
+                value={customFont}
+                disabled={font !== "custom"}
+                maxLength={60}
+                placeholder="مثلاً: B Nazanin"
+                onChange={(e) => setCustomFont(e.target.value)}
+              />
+            </span>
+          </label>
         </div>
         <button
           type="button"
           className="btn btn-primary"
           id="bk-go"
-          disabled={busy}
-          onClick={() => { void onBooklet(fmt, colorMode, { articles: Array.from(articles), font: font }).then(onClose); }}
+          disabled={busy || (font === "custom" && !sanitizeFontFamily(customFont))}
+          onClick={() => { void onBooklet(fmt, colorMode, { articles: Array.from(articles), font: font, customFont: font === "custom" ? customFont : undefined }).then(onClose); }}
         >
           ساخت کتابچه
         </button>

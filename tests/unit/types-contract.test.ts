@@ -111,21 +111,27 @@ describe("types ↔ runtime contract parity (Phase 1)", () => {
     expect(typeof port.get).toBe("function");
   });
 
-  test("booklet fonts: HL.BOOKLET_FONTS keys == BookletFontId union (exact set)", () => {
+  test("booklet fonts: registry = the PRESETS; BookletFontId = presets + 'custom'", () => {
     /* the font registry is hand-written JS outside the TS compile — the union
        in src/types/booklet.ts is its hand mirror, this test the drift tripwire
-       (the same runtime↔type split as BackupSelection) */
-    const typed: BookletFontId[] = ["segoe", "system", "tahoma", "vazir"];
-    expect(Object.keys(HL.BOOKLET_FONTS).sort()).toEqual(typed);
-    /* every registry entry carries the picker's shape: a Persian label + a stack */
-    typed.forEach((id) => {
-      expect(typeof HL.BOOKLET_FONTS[id].label).toBe("string");
-      expect(HL.BOOKLET_FONTS[id].label.length).toBeGreaterThan(0);
-      expect(typeof HL.BOOKLET_FONTS[id].stack).toBe("string");
-    });
+       (the same runtime↔type split as BackupSelection). v0.9.0: the registry
+       is the PRESET list (vazir only — the primary typeface); 'custom' is the
+       user-typed LOCAL font path and deliberately lives OUTSIDE the registry
+       (no fixed stack of its own). */
+    expect(Object.keys(HL.BOOKLET_FONTS).sort()).toEqual(["vazir"]);
+    expect(typeof HL.BOOKLET_FONTS.vazir.label).toBe("string");
+    expect(HL.BOOKLET_FONTS.vazir.label.length).toBeGreaterThan(0);
+    expect(typeof HL.BOOKLET_FONTS.vazir.stack).toBe("string");
+    const typed: BookletFontId[] = ["custom", "vazir"];
+    for (const id of typed) {
+      if (id === "custom") continue; /* handled outside the registry */
+      expect(Object.keys(HL.BOOKLET_FONTS)).toContain(id);
+    }
+    /* the sanitizer is exported (the modal's enable gate shares the ONE rule) */
+    expect(typeof HL.sanitizeFontFamily).toBe("function");
     /* the contract constructs (compile-time — typecheck verifies the rest) */
-    const opts: BookletBuildOptions = { articles: ["https://a/1"], font: "tahoma" };
+    const opts: BookletBuildOptions = { articles: ["https://a/1"], font: "custom", customFont: "B Nazanin" };
     const onlyArticles: BookletBuildOptions = { articles: [] };
-    expect([opts.font, onlyArticles.font]).toEqual(["tahoma", undefined]);
+    expect([opts.font, opts.customFont, onlyArticles.font]).toEqual(["custom", "B Nazanin", undefined]);
   });
 });

@@ -108,10 +108,7 @@ import { format } from "./format.js"; /* 7c-3 */
      pre-registry font-family verbatim, so builds without ctx.font render
      exactly as before. */
   var BOOKLET_FONTS = {
-    vazir:  { label: 'وزیرمتن',    stack: '"Vazirmatn", "Segoe UI", Tahoma, "Helvetica Neue", system-ui, sans-serif' },
-    tahoma: { label: 'تاهوما',     stack: 'Tahoma, "Vazirmatn", "Segoe UI", sans-serif' },
-    segoe:  { label: 'Segoe UI',  stack: '"Segoe UI", "Vazirmatn", Tahoma, sans-serif' },
-    system: { label: 'فونت سیستم', stack: 'system-ui, -apple-system, "Segoe UI", Tahoma, sans-serif' }
+    vazir:  { label: 'وزیرمتن', stack: '"Vazirmatn", "Segoe UI", Tahoma, "Helvetica Neue", system-ui, sans-serif' }
   };
 
   /** One override rule per registry entry — the class the body carries when
@@ -126,6 +123,42 @@ import { format } from "./format.js"; /* 7c-3 */
    *  carries NO font class and renders exactly the pre-registry markup: a
    *  class would only re-assert the fallback. */
   var DEFAULT_BOOKLET_FONT = 'vazir';
+
+  /** Sanitizes a user-typed LOCAL font name for CSS — the one rule the
+      booklet's custom-font path and the modal's enable gate share (DRY).
+      ALLOWLIST, not blocklist: only letters (any script — \p{L} covers
+      Persian font names too), digits, spaces and -_.() survive; quotes,
+      backslashes, semicolons, braces, angle brackets and control characters
+      vanish by construction. Collapses whitespace, caps the length; null
+      when nothing usable remains. The caller wraps the result in quotes. */
+  function sanitizeFontFamily(name) {
+    var t = String(name == null ? '' : name)
+      .replace(/[^\p{L}\p{N}\s\-_.()]/gu, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (t.length > 40) t = t.slice(0, 40).trim();
+    return t || null;
+  }
+
+  /** The per-build font decision — ONE place: the registry covers the
+      preset; 'custom' wraps the user's LOCAL font name in the vazir stack
+      (after sanitizeFontFamily — a missing font degrades down the stack).
+      Returns { cls, rule } (rule null for presets — FONT_CSS already owns
+      them) or null for the default rendering (no font class at all). */
+  function fontOf(ctx) {
+    var f = ctx && ctx.font;
+    if (f === 'custom') {
+      var name = sanitizeFontFamily(ctx && ctx.customFont);
+      if (name) {
+        return { cls: 'font-custom', rule: 'body.font-custom { --bk-font: "' + name + '", ' + BOOKLET_FONTS.vazir.stack + '; }' };
+      }
+      return null;
+    }
+    if (f && BOOKLET_FONTS[f] && f !== DEFAULT_BOOKLET_FONT) {
+      return { cls: 'font-' + f, rule: null };
+    }
+    return null;
+  }
 
   /* ---------- Inline style / attrs per element ---------- */
 
@@ -330,13 +363,17 @@ import { format } from "./format.js"; /* 7c-3 */
    * single-article booklet doesn't need a directory — over-application guard,
    * the same rule the card's order pill follows); its entries anchor to the
    * articles (id="art-N", 1-based — the counter's number).
+   * font is 'custom' with customFont (a user-typed LOCAL font name —
+   * sanitized, wrapped in the vazir stack) or a BOOKLET_FONTS id — absent or
+   * unknown degrades to the default stack (no body class, the
+   * pre-registry rendering).
    * Pure: never mutates the input, never reads the clock (exportedAt injected).
    */
   function buildBookletHtml(ctx) {
     var groups = (ctx && ctx.groups) || [];
     var mode = (ctx && ctx.mode) === 'bw' ? 'bw' : 'color';
     var exportedAt = (ctx && ctx.exportedAt) || 0;
-    var font = (ctx && BOOKLET_FONTS[ctx.font] && ctx.font !== DEFAULT_BOOKLET_FONT) ? ctx.font : null;
+    var font = fontOf(ctx);
 
     var stats = { total: 0, articles: groups.length, notes: 0 };
     groups.forEach(function (g) {
@@ -369,10 +406,10 @@ import { format } from "./format.js"; /* 7c-3 */
       '<meta name="color-scheme" content="light">', /* the booklet is a paper document — always light, print-first */
       '<title>کتابچه هایلایت‌ها — ' + esc(APP_NAME) + '</title>',
       '<style>',
-      CSS,
+      font && font.rule ? CSS + '\n' + font.rule : CSS,
       '</style>',
       '</head>',
-      '<body class="mode-' + mode + (font ? ' font-' + font : '') + '">',
+      '<body class="mode-' + mode + (font ? ' ' + font.cls : '') + '">',
       '<div class="sheet">',
       body.join('\n'),
       '</div>',
@@ -385,5 +422,5 @@ import { format } from "./format.js"; /* 7c-3 */
     buildBookletHtml: buildBookletHtml
   };
 
-  export { BOOKLET_FONTS };
+  export { BOOKLET_FONTS, sanitizeFontFamily };
 

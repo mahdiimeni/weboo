@@ -515,7 +515,7 @@ export async function buildBookletExport(format: string, mode: string, options?:
   let total = 0;
   gs.forEach((g: { items: unknown[] }) => { total += g.items.length; });
   try {
-    const html = booklet.buildBookletHtml({ groups: gs, mode: mode, exportedAt: Date.now(), font: options && options.font });
+    const html = booklet.buildBookletHtml({ groups: gs, mode: mode, exportedAt: Date.now(), font: options && options.font, customFont: options && options.customFont });
     if (format === "pdf") {
       exportTools.printHtml(html);
       toast("پنجره‌ی چاپ باز شد — برای PDF گزینه‌ی «Save as PDF» را انتخاب کن", "info");

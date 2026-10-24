@@ -265,23 +265,45 @@ describe("HL.booklet — فونت (Task 88)", () => {
     );
   });
 
-  test("هر فونت رجیستری: کلاس بدنه font-<id> + قانون --bk-font خودش؛ پیش‌فرض بدون کلاس", () => {
+  test("پیش‌فرض رجیستری (وزیر): بدون کلاس — همان var-fallback؛ قانونش در CSS هست", () => {
     const g = [group("https://a.example.com/1", [rec("a1")])];
     Object.keys(HL.BOOKLET_FONTS).forEach((id: string) => {
       const out = doc({ groups: g, font: id, exportedAt: T0 });
-      if (id === "vazir") {
-        /* پیش‌فرض همان var-fallback است — کلاس فقط تکرار همان مقدار می‌بود */
-        expect(out.match(/<body[^>]*>/)?.[0]).toBe('<body class="mode-color">');
-      } else {
-        expect(out).toContain(`<body class="mode-color font-${id}">`);
-        expect(out).toContain(`body.font-${id} { --bk-font: ${HL.BOOKLET_FONTS[id].stack}; }`);
-      }
+      /* پیش‌فرض همان var-fallback است — کلاس فقط تکرار همان مقدار می‌بود */
+      expect(out.match(/<body[^>]*>/)?.[0]).toBe('<body class="mode-color">');
+      expect(out).toContain(`body.font-${id} { --bk-font: ${HL.BOOKLET_FONTS[id].stack}; }`);
     });
   });
 
-  test("فونت با حالت bw ترکیب می‌شود (دو کلاس مستقل)", () => {
-    const out = doc({ groups: [], mode: "bw", font: "tahoma", exportedAt: T0 });
-    expect(out).toContain('<body class="mode-bw font-tahoma">');
+  test("فونت دلخواه (v0.9.0): نام پاک‌سازیشده در پشته‌ی وزیر می‌نشیند", () => {
+    const out = doc({ groups: [], font: "custom", customFont: "B Nazanin", exportedAt: T0 });
+    expect(out).toContain('<body class="mode-color font-custom">');
+    expect(out).toContain(
+      'body.font-custom { --bk-font: "B Nazanin", "Vazirmatn", "Segoe UI", Tahoma, "Helvetica Neue", system-ui, sans-serif; }'
+    );
+  });
+
+  test("فونت دلخواه با حالت bw ترکیب می‌شود (دو کلاس مستقل)", () => {
+    const out = doc({ groups: [], mode: "bw", font: "custom", customFont: "IRANSansX", exportedAt: T0 });
+    expect(out).toContain('<body class="mode-bw font-custom">');
+    expect(out).toContain('--bk-font: "IRANSansX"');
+  });
+
+  test("فونت دلخواه: پاک‌سازی — نقل‌قول/سمی‌کالن/آکولاد/براکت هرگز به CSS نمی‌رسد", () => {
+    const out = doc({ groups: [], font: "custom", customFont: '  a";  b{}<style>c\\', exportedAt: T0 });
+    expect(out).toContain('<body class="mode-color font-custom">');
+    expect(out).toContain('--bk-font: "a bstylec"');
+    /* none of the dangerous characters survive into the stylesheet */
+    expect(out).not.toContain('"; b');
+    expect(out).not.toContain("{}");
+  });
+
+  test("فونت دلخواه بدون نام (یا نامِ بی‌اثر) → پیش‌فرض محافظه‌کارانه، بدون کلاس", () => {
+    for (const customFont of [undefined, "", "   ", ';;;"']) {
+      const out = doc({ groups: [], font: "custom", customFont, exportedAt: T0 });
+      expect(out).toContain('<body class="mode-color">');
+      expect(out).not.toContain("font-custom");
+    }
   });
 
   test("شناسه‌ی ناشناخته → پیش‌فرض محافظه‌کارانه (بدون کلاس فونت)", () => {
@@ -301,10 +323,10 @@ describe("HL.booklet — فونت (Task 88)", () => {
   test("خلوص با فونت: ورودی و رجیستری هرگز جهش نمی‌کنند", () => {
     const registrySnap = JSON.stringify(HL.BOOKLET_FONTS);
     const g = group("https://a.example.com/1", [rec("a1")]);
-    const ctx = { groups: [g], font: "segoe", exportedAt: T0 };
+    const ctx = { groups: [g], font: "custom", customFont: "B Nazanin", exportedAt: T0 };
     const snap = JSON.stringify(ctx);
     doc(ctx);
-    doc({ ...ctx, font: "system" });
+    doc({ ...ctx, customFont: "Tahoma" });
     expect(JSON.stringify(ctx)).toBe(snap);
     expect(JSON.stringify(HL.BOOKLET_FONTS)).toBe(registrySnap);
   });
