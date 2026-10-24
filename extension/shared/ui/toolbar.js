@@ -68,6 +68,9 @@ import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
     '.hlx-tb .c:hover { transform: scale(1.2); border-color: var(--tb-dot-border-h); }',
     '.hlx-tb .sep { width: 1px; height: 20px; background: var(--tb-sep); margin: 0 5px; flex: 0 0 auto; }',
     '.hlx-tb .b { width: 30px; height: 30px; border-radius: 9px; color: var(--tb-btn-fg); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }',
+    /* v0.10.0 craft: the controls answer the pointer; reduced-motion turns it off */
+    '.hlx-tb .c:active, .hlx-tb .b:active { transform: scale(0.92); }',
+    '@media (prefers-reduced-motion: reduce) { .hlx-tb .c, .hlx-tb .b { transition: none; } }',
     '.hlx-tb .b:hover { background: var(--tb-btn-h-bg); color: var(--tb-btn-h-fg); }',
     '.hlx-tb .b.note { color: var(--tb-note); }',
     '.hlx-tb .b.note:hover { background: var(--tb-note-h-bg); }'

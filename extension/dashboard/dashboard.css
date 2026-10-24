@@ -93,6 +93,31 @@
   --shadow: 0 1px 2px rgba(0, 0, 0, .4);
 }
 
+/* ---------- Design language (v0.10.0 — craft rules learned from VibeFarsi)
+   ONE shape/depth/motion scale for the whole surface. The color palettes
+   above are contract-frozen (uitheme.test.ts «دارک دست نزن»); this layer is
+   the craft that rides on top: a radius scale instead of ad-hoc values,
+   one motion curve, press feedback on controls, one big-soft depth for
+   overlays, hairline cards — and reduced-motion is honored. */
+:root {
+  --r-ctl: 10px;     /* buttons, inputs, chips, small controls */
+  --r-surface: 14px; /* cards, toolbar, modal sections, lists */
+  --r-overlay: 18px; /* the modal cards themselves */
+  --motion: 200ms;
+  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  --press: scale(0.97);
+  --depth-overlay: 0 24px 60px -24px rgba(0, 0, 0, .5);
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --motion: 0ms; --press: none; }
+  *, *::before, *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
+    animation-iteration-count: 1 !important;
+  }
+  html { scroll-behavior: auto; }
+}
+
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 
@@ -107,7 +132,7 @@ body {
   color: var(--text);
   font-family: Vazirmatn, 'Segoe UI', Tahoma, sans-serif;
   font-size: 14px;
-  line-height: 1.75;
+  line-height: 1.8;
 }
 
 .muted { color: var(--muted); }
@@ -176,10 +201,10 @@ body {
 /* ---------- Buttons ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-  padding: 8px 14px; border-radius: 10px;
+  padding: 8px 14px; border-radius: var(--r-ctl);
   font: inherit; font-weight: 700; font-size: 13px;
   cursor: pointer; border: 1px solid transparent;
-  transition: background .15s, border-color .15s, color .15s;
+  transition: background var(--motion), border-color var(--motion), color var(--motion);
 }
 .btn svg { flex: none; }
 .btn-primary { background: var(--accent); color: #fff; }
@@ -205,8 +230,8 @@ body {
   width: 32px; height: 32px; flex: none;
   display: grid; place-items: center;
   border: none; background: transparent;
-  color: var(--muted); border-radius: 8px; cursor: pointer;
-  transition: background .14s, color .14s;
+  color: var(--muted); border-radius: var(--r-ctl); cursor: pointer;
+  transition: background var(--motion) var(--motion-ease), color var(--motion) var(--motion-ease);
 }
 .icon-btn:hover { background: var(--hover); color: var(--text); }
 .icon-btn.danger:hover { background: var(--danger-bg); color: var(--danger-h); }
@@ -220,6 +245,10 @@ body {
    their names live in aria-label/title (HTML), the square shape here. Same
    height family as the action row (40px), a 15px icon centered inside. */
 .btn-icon { width: 40px; padding-inline: 0; }
+
+/* Press feedback — the VibeFarsi craft rule: controls answer the pointer
+   (scale press, tokenized; disabled for reduced-motion above). */
+.btn:active, .icon-btn:active, .cdot:active, .hchip-x:active { transform: var(--press); }
 
 /* ---------- Body ---------- */
 .container {
@@ -239,7 +268,7 @@ body {
 .stat-card {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--r-surface);
   padding: 14px 16px;
   box-shadow: var(--shadow);
   display: flex; flex-direction: column; gap: 2px;
@@ -252,7 +281,7 @@ body {
 .toolbar {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--r-surface);
   padding: 12px 14px;
   box-shadow: var(--shadow);
   display: flex; flex-direction: column; gap: 10px;
@@ -260,10 +289,10 @@ body {
 }
 .search-box {
   display: flex; align-items: center; gap: 9px;
-  border: 1px solid var(--line); border-radius: 10px;
+  border: 1px solid var(--line); border-radius: var(--r-ctl);
   padding: 8px 12px;
   background: var(--bg);
-  transition: border-color .15s;
+  transition: border-color var(--motion) var(--motion-ease);
 }
 .search-box:focus-within { border-color: var(--accent); }
 .search-ic { color: var(--muted); flex: none; }
@@ -286,7 +315,7 @@ body {
   padding: 4px 12px;
   font: inherit; font-size: 12.5px; font-weight: 600;
   cursor: pointer;
-  transition: border-color .14s, background .14s;
+  transition: border-color var(--motion), background var(--motion);
 }
 .cchip .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
 .cchip:hover { border-color: var(--accent); }
@@ -311,7 +340,7 @@ body {
   padding: 3px 11px;
   font: inherit; font-size: 12px; font-weight: 600;
   cursor: pointer;
-  transition: border-color .14s, background .14s, color .14s;
+  transition: border-color var(--motion), background var(--motion), color var(--motion) var(--motion-ease);
 }
 .tchip:hover { border-color: var(--accent); }
 .tchip.active {
@@ -344,13 +373,13 @@ body {
   display: block;
   width: 44px; height: 24px; border-radius: 999px;
   background: var(--toggle);
-  transition: background .18s;
+  transition: background var(--motion) var(--motion-ease);
 }
 .switch .knob {
   position: absolute; top: 3px; inset-inline-start: 3px;
   width: 18px; height: 18px; border-radius: 50%;
   background: #fff; box-shadow: 0 1px 2px rgba(0, 0, 0, .35);
-  transition: inset-inline-start .18s;
+  transition: inset-inline-start var(--motion) var(--motion-ease);
   pointer-events: none;
 }
 .switch input:checked ~ .track { background: var(--accent); }
@@ -401,16 +430,16 @@ body {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   padding: 4px 8px 2px;
   margin-bottom: 8px;
-  border-radius: 8px;
+  border-radius: var(--r-ctl);
   cursor: pointer; user-select: none;
-  transition: background .14s;
+  transition: background var(--motion) var(--motion-ease);
 }
 .dir-sec-head:hover { background: var(--hover); }
 .dir-sec-head:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 /* State chevron (v0.5.0) — the card chev's quiet sibling; the head always
    lives in the document's RTL flow, so one rotation rule mirrors the card's
    (.group.collapsed .chev). */
-.dir-sec-chev { color: var(--muted); flex: none; transition: transform .18s; }
+.dir-sec-chev { color: var(--muted); flex: none; transition: transform var(--motion) var(--motion-ease); }
 .dir-sec-chev svg { display: block; }
 .dir-sec.collapsed .dir-sec-chev { transform: rotate(90deg); }
 /* The collapsed body hides via the hidden attribute the view sets (the exact
@@ -421,7 +450,7 @@ body {
   margin: 0;
   font-size: 13px; font-weight: 800;
   color: var(--muted);
-  letter-spacing: .1px;
+  letter-spacing: 0;
 }
 .dir-ic { color: var(--accent-h); display: inline-flex; }
 .dir-ic svg { display: block; }
@@ -459,7 +488,7 @@ body {
 .group {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--r-surface);
   box-shadow: var(--shadow);
   margin-bottom: 12px;
   overflow: hidden;
@@ -468,12 +497,12 @@ body {
   display: flex; align-items: center; gap: 12px;
   padding: 12px 14px;
   cursor: pointer; user-select: none;
-  transition: background .14s;
+  transition: background var(--motion) var(--motion-ease);
 }
 .group-head:hover { background: var(--hover); }
 .group-head:focus-visible { outline-offset: -2px; }
 .fl {
-  width: 38px; height: 38px; border-radius: 10px; flex: none;
+  width: 38px; height: 38px; border-radius: var(--r-ctl); flex: none;
   background: var(--accent-soft); color: var(--accent-h);
   font-weight: 800; font-size: 17px;
   display: grid; place-items: center;
@@ -483,7 +512,7 @@ body {
 .fl-img {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   object-fit: contain; padding: 6px; box-sizing: border-box;
-  opacity: 0; transition: opacity .18s ease-out;
+  opacity: 0; transition: opacity var(--motion) var(--motion-ease);
   border-radius: inherit; pointer-events: none;
 }
 .fl-img.on { opacity: 1; }
@@ -509,7 +538,7 @@ body {
   padding: 2px 10px; border-radius: 999px;
   white-space: nowrap;
 }
-.chev { color: var(--muted); flex: none; transition: transform .18s; }
+.chev { color: var(--muted); flex: none; transition: transform var(--motion) var(--motion-ease); }
 .group.collapsed .chev { transform: rotate(90deg); }
 
 /* ---------- Item order pill (v0.4.0) ----------
@@ -523,7 +552,7 @@ body {
   border: 1px solid var(--line); border-radius: 999px;
   padding: 2px 10px;
   cursor: pointer; white-space: nowrap;
-  transition: color .14s, border-color .14s, background .14s;
+  transition: color var(--motion), border-color var(--motion), background var(--motion);
 }
 .order-btn:hover { color: var(--accent-h); border-color: var(--accent-line); background: var(--accent-soft); }
 .order-btn .order-ic { display: inline-flex; }
@@ -562,7 +591,7 @@ body {
   border: none; border-radius: 50%; padding: 0;
   background: transparent; color: var(--muted);
   cursor: pointer;
-  transition: background .13s, color .13s;
+  transition: background var(--motion), color var(--motion);
 }
 .atag-x:hover { background: var(--danger-bg); color: var(--danger-h); }
 .atag-x svg { display: block; }
@@ -575,7 +604,7 @@ body {
   padding: 2px 10px;
   font: inherit; font-size: 11.5px; font-weight: 700;
   cursor: pointer;
-  transition: border-color .14s, color .14s, background .14s;
+  transition: border-color var(--motion), color var(--motion), background var(--motion) var(--motion-ease);
 }
 .atag-add:hover { border-color: var(--accent); color: var(--accent-h); background: var(--accent-soft); }
 .atag-add svg { display: block; }
@@ -608,7 +637,7 @@ body {
   padding: 12px 14px;
   padding-inline-start: 20px;
   border-bottom: 1px solid var(--line);
-  transition: background .14s;
+  transition: background var(--motion) var(--motion-ease);
 }
 .item:last-child { border-bottom: none; }
 .item:hover { background: var(--hover); } /* background change only — no stroke (uitheme.test contract) */
@@ -629,7 +658,7 @@ body {
 .item-text.peek,
 .note.peek {
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: var(--r-ctl);
 }
 .item-text.peek:hover,
 .note.peek:hover {
@@ -645,7 +674,7 @@ body {
   background: var(--ok-bg);
   border: 1px solid var(--ok-line);
   color: var(--ok-text);
-  border-radius: 10px;
+  border-radius: var(--r-ctl);
   padding: 8px 12px;
   font-size: 13px;
 }
@@ -692,7 +721,7 @@ body {
   background: rgba(17, 24, 39, .45);
   z-index: 110;
   opacity: 0; pointer-events: none;
-  transition: opacity .2s;
+  transition: opacity var(--motion) var(--motion-ease);
 }
 .overlay.show { opacity: 1; pointer-events: auto; }
 
@@ -706,7 +735,7 @@ body {
   border-right: 1px solid var(--line);
   box-shadow: 4px 0 24px rgba(0, 0, 0, .18);
   transform: translateX(-105%);
-  transition: transform .25s ease;
+  transition: transform var(--motion) var(--motion-ease);
   display: flex; flex-direction: column;
 }
 .drawer.open { transform: translateX(0); }
@@ -753,7 +782,7 @@ body {
   display: grid; place-items: center;
   cursor: pointer;
   flex: none;
-  transition: box-shadow .14s, border-color .14s, transform .14s;
+  transition: box-shadow var(--motion), border-color var(--motion), transform var(--motion);
 }
 .cdot .dot {
   width: 20px; height: 20px; border-radius: 50%;
@@ -800,7 +829,7 @@ body {
 .host-add { display: flex; gap: 6px; }
 .host-add input {
   flex: 1; min-width: 0;
-  border: 1px solid var(--line); border-radius: 10px;
+  border: 1px solid var(--line); border-radius: var(--r-ctl);
   background: var(--bg); color: var(--text);
   font: inherit; font-size: 13px;
   padding: 7px 12px;
@@ -812,7 +841,7 @@ body {
 .danger-zone {
   border: 1px solid var(--danger-line);
   background: var(--danger-bg);
-  border-radius: 14px;
+  border-radius: var(--r-surface);
   padding: 14px;
 }
 .danger-zone h3 { color: var(--danger-h); }
@@ -820,7 +849,7 @@ body {
 .danger-confirm { display: flex; gap: 6px; flex-wrap: wrap; }
 .danger-confirm input {
   flex: 1; min-width: 160px;
-  border: 1px solid var(--danger-line); border-radius: 10px;
+  border: 1px solid var(--danger-line); border-radius: var(--r-ctl);
   background: var(--card); color: var(--text);
   font: inherit; font-size: 13px;
   padding: 7px 12px;
@@ -847,9 +876,9 @@ body {
   margin: auto;
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r-overlay);
   padding: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, .25);
+  box-shadow: var(--depth-overlay);
   animation: pop .18s ease;
 }
 @keyframes pop {
@@ -869,10 +898,10 @@ body {
 .radio-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
 .radio {
   display: flex; align-items: flex-start; gap: 10px;
-  border: 1px solid var(--line); border-radius: 12px;
+  border: 1px solid var(--line); border-radius: var(--r-surface);
   padding: 11px 13px;
   cursor: pointer;
-  transition: border-color .14s, background .14s;
+  transition: border-color var(--motion), background var(--motion);
 }
 .radio:hover { border-color: var(--accent); }
 .radio:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
@@ -912,17 +941,17 @@ body {
   max-height: 168px;
   overflow-y: auto;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-surface);
   padding: 6px;
 }
 .sel-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  border-radius: 8px;
+  border-radius: var(--r-ctl);
   padding: 6px 9px;
   cursor: pointer;
-  transition: background .14s;
+  transition: background var(--motion) var(--motion-ease);
 }
 .sel-item:hover { background: var(--hover); }
 .sel-item:has(input:checked) { background: var(--accent-soft); }
@@ -1015,12 +1044,12 @@ body {
 }
 .toast {
   background: #047857; color: #fff;
-  padding: 10px 18px; border-radius: 10px;
+  padding: 10px 18px; border-radius: var(--r-ctl);
   font-size: 13px; font-weight: 700;
   box-shadow: 0 6px 20px rgba(0, 0, 0, .28);
   max-width: 92vw;
   opacity: 0; transform: translateY(8px);
-  transition: opacity .22s, transform .22s;
+  transition: opacity var(--motion), transform var(--motion);
 }
 .toast.show { opacity: 1; transform: translateY(0); }
 .toast.success { background: #047857; }
@@ -1050,6 +1079,6 @@ body {
   .stat-card { padding: 12px; }
   .btn { padding: 7px 11px; font-size: 12.5px; }
   .ver { display: none; }
-  .fl { width: 32px; height: 32px; font-size: 15px; border-radius: 8px; }
+  .fl { width: 32px; height: 32px; font-size: 15px; border-radius: var(--r-ctl); }
   .filter-row { gap: 10px; }
 }
