@@ -101,7 +101,7 @@
    overlays, hairline cards — and reduced-motion is honored. */
 :root {
   /* shape/motion/press/depth now live in globals.css (the Graphite token
-     layer) — components read --r-*/--press/--depth-* from there; only the
+     layer) — components read the r/press/depth tokens from there; only the
      spacing grid stays page-local (4px, VibeFarsi craft rule) */
   --sp-2: 8px;
   --sp-3: 12px;

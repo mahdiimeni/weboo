@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "وبو — هایلایت و یادداشت محلی",
   "short_name": "وبو",
-  "version": "0.11.1",
+  "version": "0.11.2",
   "description": "هایلایت مقالات وب با ۵ رنگ، یادداشت روی هر هایلایت، ذخیره‌سازی ۱۰۰٪ محلی روی دستگاه شما و بک‌آپ/بازیابی JSON — بدون سرور، بدون حساب کاربری، بدون اشتراک.",
   "permissions": ["storage", "unlimitedStorage", "contextMenus", "activeTab"],
   "background": {
