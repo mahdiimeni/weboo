@@ -74,6 +74,12 @@
   --motion: 200ms;
   --motion-ease: cubic-bezier(0.2, 0, 0, 1);
   --press: scale(0.97);
+  /* the 4px spacing grid — same discipline as the dashboard */
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
 }
 @media (prefers-reduced-motion: reduce) {
   :root { --motion: 0ms; --press: none; }
@@ -168,13 +174,13 @@ body {
 }
 
 /* ---------- Unsupported page ---------- */
-.unsupp { text-align: center; padding: 24px 14px; }
+.unsupp { text-align: center; padding: 24px 16px; }
 .unsupp-ic { color: var(--muted); margin-bottom: 4px; }
 .unsupp-t { margin: 0 0 2px; font-weight: 800; font-size: 14px; }
 .unsupp .muted { margin: 0 0 12px; }
 
 /* ---------- Generic mode ---------- */
-.generic { text-align: center; padding: 18px 12px; }
+.generic { text-align: center; padding: 20px 12px; }
 .gstat { display: flex; flex-direction: column; gap: 2px; }
 .gstat-num { font-size: 30px; font-weight: 800; color: var(--accent-h); line-height: 1.3; }
 .gstat-lbl { color: var(--muted); font-size: 12px; }
@@ -252,7 +258,7 @@ body {
 }
 .list-head {
   display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
-  padding: 2px 4px 8px;
+  padding: 4px 10px 8px;
 }
 .hl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .hl-item {
@@ -274,7 +280,7 @@ body {
 .hl-meta .note-ic { color: var(--ok-text); display: inline-flex; }
 
 /* ---------- Empty state ---------- */
-.empty { text-align: center; padding: 22px 12px; }
+.empty { text-align: center; padding: 24px 12px; }
 .empty-ic { color: var(--muted); margin-bottom: 4px; }
 .empty-t { margin: 0 0 2px; font-weight: 800; font-size: 13.5px; }
 .empty .muted { margin: 0; }
