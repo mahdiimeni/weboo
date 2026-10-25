@@ -14,7 +14,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          # PINNED to the version the repo is developed and tested with.
+          # POLICY: Bun upgrades are DEDICATED commits (bump this pin + run the
+          # full gate) — they never ride along with feature/fix changes.
+          bun-version: 1.4.2
       - name: Install dependencies
         run: bun install --frozen-lockfile
       - name: Typecheck (strict + noImplicitAny)
