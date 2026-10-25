@@ -184,7 +184,7 @@ body {
   font-size: 11px; font-weight: 700;
   color: var(--accent-h); background: var(--accent-soft);
   border: 1px solid var(--accent-line);
-  padding: 1px 10px; border-radius: 999px;
+  padding: 3px 10px; border-radius: 999px;
   align-self: center; margin-inline-start: 4px;
 }
 .topbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -208,8 +208,11 @@ body {
 /* ---------- Buttons ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 7px;
-  padding: var(--sp-2) var(--sp-4); border-radius: var(--r-ctl);
-  font: inherit; font-weight: 700; font-size: 13px;
+  /* the 40px control system: text buttons, icon buttons and inputs are all
+     exactly 40px tall (the action-row contract, now literal) — buttons also
+     pin line-height 1.5 so the body's 1.8 can't inflate them to 41 */
+  height: 40px; padding: var(--sp-2) var(--sp-4); border-radius: var(--r-ctl);
+  font: inherit; font-weight: 700; font-size: 13px; line-height: 1.5;
   cursor: pointer; border: 1px solid transparent;
   transition: background var(--motion), border-color var(--motion), color var(--motion);
 }
@@ -297,7 +300,7 @@ body {
 .search-box {
   display: flex; align-items: center; gap: 9px;
   border: 1px solid var(--line); border-radius: var(--r-ctl);
-  padding: 8px 12px;
+  padding: 0 var(--sp-3); height: 40px;
   background: var(--bg);
   transition: border-color var(--motion) var(--motion-ease);
 }
@@ -306,7 +309,7 @@ body {
 .search-box input {
   flex: 1; min-width: 0;
   border: none; outline: none; background: transparent;
-  color: inherit; font: inherit;
+  color: inherit; font: inherit; line-height: 1.5;
 }
 .search-box input::placeholder { color: var(--muted); }
 
@@ -466,7 +469,7 @@ body {
   color: var(--muted);
   background: var(--card);
   border: 1px solid var(--line);
-  padding: 1px 10px;
+  padding: 2px 10px;
   border-radius: 999px;
   white-space: nowrap;
 }
@@ -836,10 +839,10 @@ body {
 .host-add { display: flex; gap: 6px; }
 .host-add input {
   flex: 1; min-width: 0;
+  height: 40px; padding: 0 12px;
   border: 1px solid var(--line); border-radius: var(--r-ctl);
   background: var(--bg); color: var(--text);
-  font: inherit; font-size: 13px;
-  padding: 7px 12px;
+  font: inherit; font-size: 13px; line-height: 1.5;
   direction: ltr; text-align: left;
 }
 .host-add input:focus { outline: none; border-color: var(--accent); }
