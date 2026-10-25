@@ -200,7 +200,7 @@ body {
 
 /* ---------- Buttons ---------- */
 .btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   /* the 40px control system: text buttons, icon buttons and inputs are all
      exactly 40px tall (the action-row contract, now literal) — buttons also
      pin line-height 1.5 so the body's 1.8 can't inflate them to 41 */
@@ -291,7 +291,7 @@ body {
   margin-bottom: 16px;
 }
 .search-box {
-  display: flex; align-items: center; gap: 9px;
+  display: flex; align-items: center; gap: 8px;
   border: 1px solid var(--line); border-radius: var(--r-ctl);
   padding: 0 var(--sp-3); height: 40px;
   background: var(--bg);
@@ -307,12 +307,12 @@ body {
 .search-box input::placeholder { color: var(--muted); }
 
 .filter-row {
-  display: flex; align-items: center; gap: 14px;
+  display: flex; align-items: center; gap: var(--sp-3);
   flex-wrap: wrap;
 }
 .color-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .cchip {
-  display: inline-flex; align-items: center; gap: 7px;
+  display: inline-flex; align-items: center; gap: 8px;
   border: 1px solid var(--line); border-radius: 999px;
   background: var(--card); color: var(--text);
   padding: 4px 12px;
@@ -337,7 +337,7 @@ body {
 .tag-filter-lbl { flex: none; }
 .tag-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .tchip {
-  display: inline-flex; align-items: center; gap: 7px;
+  display: inline-flex; align-items: center; gap: 8px;
   border: 1px solid var(--line); border-radius: 999px;
   background: var(--card); color: var(--text);
   padding: 4px 12px;
@@ -363,7 +363,7 @@ body {
 
 /* Switch (checkbox) */
 .switch-box {
-  display: inline-flex; align-items: center; gap: 9px;
+  display: inline-flex; align-items: center; gap: 8px;
   cursor: pointer; user-select: none;
 }
 .switch { position: relative; display: inline-block; flex: none; }
@@ -410,7 +410,7 @@ body {
 .list-bar {
   display: flex; align-items: center; gap: 10px;
 }
-.bulk-toggle { margin-bottom: 14px; }
+.bulk-toggle { margin-bottom: var(--sp-4); }
 .bulk-toggle .bt-ic { display: inline-flex; color: var(--accent-h); }
 .bulk-toggle .bt-ic svg { display: block; }
 .bulk-toggle .bt-lbl { white-space: nowrap; }
@@ -426,9 +426,9 @@ body {
    group-head contract one level up) — pointer cursor, a rounded whisper
    of a hover background, and the state chevron that rotates when the
    section collapses. The whole row stays inside the content column. */
-.dir-sec { margin-top: 14px; }
-.dir-sec:first-child { margin-top: 2px; }
-.dir-sec + .dir-sec { margin-top: 20px; }
+.dir-sec { margin-top: var(--sp-4); }
+.dir-sec:first-child { margin-top: 0; }
+.dir-sec + .dir-sec { margin-top: var(--sp-4); }
 .dir-sec-head {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   padding: 4px 8px;
@@ -449,7 +449,7 @@ body {
    .group-items mechanism) — .dir-sec-body carries no display rule of its own,
    so the UA style stands and the headers keep their geometry untouched. */
 .dir-sec-title {
-  display: inline-flex; align-items: center; gap: 7px;
+  display: inline-flex; align-items: center; gap: 8px;
   margin: 0;
   font-size: 13px; font-weight: 800;
   color: var(--muted);
@@ -673,7 +673,7 @@ body {
 }
 .note {
   display: flex; align-items: flex-start; gap: 8px;
-  margin-top: 9px;
+  margin-top: var(--sp-2);
   background: var(--ok-bg);
   border: 1px solid var(--ok-line);
   color: var(--ok-text);
@@ -760,7 +760,7 @@ body {
 .set-sec h3 {
   margin: 0;
   font-size: 13.5px; font-weight: 800;
-  display: flex; align-items: center; gap: 7px;
+  display: flex; align-items: center; gap: 8px;
   color: var(--accent-h);
 }
 .set-sec .muted { margin: 0; }
@@ -889,7 +889,7 @@ body {
   to { transform: scale(1); opacity: 1; }
 }
 .modal-card h2 { margin: 0 0 12px; font-size: 17px; font-weight: 800; }
-.modal-summary { display: flex; flex-direction: column; margin-bottom: 14px; }
+.modal-summary { display: flex; flex-direction: column; margin-bottom: var(--sp-4); }
 .sum-row {
   display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
   padding: 6px 0;

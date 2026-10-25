@@ -114,7 +114,7 @@ body {
   border-bottom: 1px solid var(--line);
   flex: none;
 }
-.brand { display: flex; align-items: center; gap: 9px; flex: 1; min-width: 0; }
+.brand { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
 .logo {
   width: 32px; height: 32px; border-radius: var(--r-ctl); flex: none;
   background: linear-gradient(135deg, #f59e0b, #d97706);
