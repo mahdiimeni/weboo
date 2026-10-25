@@ -64,9 +64,15 @@ every file you touch, without being reminded.
   `tests/unit/uitheme.test.ts`** — «دارک دست نزن»: the dark values are exact-
   pinned, the light values have contrast floors). Never add a fresh hex/oklch
   to a component rule.
-- Shape/depth/motion/spacing ride the language tokens: `--r-ctl/surface/overlay`,
-  `--motion/--motion-ease`, `--press`, `--sp-2/3/4/5` (the 4px grid). Do not
-  hardcode a new radius, duration, or off-grid padding.
+- Shape/depth/motion/spacing ride the **Graphite token layer in
+  `extension/globals.css`** (loaded FIRST in both shells; the page palettes
+  deliberately shadow its four colliding names): components read `--r-*`
+  (mapped to `--shape-control/surface/overlay`), `--press` (scale 0.98),
+  `--depth-*` (cards are flat + inset top highlight; only overlays get depth),
+  `--primary/--primary-foreground` (theme-correct via the mapping) and
+  `--sp-2/3/4/5` (the 4px grid). Do not hardcode a new radius, duration,
+  shadow or off-grid padding; amber (`--accent`) is for small highlights —
+  primary actions are `--primary`.
 - Control height is 40px (`.btn`, `.icon-btn`, text inputs).
 
 ### Before you finish

@@ -68,13 +68,8 @@
    scale: one radius family, one motion curve, press feedback, reduced-motion
    respected. Color palettes above are contract-frozen — untouched.) ---------- */
 :root {
-  --r-ctl: 10px;
-  --r-surface: 14px;
-  --r-overlay: 18px;
-  --motion: 200ms;
-  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
-  --press: scale(0.97);
-  /* the 4px spacing grid — same discipline as the dashboard */
+  /* shape/motion/press live in globals.css (Graphite layer); spacing is
+     page-local — same 4px grid as the dashboard */
   --sp-2: 8px;
   --sp-3: 12px;
   --sp-4: 16px;
@@ -141,7 +136,7 @@ body {
   width: 30px; height: 30px; flex: none;
   display: grid; place-items: center;
   border: none; background: transparent;
-  color: var(--muted); border-radius: 8px; cursor: pointer;
+  color: var(--muted); border-radius: var(--r-ctl); cursor: pointer;
   transition: background var(--motion), color var(--motion) var(--motion-ease);
 }
 .icon-btn:hover { background: var(--hover); color: var(--text); }
@@ -170,7 +165,7 @@ body {
   border: 1px solid var(--line);
   border-radius: var(--r-surface);
   padding: 12px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--depth-surface);
 }
 
 /* ---------- Unsupported page ---------- */
@@ -254,7 +249,7 @@ body {
   border: 1px solid var(--line);
   border-radius: var(--r-surface);
   padding: 10px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--depth-surface);
 }
 .list-head {
   display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
@@ -305,8 +300,8 @@ body {
 .btn svg { flex: none; }
 .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .btn:active, .icon-btn:active { transform: var(--press); }
-.btn-primary { background: var(--accent); color: #fff; }
-.btn-primary:hover { background: var(--accent-h); }
+.btn-primary { background: var(--primary); color: var(--primary-foreground); }
+.btn-primary:hover { background: color-mix(in oklch, var(--primary) 88%, var(--background)); }
 .btn-ghost { background: var(--card); color: var(--text); border-color: var(--line); }
 .btn-ghost:hover { background: var(--hover); }
 

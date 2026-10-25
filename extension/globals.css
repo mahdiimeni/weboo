@@ -1,0 +1,83 @@
+/* Weboo — globals.css
+   The VibeFarsi "Graphite" design-system tokens (exactly as delivered) plus
+   the Weboo mapping layer that lets components read them.
+
+   LOAD ORDER CONTRACT: this file is linked BEFORE dashboard.css / popup.css.
+   Four graphite names collide with Weboo's contract-frozen palette vars
+   (--card, --muted, --line, --accent — frozen per theme by
+   tests/unit/uitheme.test.ts, «دارک دست نزن»): the page stylesheets load
+   later and win those names by cascade, so the frozen palettes stay exact.
+   Components should read the graphite ROLE tokens below (--primary,
+   --primary-foreground, --shape-*, --depth-*, --brand, --destructive…) —
+   the mapping section resolves them theme-correctly for both light and dark. */
+
+/* گرافیت، مینیمال فنی و تم پیش‌فرض. این بلوک را در :root بگذارید. */
+:root {
+  color-scheme: dark;
+
+  /* رنگ */
+  --background: oklch(0.115 0.002 285);
+  --foreground: oklch(0.975 0 0);
+  --card: oklch(0.14 0.002 285);
+  --card-foreground: oklch(0.975 0 0);
+  --popover: oklch(0.16 0.002 285);
+  --popover-foreground: oklch(0.975 0 0);
+  --primary: oklch(0.975 0 0);
+  --primary-foreground: oklch(0.13 0 0);
+  --secondary: oklch(0.2 0.002 285);
+  --secondary-foreground: oklch(0.975 0 0);
+  --muted: oklch(0.175 0.002 285);
+  --muted-foreground: oklch(0.63 0.004 285);
+  --accent: oklch(0.2 0.002 285);
+  --accent-foreground: oklch(0.975 0 0);
+  --destructive: oklch(0.65 0.2 25);
+  --success: oklch(0.75 0.16 160);
+  --warning: oklch(0.82 0.16 80);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 11%);
+  --ring: oklch(0.7 0 0);
+  --brand: oklch(0.8 0.165 65);
+  --brand-foreground: oklch(0.22 0.06 60);
+
+  /* زبان طراحی: فونت، فرم، خط، عمق، حرکت و تراکم */
+  --radius: 0.625rem;
+  --type-display-weight: 700;
+  --shape-control: calc(var(--radius) - 2px);
+  --shape-field: calc(var(--radius) - 2px);
+  --shape-surface: calc(var(--radius) + 12px);
+  --shape-overlay: calc(var(--radius) + 4px);
+  --line: 1px;
+  --line-field: 1px;
+  --line-style: solid;
+  --field: color-mix(in oklch, var(--background) 60%, transparent);
+  --depth-control: 0 0 #0000;
+  --depth-press: 0 0 #0000;
+  --depth-field: 0 0 #0000;
+  --depth-surface: 0 1px 0 0 oklch(1 0 0 / 6%) inset;
+  --depth-overlay: 0 20px 50px -20px oklch(0 0 0 / 80%);
+  --surface-filter: none;
+  --press: scale(0.98);
+  --motion: 200ms;
+  --motion-ease: cubic-bezier(0.2, 0, 0, 1);
+  --backdrop: none;
+  --spacing: 0.25rem;
+}
+
+/* ---------- Weboo mapping ----------
+   The pages' own palettes (--bg/--card/--text/--line/--accent…) stay the
+   theme-aware truth (frozen light floors + exact dark values). The graphite
+   ROLE tokens resolve through them, so a component reading --primary gets
+   near-white-on-near-black in dark and the inverse in light — graphite's
+   intent in both themes. --accent is Weboo's AMBER (frozen) and deliberately
+   shadows graphite's gray --accent: use --brand for the brand role. */
+:root {
+  --primary: var(--text);
+  --primary-foreground: var(--bg);
+  --destructive: var(--danger);
+  --success: var(--ok-text);
+  --warning: var(--accent-h);
+  /* shape scale — Weboo's component radii read the graphite shapes */
+  --r-ctl: var(--shape-control);
+  --r-surface: var(--shape-surface);
+  --r-overlay: var(--shape-overlay);
+}
