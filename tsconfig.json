@@ -20,7 +20,12 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "incremental": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "paths": {
+      "@/*": [
+        "./*"
+      ]
+    }
   },
   "include": [
     "tests/**/*.ts",
@@ -28,7 +33,9 @@
     "entrypoints/**/*.ts",
     "entrypoints/**/*.tsx",
     "src/**/*.ts",
-    "src/**/*.tsx"
+    "src/**/*.tsx",
+    "components/**/*.tsx",
+    "lib/**/*.ts"
   ],
   "exclude": [
     "node_modules",

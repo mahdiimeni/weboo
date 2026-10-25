@@ -54,7 +54,11 @@ every file you touch, without being reminded.
 - Errors appear as Persian toasts near the action, specific, never generic.
 
 ### Components and colors
-- Components come from **Weboo's own token system**: palette vars live in
+- VibeFarsi components are VENDORED at `components/ui/` (button, calendar,
+  price — with `lib/utils.ts`/`lib/jalali.ts`; typed by the root tsconfig).
+  They are Tailwind-styled upstream: when ADOPTING one into the extension,
+  port its classes to Weboo's token system (no Tailwind in this repo) —
+  styling comes from **Weboo's own token system**: palette vars live in
   `extension/dashboard/dashboard.css` and `extension/popup/popup.css`
   (`--bg/--card/--text/--muted/--line/--accent/--danger/--info`, **frozen by
   `tests/unit/uitheme.test.ts`** — «دارک دست نزن»: the dark values are exact-
