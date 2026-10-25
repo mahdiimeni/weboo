@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "nextjs_tailwind_shadcn_ts",
+      "name": "weboo",
       "dependencies": {
         "react": "19",
         "react-dom": "19",
