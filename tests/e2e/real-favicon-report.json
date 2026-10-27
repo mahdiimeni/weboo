@@ -2,11 +2,12 @@
   "extensionLoaded": true,
   "contentScriptInjected": true,
   "realHighlight": true,
-  "selectionText": 54,
+  "selectionText": 55,
   "dashboardOpened": true,
   "storageKeys": [
     "hlx:d:127.0.0.1 (549b)",
-    "hlx:f:127.0.0.1 (267b)"
+    "hlx:f:127.0.0.1 (267b)",
+    "hlx:schemaVersion (1b)"
   ],
   "faviconCaptured": true,
   "faviconImgMounted": true,

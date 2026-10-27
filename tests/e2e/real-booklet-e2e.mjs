@@ -222,9 +222,11 @@ probes.modalOpens = modalState.open === true;
 probes.pickerFedFromRealStorage = modalState.rows?.length === 3 &&
   modalState.rows.some((r) => r.includes('زومیت الف')) &&
   modalState.rows.some((r) => r.includes('Book - Wikipedia'));
-probes.fontRadiosDefaultVazir = modalState.fonts?.length === 4 &&
-  modalState.fonts.includes('tahoma') && modalState.fonts.includes('segoe') &&
-  modalState.fonts.includes('system') && modalState.vazirChecked === true;
+/* v0.9.0+: the picker is vazir (the preset) + the custom local-font row —
+   the tahoma/segoe/system suggestions are gone by design */
+probes.fontRadiosDefaultVazir = modalState.fonts?.length === 2 &&
+  modalState.fonts.includes('vazir') && modalState.fonts.includes('custom') &&
+  modalState.vazirChecked === true;
 probes.defaultAllStatus = (modalState.status || '').includes('همه‌ی مقاله‌ها') &&
   modalState.goDisabled === false; /* default-all arms the button with no selection */
 await shot(D, 'real-booklet-modal.png'); /* visual evidence: the open picker + font radios */
@@ -275,17 +277,27 @@ await evalIn(D, `(() => {
     .find((r) => r.textContent.includes("زومیت الف"));
   row.querySelector("input").click();
 })()`);
-await evalIn(D, 'document.querySelector(\'#booklet-modal input[name="bk-font"][value="tahoma"]\').click()');
+/* pick the custom local-font row and type a name — the React-controlled
+   input needs the native value setter so onChange really fires */
+await evalIn(D, 'document.querySelector(\'#booklet-modal input[name="bk-font"][value="custom"]\').click()');
+await evalIn(D, `(() => {
+  const input = document.querySelector("#bk-custom-font");
+  const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+  set.call(input, "B Nazanin");
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+})()`);
 await sleep(200);
 const armed = await evalIn(D, `(() => {
   const m = document.querySelector("#booklet-modal");
   return {
     status: m.querySelector("#booklet-status")?.textContent || '',
     vazirChecked: m.querySelector('input[name="bk-font"][value="vazir"]')?.checked,
-    tahomaChecked: m.querySelector('input[name="bk-font"][value="tahoma"]')?.checked,
+    customChecked: m.querySelector('input[name="bk-font"][value="custom"]')?.checked,
+    goArmed: m.querySelector("#bk-go")?.disabled === false,
   };
 })()`);
-probes.liveCountOnSelection = (armed.status || '').includes('۱') && armed.tahomaChecked === true && armed.vazirChecked === false;
+probes.liveCountOnSelection = (armed.status || '').includes('۱') && armed.customChecked === true &&
+  armed.vazirChecked === false && armed.goArmed === true;
 await evalIn(D, 'document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }))');
 await sleep(200);
 probes.escapeCloses = (await evalIn(D, 'document.querySelector("#booklet-modal")?.hidden')) === true;
@@ -313,7 +325,13 @@ await evalIn(D2, `(() => {
     .find((r) => r.textContent.includes("زومیت الف"));
   row.querySelector("input").click();
 })()`);
-await evalIn(D2, 'document.querySelector(\'#booklet-modal input[name="bk-font"][value="tahoma"]\').click()');
+await evalIn(D2, 'document.querySelector(\'#booklet-modal input[name="bk-font"][value="custom"]\').click()');
+await evalIn(D2, `(() => {
+  const input = document.querySelector("#bk-custom-font");
+  const set = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+  set.call(input, "B Nazanin");
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+})()`);
 await sleep(200);
 const before2 = new Set(listBookletFiles());
 await realClick(D2, "#bk-go");
@@ -325,8 +343,8 @@ for (let i = 0; i < 40 && !file2; i++) {
 }
 let doc2 = file2 ? readFileSync(join(DL_DIR, file2), 'utf-8') : null;
 probes.selectedFileDownloaded = !!doc2 && doc2.startsWith('<!DOCTYPE html>');
-probes.fontClassApplied = !!doc2 && doc2.includes('<body class="mode-color font-tahoma">') &&
-  doc2.includes('body.font-tahoma { --bk-font: Tahoma');
+probes.fontClassApplied = !!doc2 && doc2.includes('<body class="mode-color font-custom">') &&
+  doc2.includes('body.font-custom { --bk-font: "B Nazanin"');
 probes.selectionFiltered = !!doc2 &&
   (doc2.match(/<section class="article" id="art-\d+"/g) || []).length === 1 &&
   doc2.includes('مقاله زومیت الف') &&

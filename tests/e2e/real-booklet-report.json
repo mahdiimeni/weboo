@@ -29,9 +29,7 @@
     "status": "همه‌ی مقاله‌ها در کتابچه خواهند بود.",
     "fonts": [
       "vazir",
-      "tahoma",
-      "segoe",
-      "system"
+      "custom"
     ],
     "vazirChecked": true,
     "goDisabled": false
@@ -39,11 +37,12 @@
   "armed": {
     "status": "۱ هایلایت از ۱ مقاله در کتابچه خواهد بود.",
     "vazirChecked": false,
-    "tahomaChecked": true
+    "customChecked": true,
+    "goArmed": true
   },
-  "file1": "web-highlighter-booklet-2026-10-07-1236.html",
-  "file2": "web-highlighter-booklet-2026-10-07-1236.html",
+  "file1": "weboo-booklet-2026-10-25-2106.html",
+  "file2": "weboo-booklet-2026-10-25-2106.html",
   "doc1Body": "<body class=\"mode-color\">",
-  "doc2Body": "<body class=\"mode-color font-tahoma\">",
+  "doc2Body": "<body class=\"mode-color font-custom\">",
   "exceptions": []
 }

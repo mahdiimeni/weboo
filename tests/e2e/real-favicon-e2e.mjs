@@ -16,15 +16,22 @@
  *
  * Usage: bun tests/e2e/real-favicon-e2e.mjs
  */
-import { spawn } from 'node:child_process';
-import { writeFileSync, readFileSync, existsSync, mkdirSync } from 'node:fs';
+import { spawn, execSync } from 'node:child_process';
+import { writeFileSync, readFileSync, existsSync, mkdirSync , rmSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..', '..');
-const EXT_DIR = join(ROOT, 'extension');
+/* The SHIPPED artifact (.output/chrome-mv3 — WXT build, parity-gated),
+   rebuilt fresh so the rig never tests a stale output. extension/ (source)
+   is NOT loadable unpacked: its content files are ES modules and
+   dashboard.html is generated — loading it made every probe fail. */
+const EXT_DIR = process.env.HLX_EXT_DIR || join(ROOT, '.output', 'chrome-mv3');
+if (!process.env.HLX_EXT_DIR) {
+  execSync('bun run build:ext && bun run build:wxt', { cwd: ROOT, stdio: 'inherit' });
+}
 const CHROME = process.env.HLX_CHROME || '/root/.cache/ms-playwright/chromium-1243/chrome-linux64/chrome';
 const CDP_PORT = 9333;
 const SITE_PORT = 8078;
@@ -94,6 +101,10 @@ const args = [
   '--no-first-run', '--no-default-browser-check', '--no-sandbox', '--disable-gpu',
   '--disable-dev-shm-usage', '--window-size=1280,900', 'about:blank',
 ];
+/* fresh profile every run (the passing rigs' hygiene): a profile reused
+   after a broken --load-extension keeps stale ExtensionPrefs and the
+   content script never comes up */
+try { rmSync(PROFILE, { recursive: true, force: true }); } catch {}
 const chrome = spawn(CHROME, args, { stdio: ['ignore', 'pipe', 'pipe'] });
 chrome.stderr.on('data', () => { /* noise */ });
 
@@ -140,16 +151,52 @@ const mouse = (sessionId, type, x, y, extra = {}) =>
   browser.send('Input.dispatchMouseEvent', { type, x, y, button: 'left', buttons: type === 'mouseReleased' ? 0 : 1, clickCount: type === 'mousePressed' || type === 'mouseReleased' ? 1 : 0, ...extra }, sessionId);
 
 /* ---------- 4) find the extension ID from the targets ---------- */
+/* discovery WITH attach (the passing rigs' pattern): attaching keeps the
+   service worker alive and proves the extension is OURS */
 let extId = null;
+let swSession = null;
 for (let i = 0; i < 30 && !extId; i++) {
   const { targetInfos } = await browser.send('Target.getTargets');
-  const sw = targetInfos.find((t) => t.url.startsWith('chrome-extension://') && t.url.includes('background/service-worker.js'));
-  const any = sw || targetInfos.find((t) => t.url.startsWith('chrome-extension://'));
-  if (any) extId = any.url.split('/')[2];
-  else await sleep(600);
+  const cands = targetInfos.filter((t) => t.url.startsWith('chrome-extension://') &&
+    (t.url.includes('background/service-worker.js') || t.url.endsWith('/background.js')));
+  for (const c of cands) {
+    try {
+      const { sessionId } = await browser.send('Target.attachToTarget', { targetId: c.targetId, flatten: true });
+      const ours = await evalIn(sessionId, 'globalThis.__HLX_APP === "weboo"');
+      if (ours === true) { extId = c.url.split('/')[2]; swSession = sessionId; break; }
+    } catch (e) { /* foreign extension — ignore */ }
+  }
+  if (!extId) await sleep(600);
 }
 if (!extId) { fail('extension did not load (no chrome-extension target)'); chrome.kill(); process.exit(1); }
 log('extension loaded, id =', extId, '→ manifest accepted, permissions OK');
+
+/* ---------- 4a) EARLY extension-page probe: does the dashboard load at all? ---------- */
+{
+  const { targetId: earlyT } = await browser.send('Target.createTarget', { url: `chrome-extension://${extId}/dashboard.html` });
+  const early = await browser.send('Target.attachToTarget', { targetId: earlyT, flatten: true });
+  await browser.send('Runtime.enable', {}, early.sessionId);
+  await sleep(1200);
+  log('EARLY dashboard probe:', await evalIn(early.sessionId, 'location.href + " | storage=" + typeof chrome.storage', false));
+  await browser.send('Target.closeTarget', { targetId: earlyT });
+}
+
+/* ---------- 4b) watch the service worker's console (crash forensics) ---------- */
+const swList0 = await browser.send('Target.getTargets');
+const swT0 = (swList0.targetInfos || []).find((t) => t.url.includes('background/service-worker.js'));
+let SW = null;
+if (swT0) {
+  const swAtt0 = await browser.send('Target.attachToTarget', { targetId: swT0.targetId, flatten: true });
+  SW = swAtt0.sessionId;
+  await browser.send('Runtime.enable', {}, SW);
+  browser.on((msg) => {
+    if (!msg || msg.sessionId !== SW) return;
+    if (msg.method === 'Runtime.consoleAPICalled' && (msg.params.type === 'error' || msg.params.type === 'warning'))
+      log('SW console:', msg.params.type, (msg.params.args || []).map((a) => a.value || a.description || '').join(' ').slice(0, 200));
+    if (msg.method === 'Runtime.exceptionThrown')
+      log('SW EXCEPTION:', JSON.stringify(msg.params.exceptionDetails).slice(0, 400));
+  });
+} else { log('SW target NOT FOUND at attach time'); }
 
 /* ---------- 5) site page + real highlight ---------- */
 const { targetId } = await browser.send('Target.createTarget', { url: SITE });
@@ -214,16 +261,22 @@ const siteShot = await browser.send('Page.captureScreenshot', { format: 'png' },
 writeFileSync(join(HERE, 'real-site-highlight.png'), Buffer.from(siteShot.data, 'base64'));
 
 /* ---------- 6) the extension's real dashboard ---------- */
-await browser.send('Page.navigate', { url: `chrome-extension://${extId}/dashboard.html` }, sessionId);
+const DASH_URL = `chrome-extension://${extId}/dashboard.html`;
+const { targetId: dashT } = await browser.send('Target.createTarget', { url: DASH_URL });
+const dash = await browser.send('Target.attachToTarget', { targetId: dashT, flatten: true });
+const DASH = dash.sessionId;
+await browser.send('Page.enable', {}, DASH);
+await browser.send('Runtime.enable', {}, DASH);
 for (let i = 0; i < 30; i++) {
-  const ready = await evalIn(sessionId, 'document.readyState === "complete" && !!document.querySelector(".group")', false);
+  const ready = await evalIn(DASH, 'document.readyState === "complete" && !!document.querySelector(".group")', false);
   if (ready === true) break;
   await sleep(400);
 }
 // wait for the favicons to settle (load or error)
 await sleep(3500);
 
-const dashReport = await evalIn(sessionId, `(async () => {
+log('dashboard context debug:', await evalIn(DASH, 'location.href + " | chrome.storage=" + typeof chrome.storage', false));
+const dashReport = await evalIn(DASH, `(async () => {
   const out = { groups: [], storage: null };
   document.querySelectorAll('.group').forEach(g => {
     const fl = g.querySelector('.fl');
@@ -245,7 +298,7 @@ const dashReport = await evalIn(sessionId, `(async () => {
   return out;
 })()`);
 
-const dashShot = await browser.send('Page.captureScreenshot', { format: 'png' }, sessionId);
+const dashShot = await browser.send('Page.captureScreenshot', { format: 'png' }, DASH);
 writeFileSync(join(HERE, 'real-dashboard.png'), Buffer.from(dashShot.data, 'base64'));
 log('dashboard report:', JSON.stringify(dashReport, null, 2));
 
@@ -277,7 +330,7 @@ const summary = {
   selectionText: String(selText || '').trim().length,
   dashboardOpened: (dashReport.groups || []).length >= 1,
   storageKeys: dashReport.storage,
-  faviconCaptured: (dashReport.storage || []).some((k) => String(k).indexOf('hlx:f:') === 0),
+  faviconCaptured: (Array.isArray(dashReport.storage) ? dashReport.storage : []).some((k) => String(k).indexOf('hlx:f:') === 0),
   faviconImgMounted: g.hasImg === true,
   faviconLoaded: g.imgOn === true && (g.naturalW || 0) > 0,
   imgSrcStartsWithData: String(g.src || '').startsWith('data:image/'),
