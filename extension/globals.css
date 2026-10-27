@@ -70,12 +70,20 @@
    near-white-on-near-black in dark and the inverse in light — graphite's
    intent in both themes. --accent is Weboo's AMBER (frozen) and deliberately
    shadows graphite's gray --accent: use --brand for the brand role. */
-:root {
   --primary: var(--text);
   --primary-foreground: var(--bg);
   --destructive: var(--danger);
   --success: var(--ok-text);
   --warning: var(--accent-h);
+  /* the dark-static roles resolve through the frozen theme-aware pairs so
+     adopted components are correct in BOTH themes (--brand tracks the amber
+     pair instead of graphite's dark-tuned amber constant) */
+  --secondary: var(--hover);
+  --popover: var(--card);
+  --secondary-foreground: var(--text);
+  --muted-foreground: var(--muted);
+  --ring: var(--accent);
+  --brand: var(--accent);
   /* shape scale — Weboo's component radii read the graphite shapes */
   --r-ctl: var(--shape-control);
   --r-surface: var(--shape-surface);

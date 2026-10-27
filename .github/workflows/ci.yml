@@ -9,9 +9,10 @@ on:
 
 jobs:
   gates:
-    runs-on: ubuntu-latest
+    # pinned runner — ubuntu-latest migrates to Ubuntu 26 (runner-images#14748)
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
         with:
           # PINNED to the version the repo is developed and tested with.

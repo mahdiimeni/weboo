@@ -29,7 +29,8 @@ your backups!)
 
 1. Grab the release zip: `dist/weboo-v<version>.zip` (the older
    `dist/highlighter-extension-v<version>.zip` files are frozen artifacts
-   from before the v0.8.0 rebrand).
+   from before the v0.8.0 rebrand). Every release zip stays in `dist/`
+   forever — they are the release history and are never pruned (policy).
 2. Unzip it into any folder.
 3. Open `chrome://extensions` in Chrome (or any Chromium browser).
 4. Turn on **Developer mode** (top corner), click **Load unpacked**, and pick
