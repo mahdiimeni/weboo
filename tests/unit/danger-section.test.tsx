@@ -120,8 +120,14 @@ describe("منطقه‌ی خطر (DangerSectionRegion) — جریان حذف ه�
     arm(host); await tick();
     await typeWord(host, "حذف");
     goBtn(host).click();
-    /* the storage truth: every hlx:d:* bucket gone; settings survive */
-    await until(() => recordHostsInTruth().length === 0);
+    /* the storage truth: every hlx:d:* bucket gone; settings survive.
+       clearAll wipes every hlx key and the settings restore is a SEPARATE
+       queued write, so wait for it too — and for the post-reset render. */
+    await until(() =>
+      recordHostsInTruth().length === 0 &&
+      !!chromeMock.__state.data["hlx:settings"] &&
+      (host.querySelector("#danger-confirm") as HTMLElement).hidden
+    );
     expect(recordHostsInTruth().length).toBe(0);
     expect(chromeMock.__state.data["hlx:settings"].theme).toBe("dark");
     /* the user-facing feedback */

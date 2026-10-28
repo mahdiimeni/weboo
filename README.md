@@ -91,6 +91,13 @@ Repo map, if you want to wander: `entrypoints/` (WXT entrypoints),
 [anchoring engine](docs/anchor-engine.md), and the
 [benchmarks](docs/benchmarks.md) beside it.
 
+## Design
+
+The v0.12.0 **Air** look — the airy light canvas, the glass top bar, and the
+softened Graphite shape/depth tokens shared by the popup and the dashboard —
+is designed by **[@mnabishahzamani-dev](https://github.com/mnabishahzamani-dev)**
+([Instagram](https://instagram.com/mnabishahzamani)).
+
 ## License
 
 [MIT](LICENSE) — use it, change it, share it.

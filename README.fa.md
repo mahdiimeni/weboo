@@ -84,6 +84,13 @@ MINOR، تغییر بزرگ → MAJOR)؛ نسخه در پنج جای هماهن�
 [موتور لنگرگذاری](docs/anchor-engine.md) و
 [بنچمارک‌ها](docs/benchmarks.md) کنارش.
 
+## طراحی رابط
+
+ظاهر «Air» نسخه‌ی ۰.۱۲.۰، یعنی بوم روشن و سبک، نوار بالای شیشه‌ای و
+توکن‌های نرم‌شده‌ی گرافیت در پاپ‌آپ و داشبورد، طراحی
+**[@mnabishahzamani-dev](https://github.com/mnabishahzamani-dev)** است
+([اینستاگرام](https://instagram.com/mnabishahzamani)).
+
 ## مجوز
 
 [MIT](LICENSE) — استفاده کنید، تغییر دهید، به اشتراک بگذارید.
