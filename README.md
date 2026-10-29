@@ -1,103 +1,238 @@
-# وبو — Weboo ✨
+# Weboo
 
-[English](README.md) | [فارسی](README.fa.md)
+[فارسی](README.fa.md) | **English**
 
-**Weboo** is a friendly highlighter for your browser. Select any text on any
-web page, give it one of five cheerful colors, and attach a note if you feel
-like it. Everything is saved **on your own device** — no account, no server,
-no tracking. Your highlights are yours.
+<p align="center">
+  <img src="assets/banner.png" width="880" alt="Weboo: highlight, annotate, and keep everything on your own device">
+</p>
 
-## What can it do?
+Weboo (وبو) is a Chrome extension for people who read a lot on the web and
+forget most of it. Select a sentence on any page, mark it with one of five
+colors, and add a note when the reason for saving it is not obvious. Weeks
+later, the dashboard still has it, with a link back to the exact paragraph.
 
-- 🖍️ **Highlight** any text in 5 colors — articles, docs, wherever you read.
-- 📝 **Notes** on any highlight (great for "why did I save this?").
-- 🏷️ **Article tags** to keep your reading organized.
-- 📚 **A dashboard** that gathers everything: search, filter by color / note / tag, sort.
-- 💾 **Backups** — full or selective (just some sites, articles, or tags), restore any time.
-- 📤 **Reading exports** — a Markdown library for Obsidian, and a print-ready booklet (Save as PDF).
-- 🌓 Light & dark themes, a counter on the toolbar icon, and a "don't run here" list for sites.
-- 🈯 Built for Persian/RTL reading — and happy with LTR pages too.
+The interface is Persian and RTL by design, since that is the reading
+experience it was built for, but it behaves the same on English and other LTR
+pages.
 
-## Is my data private?
+There is no server, no account, and no analytics. Highlights live in the
+browser's local storage, on your machine, and nothing about the pages you read
+is sent anywhere.
 
-Yes — completely. Weboo keeps everything in your browser's local storage, on
-your device. There is no server, no account, no analytics; nothing ever
-leaves your computer. (Removing the extension removes the data — so remember
-your backups!)
+## What it does
 
-## Install (one minute)
+| Feature | Details |
+| --- | --- |
+| **Five highlight colors** | Yellow, green, teal, pink and purple. Pick a color from the floating toolbar, the right-click menu, or with `Alt+Shift+H`. |
+| **Notes on highlights** | Click a highlight to open its card. A note shows up underlined in the article and in the dashboard. |
+| **Article tags** | Up to eight tags per article, for keeping a reading list organized. |
+| **Dashboard** | Search, filter by color, tags or notes, sort, collapse groups, and jump back to the source paragraph. |
+| **Backups** | Export a full JSON backup or a selective one (only some sites, articles or tags). Restore asks whether to merge or replace. |
+| **Reading exports** | A Markdown library for Obsidian or any editor, and a printable booklet with a table of contents. |
+| **Themes** | Auto, light and dark. The in-page widgets switch with the theme immediately. |
+| **Per-site switch** | Turn Weboo off on a given site without deleting the highlights already saved there. |
+| **Badge counter** | Optional count of highlights on the extension icon. |
 
-1. Grab the release zip: `dist/weboo-v<version>.zip` (the older
-   `dist/highlighter-extension-v<version>.zip` files are frozen artifacts
-   from before the v0.8.0 rebrand). Every release zip stays in `dist/`
-   forever — they are the release history and are never pruned (policy).
-2. Unzip it into any folder.
-3. Open `chrome://extensions` in Chrome (or any Chromium browser).
-4. Turn on **Developer mode** (top corner), click **Load unpacked**, and pick
-   the unzipped folder.
-5. Done! Select some text and look for the little toolbar. 🎉
+## Screenshots
 
-> **Good to know:** the `extension/` folder in this repo is the *source code*.
-> If you load it directly, Chrome refuses with
-> `Could not load options page 'dashboard.html'. Could not load manifest.` —
-> that is expected, not a broken build. Developers load the
-> `.output/chrome-mv3/` build instead.
+Selecting text brings up the color toolbar. The highlight stays after a reload,
+and clicking it opens the note card.
+
+<p>
+  <img src="assets/screenshots/highlight-toolbar.png" width="860" alt="Selecting a sentence and choosing a highlight color">
+</p>
+<p>
+  <img src="assets/screenshots/highlight-note.png" width="860" alt="A saved highlight with a note open in the popover">
+</p>
+
+The popup shows what is saved on the current page, and the gear opens the
+dashboard.
+
+<p>
+  <img src="assets/screenshots/popup.png" width="370" alt="Weboo popup with page card, site switch and highlight list">
+</p>
+
+The dashboard gathers everything. Light and dark themes are both first-class.
+
+<p>
+  <img src="assets/screenshots/dashboard.png" width="860" alt="Weboo dashboard in the light theme">
+</p>
+<p>
+  <img src="assets/screenshots/dashboard-dark.png" width="860" alt="Weboo dashboard in the dark theme">
+</p>
+
+Settings live in a drawer on the same page: theme, default color, toolbar and
+badge toggles, disabled sites, backup restore.
+
+<p>
+  <img src="assets/screenshots/dashboard-settings.png" width="860" alt="Settings drawer with theme, default color and behavior options">
+</p>
+
+On dark pages, highlights and widgets follow the theme.
+
+<p>
+  <img src="assets/screenshots/reading-dark.png" width="860" alt="Highlights and toolbar on a dark page">
+</p>
+
+## Install
+
+Weboo is not on the Chrome Web Store. You install it from the release archive
+in this repository.
+
+Requirements: Chrome 102 or newer, or any Chromium-based browser that accepts
+unpacked extensions.
+
+1. Download `dist/weboo-v0.12.0.zip` (or the newest `weboo-v*.zip`).
+2. Unzip it into a folder you can keep, for example `Documents/weboo`.
+3. Open `chrome://extensions`.
+4. Turn on **Developer mode** in the top corner.
+5. Click **Load unpacked** and select the unzipped folder.
+
+The extension appears in the toolbar. Open any article, select a sentence, and
+the toolbar shows up next to the selection.
+
+> The `extension/` folder in this repository is source code, not a loadable
+> build. Chrome will refuse it with `Could not load options page
+> 'dashboard.html'`. That is expected: use the release zip, or build the
+> extension yourself with `bun run build:wxt` and load `.output/chrome-mv3`.
 
 ## Using it
 
-- **Highlight:** select text → floating toolbar → pick a color. The
-  right-click menu and keyboard shortcuts work too.
-- **Note:** click a highlighted text → the edit action writes or edits a
-  note; the delete action removes the highlight.
-- **Everything else:** the toolbar icon shows this page's highlights; the
-  gear opens the dashboard — search, filters, tags, backups, exports, settings.
-- **Backup:** dashboard → «خروجی پشتیبان» for a full JSON backup; «خروجی
-  انتخابی» to pick just some sites / articles / tags. Restoring asks
-  merge-or-replace.
-- **Booklet:** dashboard → «کتابچه» → choose articles → print or Save as PDF.
+**Highlighting.** Select text with the mouse. The toolbar opens above it with
+five colors, a note button and a copy button. Pick a color and the highlight is
+saved immediately. Right-clicking a selection offers the same action, and
+`Alt+Shift+H` applies your default color without opening the toolbar.
 
-## For developers
+**Notes.** Click a highlight to open its card. The card shows the quoted text,
+the date, and a note field. Notes can be edited or removed later. The card also
+has copy and delete actions.
 
-The codebase is TypeScript + WXT + React, 100% local. Handy commands:
+**The popup.** The toolbar icon opens a list of highlights for the current
+page, with a count of notes. The switch at the top disables Weboo for that host
+only. The gear opens the dashboard.
+
+**The dashboard.** Every highlight is grouped by article, with the site and
+favicon. You can search inside highlight text and notes, filter by color, show
+only highlights that have notes, filter by tag, collapse groups, and open the
+original paragraph in a new tab.
+
+**Backups.** In the dashboard, «خروجی پشتیبان» exports everything as one JSON
+file. «خروجی انتخابی» lets you include only certain sites, articles or tags.
+Restoring merges into what you already have or replaces it, whichever you pick.
+
+**Exports.** «خروجی Markdown» writes the whole library into one Markdown file
+with YAML front matter on top, one section per article, ready to drop into an
+Obsidian vault. «کتابچه» builds a booklet from the articles you select, with a
+table of contents, for printing or saving as PDF.
+
+**Settings.** Theme (auto, light, dark), default highlight color, whether the
+floating toolbar appears, whether the badge counter is shown, and the list of
+sites where the extension is disabled.
+
+## Privacy
+
+Weboo stores highlights with `chrome.storage.local`. The keys are partitioned
+per site, so reading one site's highlights does not scan the others:
+
+```
+hlx:settings          user settings (theme, default color, disabled sites)
+hlx:d:<host>          highlights for one host
+hlx:f:<host>          favicon captured from the page, stored as a data URL
+hlx:tags              article tags, keyed by normalized URL
+hlx:schemaVersion     storage shape version, used by migrations
+```
+
+Nothing is uploaded. The only outbound request the extension can make is
+fetching a page's own favicon from that page's origin, and the result is stored
+locally as an image. There is no remote endpoint anywhere in the code.
+
+Because everything is local, uninstalling the extension deletes your
+highlights. Export a backup first if the reading list matters to you.
+
+## How it works
+
+The extension is Manifest V3, written in TypeScript, built with WXT and React.
+
+- A content script runs on `http` and `https` pages. Its modules are bundled in
+  the order declared by the manifest, and a build check fails if the order ever
+  drifts.
+- Each highlight is stored with a structural anchor (two XPath expressions plus
+  offsets) and the text around it. On reload the anchor is resolved again; if
+  the DOM has changed, the stored prefix and suffix are used to find the quote
+  again, and the anchor is repaired quietly.
+- The dashboard is a React page over a small external store with optimistic
+  writes and rollback. The backup selection rule and the booklet selection rule
+  are pure functions, shared between the preview and the exported file.
+- Storage is versioned with forward only migrations. Unknown fields in stored
+  records and imported backups are preserved, so a newer version's data does
+  not get flattened by an older one.
+
+The `docs/` folder goes deeper on [architecture](docs/architecture.md),
+[storage](docs/storage.md), [the anchor engine](docs/anchor-engine.md) and
+[benchmarks](docs/benchmarks.md).
+
+## Development
+
+Prerequisites: [Bun](https://bun.sh) 1.4.2 (pinned in `package.json`), Node.js
+for the packaging scripts, and a Chromium build for the real-browser tests.
 
 ```bash
 bun install
-bun run build:wxt     # dev build → .output/chrome-mv3 (+ the parity gate)
-bun run zip           # full chain: typecheck-emit → WXT build → parity → dist zip
+bun run build:wxt     # WXT build into .output/chrome-mv3, then the parity check
+bun run zip           # type emit, WXT build, parity check, dist/weboo-v<version>.zip
 bun run test          # unit suite (bun:test + happy-dom)
 bun run lint          # eslint
 bun run typecheck     # tsc --noEmit
-bun run harness       # regenerate the popup E2E harness
+bun run harness       # rebuild the popup E2E harness
 ```
 
-Real-Chrome E2E rigs (need a Chromium path):
+The real-browser tests drive Chrome over the DevTools protocol. Point
+`HLX_CHROME` at a Chromium binary:
 
 ```bash
-HLX_CHROME=<chromium> bun tests/e2e/real-theme-e2e.mjs    # popup theme cycle
-HLX_CHROME=<chromium> bun tests/e2e/next-compat-e2e.mjs   # SPA/remount scenarios
-HLX_CHROME=<chromium> bun tests/e2e/real-backup-e2e.mjs   # selective backup + dashboard
-HLX_CHROME=<chromium> bun tests/e2e/real-booklet-e2e.mjs  # booklet picker/TOC/font
+HLX_CHROME=<chromium> bun tests/e2e/real-theme-e2e.mjs    # theme cycle in the popup, live re-theming on the page
+HLX_CHROME=<chromium> bun tests/e2e/next-compat-e2e.mjs   # SPA navigation and remounts
+HLX_CHROME=<chromium> bun tests/e2e/real-backup-e2e.mjs   # selective backup and the restore flow
+HLX_CHROME=<chromium> bun tests/e2e/real-booklet-e2e.mjs  # booklet picker, table of contents, fonts
+HLX_CHROME=<chromium> bun tests/e2e/real-favicon-e2e.mjs  # favicon capture
 ```
 
-Versioning: every change ships with a version bump (fix → PATCH, feature →
-MINOR, breaking → MAJOR); the version lives in five synced places — four of
-them pinned by the packaging test.
+The unit suite covers the storage layer, the anchoring engine, exports, the
+popup and dashboard data pipelines, theme contrast floors and the package shape.
 
-Repo map, if you want to wander: `entrypoints/` (WXT entrypoints),
-`extension/` (product source), `src/dashboard/` (the React dashboard),
-`tests/` (unit + e2e). The big picture lives in
-[docs/architecture.md](docs/architecture.md), with the
-[storage layer](docs/storage.md), the
-[anchoring engine](docs/anchor-engine.md), and the
-[benchmarks](docs/benchmarks.md) beside it.
+## Repository layout
 
-## Design
+```
+entrypoints/          WXT entrypoints (background, content bundle, dashboard)
+extension/            product source, copied into the build as-is
+  content/            content script, mark styles, favicon capture
+  shared/             anchoring, storage, exports, UI widgets
+  popup/              popup page (MVC)
+  dashboard/          dashboard data pipeline and stylesheet
+src/                  TypeScript sources (compiled into extension/shared)
+  dashboard/          React dashboard
+  types/              domain models, pinned to the runtime by contract tests
+scripts/              build, packaging, icon generation, parity checks
+tests/                unit suite and real-Chrome CDP tests
+docs/                 architecture, storage, anchoring, benchmarks
+```
 
-The v0.12.0 **Air** look — the airy light canvas, the glass top bar, and the
-softened Graphite shape/depth tokens shared by the popup and the dashboard —
-is designed by **[@mnabishahzamani-dev](https://github.com/mnabishahzamani-dev)**
+## Versioning and releases
+
+Every change ships with a version bump: patch for fixes, minor for features,
+major for breaking changes. The version lives in five places that are kept in
+sync, four of which are pinned by the packaging test.
+
+Release zips stay in `dist/` permanently. They are the release history of the
+project, including the older `highlighter-extension-*` archives from before the
+v0.8.0 rename to Weboo.
+
+## Credits
+
+The interface design, including the v0.12 "Air" redesign, is by
+[@mnabishahzamani-dev](https://github.com/mnabishahzamani-dev)
 ([Instagram](https://instagram.com/mnabishahzamani)).
 
 ## License
 
-[MIT](LICENSE) — use it, change it, share it.
+[MIT](LICENSE).
