@@ -20,6 +20,18 @@
   --toggle: #d1d5db;
   --ok-text: #047857;
   --shadow: 0 1px 3px rgba(17, 24, 39, .1);
+  /* Air canvas (v0.12 redesign): a light gradient behind the UI — an amber glow
+     at the RTL start corner and a sky glow at the end corner over an airy base.
+     --bg above keeps the flat value for the contrast contract (uitheme.test.ts)
+     and as the dark-theme canvas; the gradient is a light-only layer. */
+  --bg-grad:
+    radial-gradient(420px 280px at 100% 0%, rgba(251, 191, 36, .15), transparent 72%),
+    radial-gradient(400px 260px at 0% 100%, rgba(147, 197, 253, .17), transparent 72%),
+    linear-gradient(168deg, #fbfbfd 0%, #f5f4f8 52%, #f1f4f8 100%);
+  /* Glass chrome (v0.12): the translucent header/footer color — the canvas
+     gradient breathes through; solid var(--card) stays the dark fallback. */
+  --glass: color-mix(in srgb, var(--card) 76%, transparent);
+  --hairline: color-mix(in srgb, var(--line) 55%, transparent);
 }
 
 /* System dark — unless light is forced (⚠️ immutable — uitheme.test.ts contract) */
@@ -101,8 +113,14 @@ body {
   flex-direction: column;
   height: 560px;
   overflow: hidden;
-  background: var(--bg);
+  background: var(--bg-grad, var(--bg));
 }
+
+/* Dark theme keeps the flat canvas — the gradient is a light-only layer */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .wrap { background: var(--bg); }
+}
+:root[data-theme="dark"] .wrap { background: var(--bg); }
 
 /* ---------- Header ---------- */
 .hdr {
@@ -110,8 +128,10 @@ body {
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  background: var(--card);
-  border-bottom: 1px solid var(--line);
+  background: var(--glass, var(--card));
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  backdrop-filter: blur(14px) saturate(1.5);
+  border-bottom: 1px solid var(--hairline, var(--line));
   flex: none;
 }
 .brand { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
@@ -162,7 +182,7 @@ body {
 
 .card {
   background: var(--card);
-  border: 1px solid var(--line);
+  border: 1px solid var(--hairline, var(--line));
   border-radius: var(--r-surface);
   padding: 12px;
   box-shadow: var(--depth-surface);
@@ -246,7 +266,7 @@ body {
 /* ---------- Highlights list ---------- */
 .list-sec {
   background: var(--card);
-  border: 1px solid var(--line);
+  border: 1px solid var(--hairline, var(--line));
   border-radius: var(--r-surface);
   padding: 10px;
   box-shadow: var(--depth-surface);
@@ -285,8 +305,10 @@ body {
   flex: none;
   display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
   padding: 10px 12px;
-  background: var(--card);
-  border-top: 1px solid var(--line);
+  background: var(--glass, var(--card));
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  backdrop-filter: blur(14px) saturate(1.5);
+  border-top: 1px solid var(--hairline, var(--line));
 }
 
 /* ---------- Buttons ---------- */

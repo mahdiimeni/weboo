@@ -32,6 +32,21 @@
   --info-soft: #dbeafe;
   --info-line: rgba(59, 130, 246, .45);
   --shadow: 0 1px 3px rgba(17, 24, 39, .1);
+  /* Air canvas (v0.12 redesign): a light gradient page background — an amber
+     glow at the top (RTL start) corner, a sky glow rising from the bottom and
+     a whisper of lilac at the end corner, over an airy base. --bg above keeps
+     the flat value for the contrast contract (uitheme.test.ts) and as the
+     dark-theme canvas; the gradient is a light-only layer. */
+  --bg-grad:
+    radial-gradient(1100px 560px at 88% -10%, rgba(251, 191, 36, .14), transparent 68%),
+    radial-gradient(950px 520px at 4% 112%, rgba(147, 197, 253, .16), transparent 68%),
+    radial-gradient(720px 420px at 102% 104%, rgba(216, 180, 254, .10), transparent 72%),
+    linear-gradient(170deg, #fbfbfd 0%, #f5f4f8 50%, #f1f4f8 100%);
+  /* Glass chrome (v0.12): the translucent sticky topbar + softened hairlines —
+     the canvas gradient breathes through; solid var(--card) stays the fallback. */
+  --glass: color-mix(in srgb, var(--card) 74%, transparent);
+  --hairline: color-mix(in srgb, var(--line) 55%, transparent);
+  --edge: color-mix(in srgb, var(--line) 62%, transparent);
 }
 
 /* System dark — unless light is forced (⚠️ immutable — uitheme.test.ts contract) */
@@ -128,12 +143,18 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--bg);
+  background: var(--bg-grad, var(--bg)) fixed;
   color: var(--text);
   font-family: Vazirmatn, 'Segoe UI', Tahoma, sans-serif;
   font-size: 14px;
   line-height: 1.8;
 }
+
+/* Dark theme keeps the flat canvas — the gradient is a light-only layer */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) body { background: var(--bg); }
+}
+:root[data-theme="dark"] body { background: var(--bg); }
 
 .muted { color: var(--muted); }
 .small { font-size: 12px; }
@@ -152,8 +173,10 @@ body {
   position: sticky;
   top: 0;
   z-index: 60;
-  background: var(--card);
-  border-bottom: 1px solid var(--line);
+  background: var(--glass, var(--card));
+  -webkit-backdrop-filter: blur(16px) saturate(1.6);
+  backdrop-filter: blur(16px) saturate(1.6);
+  border-bottom: 1px solid var(--hairline, var(--line));
 }
 .topbar-in {
   max-width: 1100px;
@@ -270,7 +293,7 @@ body {
 }
 .stat-card {
   background: var(--card);
-  border: 1px solid var(--line);
+  border: 1px solid var(--edge, var(--line));
   border-radius: var(--r-surface);
   padding: var(--sp-4);
   box-shadow: var(--depth-surface);
@@ -283,7 +306,7 @@ body {
 /* ---------- Filter toolbar ---------- */
 .toolbar {
   background: var(--card);
-  border: 1px solid var(--line);
+  border: 1px solid var(--edge, var(--line));
   border-radius: var(--r-surface);
   padding: var(--sp-3) var(--sp-4);
   box-shadow: var(--depth-surface);
@@ -292,9 +315,9 @@ body {
 }
 .search-box {
   display: flex; align-items: center; gap: 8px;
-  border: 1px solid var(--line); border-radius: var(--r-ctl);
+  border: 1px solid var(--edge, var(--line)); border-radius: var(--r-ctl);
   padding: 0 var(--sp-3); height: 40px;
-  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 55%, var(--card));
   transition: border-color var(--motion) var(--motion-ease);
 }
 .search-box:focus-within { border-color: var(--accent); }
@@ -490,7 +513,7 @@ body {
 
 .group {
   background: var(--card);
-  border: 1px solid var(--line);
+  border: 1px solid var(--edge, var(--line));
   border-radius: var(--r-surface);
   box-shadow: var(--depth-surface);
   margin-bottom: 12px;
@@ -711,8 +734,8 @@ body {
 /* ---------- Footer ---------- */
 .foot {
   margin-top: auto;
-  border-top: 1px solid var(--line);
-  background: var(--card);
+  border-top: 1px solid var(--hairline, var(--line));
+  background: transparent;
   padding: var(--sp-4);
   text-align: center;
 }
@@ -722,6 +745,8 @@ body {
 .overlay {
   position: fixed; inset: 0;
   background: rgba(17, 24, 39, .45);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
   z-index: 110;
   opacity: 0; pointer-events: none;
   transition: opacity var(--motion) var(--motion-ease);
@@ -735,7 +760,9 @@ body {
   z-index: 120;
   background: var(--card);
   border-left: none;
-  border-right: 1px solid var(--line);
+  border-right: 1px solid var(--hairline, var(--line));
+  /* the soft leading edge — the content-facing corners round off (v0.12) */
+  border-radius: 0 var(--r-surface) var(--r-surface) 0;
   box-shadow: var(--depth-overlay);
   transform: translateX(-105%);
   transition: transform var(--motion) var(--motion-ease);
@@ -871,6 +898,8 @@ body {
   display: grid;
   padding: 16px;
   background: rgba(17, 24, 39, .5);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -878,7 +907,7 @@ body {
   width: 100%; max-width: 520px;
   margin: auto;
   background: var(--card);
-  border: 1px solid var(--line);
+  border: 1px solid var(--edge, var(--line));
   border-radius: var(--r-overlay);
   padding: 20px;
   box-shadow: var(--depth-overlay);
