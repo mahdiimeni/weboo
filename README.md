@@ -229,9 +229,8 @@ v0.8.0 rename to Weboo.
 
 ## Credits
 
-The interface design, including the v0.12 "Air" redesign, is by
-[@mnabishahzamani-dev](https://github.com/mnabishahzamani-dev)
-([Instagram](https://instagram.com/mnabishahzamani)).
+Weboo is designed and built by [Mahdi Imeni](https://github.com/mahdiimeni),
+including the v0.12 "Air" redesign.
 
 ## License
 

@@ -225,11 +225,10 @@ docs/                 معماری، ذخیره‌سازی، لنگرگذاری�
 شامل آرشیوهای قدیمی‌تر `highlighter-extension-*` از پیش از تغییر نام در نسخه‌ی
 0.8.0.
 
-## طراحی
+## طراح و توسعه‌دهنده
 
-طراحی رابط کاربری، از جمله بازطراحی «Air» در نسخه‌ی 0.12.0، کار
-[@mnabishahzamani-dev](https://github.com/mnabishahzamani-dev) است
-([اینستاگرام](https://instagram.com/mnabishahzamani)).
+وبو، از جمله بازطراحی «Air» در نسخه‌ی 0.12.0، کار
+[Mahdi Imeni](https://github.com/mahdiimeni) است.
 
 ## مجوز
 
