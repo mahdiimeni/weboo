@@ -274,7 +274,7 @@ import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
 
     // Header: drag grip + colors + close
     html += '<div class="head">';
-    html += '<span class="grip" title="جابجایی پنجره — بکشید و رها کنید" aria-hidden="true">' + svg(ICON.grip, 14) + '</span>';
+    html += '<span class="grip" title="جابه‌جایی پنجره؛ بکشید و رها کنید" aria-hidden="true">' + svg(ICON.grip, 14) + '</span>';
     (COLOR_KEYS || []).forEach(function (k) {
       var c = COLORS[k];
       html += '<button class="c' + (k === d.color ? ' active' : '') + '" data-color="' + k + '" title="' + esc(c.label) + '" aria-label="رنگ ' + esc(c.label) + '" style="background:' + c.dot + '"></button>';

@@ -6,7 +6,7 @@
 
   export const APP_NAME = 'وبو';
   export const APP_ID = 'weboo';
-  export const VERSION = '0.12.0';
+  export const VERSION = '0.12.1';
   export const BACKUP_FORMAT = 1;
   /**
    * Every app id the backup import gate accepts (v0.8.0 rebrand: exports

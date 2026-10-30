@@ -292,7 +292,7 @@ import { format } from "./format.js"; /* 7c-3 */
     lines.push('  </div>');
     if (toc) {
       lines.push('  <div class="cover-toc">');
-      lines.push('    <h2 class="toc-title">فهرست مقالات</h2>');
+      lines.push('    <h2 class="toc-title">فهرست مقاله‌ها</h2>');
       toc.forEach(function (row) {
         /* an internal anchor per entry (row.i ↔ articleSection's id) — the
            index the reader clicks is the exact page the counter printed */

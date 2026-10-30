@@ -267,14 +267,14 @@ export function openArticle(g: { url?: string }): void {
   const url = util.safeOpenUrl(g.url);
   if (!url) { toast("آدرس این صفحه ثبت نشده است", "error"); return; }
   try { window.open(url, "_blank"); }
-  catch (e) { toast("بازکردن صفحه ناموفق بود", "error"); }
+  catch (e) { toast("باز کردن صفحه ناموفق بود", "error"); }
 }
 
 export function viewRecord(rec: { url?: string; id: string }): void {
   const url = util.safeOpenUrl(rec.url);
   if (!url) { toast("آدرس این هایلایت ثبت نشده است", "error"); return; }
   try { window.open(url + "#" + GOTO_HASH_PREFIX + rec.id, "_blank"); }
-  catch (e) { toast("بازکردن صفحه ناموفق بود", "error"); }
+  catch (e) { toast("باز کردن صفحه ناموفق بود", "error"); }
 }
 
 export function copyText(t: string): void {
@@ -443,7 +443,7 @@ export function acceptBackupFile(file: File): void {
     let data: Record<string, unknown> | null = null;
     try { data = JSON.parse(String(reader.result)); } catch (e) { data = null; }
     if (!data || typeof data.app !== "string" || !BACKUP_APP_IDS.includes(data.app) || !data.highlights || typeof data.highlights !== "object") {
-      toast("فایل معتبر نیست", "error");
+      toast("فایل پشتیبان معتبر نیست", "error");
       return;
     }
     setState({ stagedBackup: data });

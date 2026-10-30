@@ -95,8 +95,8 @@ export function TagChips({ tagMap, selected, onToggle }: {
   const counts = tagRules.tagCounts(tagMap);
   return (
     <div className="tag-filter" id="tag-filter" hidden={counts.length === 0}>
-      <span className="muted small tag-filter-lbl">برچسب مقالات:</span>
-      <div className="tag-chips" id="tag-chips" role="group" aria-label="فیلتر برچسب مقالات">
+      <span className="muted small tag-filter-lbl">برچسب مقاله‌ها:</span>
+      <div className="tag-chips" id="tag-chips" role="group" aria-label="فیلتر برچسب مقاله‌ها">
         {counts.map((t: { tag: string; count: number }) => {
           const active = selected.has(t.tag);
           return (

@@ -111,12 +111,12 @@ describe("HL.booklet — جلد", () => {
 
   test("فهرست فقط از ۲ مقاله به بالا (گارد over-application)", () => {
     const one = doc({ groups: [group("https://a.example.com/1", [rec("a1")])], exportedAt: T0 });
-    expect(one).not.toContain("فهرست مقالات");
+    expect(one).not.toContain("فهرست مقاله‌ها");
     const two = doc({
       groups: [group("https://a.example.com/1", [rec("a1")]), group("https://b.example.com/2", [rec("b1"), rec("b2")])],
       exportedAt: T0,
     });
-    expect(two).toContain("فهرست مقالات");
+    expect(two).toContain("فهرست مقاله‌ها");
     expect(two).toContain("toc-row");
     expect(two).toContain("۲ هایلایت"); /* شمارش مقاله‌ی دوم در فهرست */
   });

@@ -17,7 +17,7 @@ export function EmptyState({ shown, hasRecords }: { shown: boolean; hasRecords: 
         </svg>
       </div>
       <p className="empty-t" id="empty-title">
-        {hasRecords ? "نتیجه‌ای پیدا نشد." : "هنوز هایلایتی ثبت نشده — اولین متن را انتخاب کن!"}
+        {hasRecords ? "نتیجه‌ای پیدا نشد." : "هنوز هایلایتی ثبت نشده. اولین متن را انتخاب کنید!"}
       </p>
       <p className="muted small" id="empty-sub">
         {hasRecords

@@ -49,7 +49,7 @@ export function ArmIconButton({
   icon,
   title,
   className,
-  confirmText = "مطمئنی؟",
+  confirmText = "مطمئنید؟",
   onConfirm,
 }: {
   icon: ArmIcon;

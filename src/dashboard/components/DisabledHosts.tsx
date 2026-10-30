@@ -46,7 +46,7 @@ export function DisabledHosts({ hosts, onRemove, onAdd }: Props) {
   async function commit() {
     const el = inputRef.current;
     const h = dash.sanitizeHost(el ? el.value : "");
-    if (!h) { toast("دامنه‌ی معتبر وارد کن (مثل example.com)", "error"); return; }
+    if (!h) { toast("دامنه‌ی معتبر وارد کنید (مثل example.com)", "error"); return; }
     if (hosts.indexOf(h) !== -1) { toast("این دامنه قبلاً اضافه شده است", "info"); return; }
     try {
       await onAdd(h);

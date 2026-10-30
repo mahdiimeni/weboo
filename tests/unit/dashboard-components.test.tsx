@@ -190,7 +190,7 @@ describe("DisabledHosts (Phase 8 slice 2)", () => {
     expect(called).toBe(0);
     expect(toasts().length).toBe(1);
     expect(toasts()[0].className).toContain("error");
-    expect(toasts()[0].textContent).toBe("دامنه‌ی معتبر وارد کن (مثل example.com)");
+    expect(toasts()[0].textContent).toBe("دامنه‌ی معتبر وارد کنید (مثل example.com)");
     root.unmount();
   });
 
@@ -408,7 +408,7 @@ describe("EmptyState + LoadMore (Phase 8 slice 6)", () => {
     await tick();
     const empty = host.querySelector("#empty") as HTMLElement;
     expect(empty.hidden).toBe(false);
-    expect(empty.querySelector("#empty-title")?.textContent).toBe("هنوز هایلایتی ثبت نشده — اولین متن را انتخاب کن!");
+    expect(empty.querySelector("#empty-title")?.textContent).toBe("هنوز هایلایتی ثبت نشده. اولین متن را انتخاب کنید!");
     expect(empty.querySelector("#empty-sub")?.textContent).toBe("روی هر صفحه‌ی وب، متن را انتخاب کن و از نوار شناور افزونه استفاده کن.");
     expect(empty.querySelector(".empty-ic svg")).not.toBeNull();
     root.unmount();

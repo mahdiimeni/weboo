@@ -494,7 +494,7 @@ export function BackupModal({ req, onClose, options, countOf, onExport }: {
 
       <div className="sel-status muted small" id="backup-status" role="status">
         {picked === 0
-          ? "حداقل یک مورد را انتخاب کن."
+          ? "حداقل یک مورد را انتخاب کنید."
           : matched === 0
             ? "هیچ هایلایتی با این انتخاب مطابقت ندارد."
             : <><strong>{dash.faNum(matched)}</strong> هایلایت در فایل خواهد بود.</>}

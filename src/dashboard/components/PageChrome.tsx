@@ -79,7 +79,7 @@ export function RestoreSectionRegion() {
       <button type="button" className="btn btn-ghost" id="btn-import" onClick={() => {
         if (inputRef.current) {
           inputRef.current.value = "";
-          try { inputRef.current.click(); } catch (e) { toast("بازکردن فایل ناموفق بود", "error"); }
+          try { inputRef.current.click(); } catch (e) { toast("باز کردن فایل ناموفق بود", "error"); }
         }
       }}>
         <IconExport />
@@ -175,15 +175,15 @@ export function DangerSectionRegion() {
             try { inputRef.current?.focus(); } catch (e) { /* noop */ }
           }}
         >
-          {armed ? "مطمئنی؟" : "حذف همه‌ی هایلایت‌ها و یادداشت‌ها"}
+          {armed ? "مطمئنید؟" : "حذف همه‌ی هایلایت‌ها و یادداشت‌ها"}
         </button>
         <div className="danger-confirm" id="danger-confirm" hidden={!armed}>
           <input
             type="text"
             id="danger-input"
             ref={inputRef}
-            placeholder="برای تایید، کلمه «حذف» یا delete را بنویس"
-            aria-label="تایید حذف"
+            placeholder="برای تأیید، کلمه «حذف» یا delete را بنویس"
+            aria-label="تأیید حذف"
             onInput={() => {
               setWordOk(confirmWordOk(inputRef.current?.value));
             }}
@@ -195,7 +195,7 @@ export function DangerSectionRegion() {
             }}
           />
           <button type="button" className="btn btn-danger" id="danger-go" disabled={!wordOk || busy} onClick={() => { void go(); }}>
-            تایید و حذف
+            تأیید و حذف
           </button>
           <button type="button" className="btn btn-ghost" id="danger-cancel" onClick={reset}>انصراف</button>
         </div>
