@@ -99,7 +99,7 @@ the toolbar shows up next to the selection.
 ## Using it
 
 **Highlighting.** Select text with the mouse. The toolbar opens above it with
-five colors, a note button and a copy button. Pick a color and the highlight is
+six colors, a note button and a copy button. Pick a color and the highlight is
 saved immediately. Right-clicking a selection offers the same action, and
 `Alt+Shift+H` applies your default color without opening the toolbar.
 

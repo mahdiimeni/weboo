@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "وبو — هایلایت و یادداشت محلی",
   "short_name": "وبو",
-  "version": "0.12.1",
-  "description": "هایلایت مقالات وب با ۵ رنگ، یادداشت روی هر هایلایت، ذخیره‌سازی ۱۰۰٪ محلی روی دستگاه شما و بک‌آپ/بازیابی JSON — بدون سرور، بدون حساب کاربری، بدون اشتراک.",
+  "version": "0.13.0",
+  "description": "هایلایت مقالات وب با ۶ رنگ، یادداشت روی هر هایلایت، ذخیره‌سازی ۱۰۰٪ محلی روی دستگاه شما و بک‌آپ/بازیابی JSON — بدون سرور، بدون حساب کاربری، بدون اشتراک.",
   "permissions": ["storage", "unlimitedStorage", "contextMenus", "activeTab"],
   "background": {
     "service_worker": "background/service-worker.js",

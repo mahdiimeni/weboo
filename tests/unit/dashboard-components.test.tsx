@@ -332,7 +332,7 @@ describe("ThemeRadios + ColorDots + BehaviorSwitches (Phase 8 slice 7)", () => {
     const { root } = mount(<ColorDots defaultColor="teal" onSelect={() => {}} />, sec);
     await tick();
     const dots = sec.querySelectorAll("button.cdot");
-    expect(dots.length).toBe(5);
+    expect(dots.length).toBe(6);
     const teal = sec.querySelector('button.cdot[data-key="teal"]')!;
     expect(teal.classList.contains("active")).toBe(true);
     expect(teal.getAttribute("aria-checked")).toBe("true");

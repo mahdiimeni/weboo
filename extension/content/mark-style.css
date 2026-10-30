@@ -21,6 +21,7 @@ mark.hlx-marker {
   transition: box-shadow 0.15s ease;
 }
 
+mark.hlx-marker[data-hl-color="orange"] { background-color: #fbd0a0 !important; }
 mark.hlx-marker[data-hl-color="green"]  { background-color: #b6e6a8 !important; }
 mark.hlx-marker[data-hl-color="teal"]   { background-color: #9fe3e0 !important; }
 mark.hlx-marker[data-hl-color="pink"]   { background-color: #f7b1c8 !important; }
@@ -32,6 +33,7 @@ mark.hlx-marker:hover {
 
 /* ---------- Note marker (only highlights that have a note) ---------- */
 mark.hlx-marker[data-hl-noted="1"]                         { border-bottom: 2px solid rgba(180, 83, 9, 0.50); }
+mark.hlx-marker[data-hl-noted="1"][data-hl-color="orange"] { border-bottom-color: rgba(154, 72, 8, 0.45); }
 mark.hlx-marker[data-hl-noted="1"][data-hl-color="green"]  { border-bottom-color: rgba(21, 94, 50, 0.45); }
 mark.hlx-marker[data-hl-noted="1"][data-hl-color="teal"]   { border-bottom-color: rgba(10, 96, 92, 0.50); }
 mark.hlx-marker[data-hl-noted="1"][data-hl-color="pink"]   { border-bottom-color: rgba(162, 28, 78, 0.45); }
@@ -40,12 +42,14 @@ mark.hlx-marker[data-hl-noted="1"][data-hl-color="purple"] { border-bottom-color
 /* Dark pages: semi-transparent background; underline only for highlights with a note */
 @media (prefers-color-scheme: dark) {
   mark.hlx-marker                              { background-color: rgba(255, 200, 40, 0.30) !important; border-bottom: none; }
+  mark.hlx-marker[data-hl-color="orange"]      { background-color: rgba(240, 130, 28, 0.28) !important; }
   mark.hlx-marker[data-hl-color="green"]       { background-color: rgba(80, 200, 90, 0.28) !important; }
   mark.hlx-marker[data-hl-color="teal"]        { background-color: rgba(64, 200, 190, 0.28) !important; }
   mark.hlx-marker[data-hl-color="pink"]        { background-color: rgba(240, 100, 160, 0.28) !important; }
   mark.hlx-marker[data-hl-color="purple"]      { background-color: rgba(170, 110, 240, 0.30) !important; }
 
   mark.hlx-marker[data-hl-noted="1"]                            { border-bottom: 2px solid rgba(245, 158, 11, 0.65); }
+  mark.hlx-marker[data-hl-noted="1"][data-hl-color="orange"]    { border-bottom-color: rgba(240, 130, 28, 0.7); }
   mark.hlx-marker[data-hl-noted="1"][data-hl-color="green"]     { border-bottom-color: rgba(88, 184, 92, 0.7); }
   mark.hlx-marker[data-hl-noted="1"][data-hl-color="teal"]      { border-bottom-color: rgba(53, 179, 174, 0.7); }
   mark.hlx-marker[data-hl-noted="1"][data-hl-color="pink"]      { border-bottom-color: rgba(229, 103, 155, 0.7); }

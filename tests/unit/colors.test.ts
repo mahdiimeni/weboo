@@ -56,7 +56,7 @@ describe("رجیستری رنگ ↔ mark-style.css", () => {
       expect(HL.COLORS[k].dot).toMatch(/^#[0-9a-f]{6}$/i);
       expect(HL.COLORS[k].label.length).toBeGreaterThan(1);
     }
-    expect(HL.COLOR_KEYS.length).toBe(5);
+    expect(HL.COLOR_KEYS.length).toBe(6);
   });
 
   test("رنگ پیش‌فرضِ تنظیمات عضو رجیستری است", () => {

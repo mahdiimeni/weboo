@@ -6,7 +6,7 @@
 
   export const APP_NAME = 'وبو';
   export const APP_ID = 'weboo';
-  export const VERSION = '0.12.1';
+  export const VERSION = '0.13.0';
   export const BACKUP_FORMAT = 1;
   /**
    * Every app id the backup import gate accepts (v0.8.0 rebrand: exports
@@ -39,6 +39,7 @@
    */
   export const COLORS = {
     yellow: { label: 'زرد',       dot: '#f5b800' },
+    orange: { label: 'نارنجی',    dot: '#f0821c' },
     green:  { label: 'سبز',       dot: '#58b85c' },
     teal:   { label: 'فیروزه‌ای', dot: '#35b3ae' },
     pink:   { label: 'صورتی',     dot: '#e5679b' },

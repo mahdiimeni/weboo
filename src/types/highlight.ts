@@ -12,7 +12,7 @@
  */
 
 /** Must stay in key-sync with HL.COLOR_KEYS (guarded by tests/unit/colors.test.ts + the parity test). */
-export type HighlightColor = 'yellow' | 'green' | 'teal' | 'pink' | 'purple';
+export type HighlightColor = 'yellow' | 'orange' | 'green' | 'teal' | 'pink' | 'purple';
 
 /**
  * XPath structural anchor as produced by HL.dom.serializeRange:
