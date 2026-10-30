@@ -68,9 +68,12 @@ describe("types ↔ runtime contract parity (Phase 1)", () => {
     };
     const noAnchor: HighlightRecord = { ...minimal, anchor: null };
     expect([full.color, minimal.id, noAnchor.anchor]).toEqual(["green", "r2", null]);
-    // @ts-expect-error — color must be a registry key
-    const bad: HighlightRecord = { ...minimal, color: "orange" };
-    expect((bad as { color?: string }).color).toBe("orange");
+    /* v0.13.0: 'orange' joined the registry — it type-checks as a valid key */
+    const orangeRec: HighlightRecord = { ...minimal, color: "orange" };
+    expect(orangeRec.color).toBe("orange");
+    // @ts-expect-error — color must be a registry key (magenta never was)
+    const bad: HighlightRecord = { ...minimal, color: "magenta" };
+    expect((bad as { color?: string }).color).toBe("magenta");
   });
 
   test("port mirror: store.ts mirror ⇄ src/types/storage.ts (compile-time)", () => {
