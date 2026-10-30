@@ -18,6 +18,7 @@ import { useRef, useState } from "react";
 import { dash } from "../../../extension/dashboard/dashboard-data.js";
 import { TAG_MAX_LEN } from "../../../extension/shared/constants.js";
 import { IconPlus, IconX } from "./icons";
+import { t, dirOf } from "../../../extension/shared/i18n.js";
 
 export interface TagHandlers {
   onAddTag: (key: string, rawTag: string) => void;
@@ -41,17 +42,17 @@ export function TagsRow({ groupKey, tags, onAddTag, onRemoveTag }: {
 
   return (
     <div className="group-tags">
-      {tags.map((t) => {
-        const labelDir = dash.detectTextDir(t);
+      {tags.map((tag) => {
+        const labelDir = dash.detectTextDir(tag);
         return (
-          <span className="atag" key={t} dir="rtl" title={t}>
-            <span className="atag-t" dir={labelDir || undefined}>{t}</span>
+          <span className="atag" key={tag} dir={dirOf()} title={tag}>
+            <span className="atag-t" dir={labelDir || undefined}>{tag}</span>
             <button
               type="button"
               className="atag-x"
-              title={"حذف برچسب " + t}
-              aria-label={"حذف برچسب " + t}
-              onClick={() => onRemoveTag(groupKey, t)}
+              title={t("tags.removeTitle", { tag: tag })}
+              aria-label={t("tags.removeTitle", { tag: tag })}
+              onClick={() => onRemoveTag(groupKey, tag)}
             >
               <IconX />
             </button>
@@ -65,8 +66,8 @@ export function TagsRow({ groupKey, tags, onAddTag, onRemoveTag }: {
           ref={inputRef}
           maxLength={TAG_MAX_LEN}
           dir="auto"
-          placeholder="نام برچسب…"
-          aria-label="نام برچسب جدید"
+          placeholder={t("tags.placeholder")}
+          aria-label={t("tags.inputAria")}
           autoFocus
           onKeyDown={(ev) => {
             if (ev.key === "Enter") {
@@ -83,13 +84,13 @@ export function TagsRow({ groupKey, tags, onAddTag, onRemoveTag }: {
         <button
           type="button"
           className="atag-add"
-          title="افزودن برچسب به این مقاله"
-          aria-label="افزودن برچسب به این مقاله"
-          dir="rtl"
+          title={t("tags.addTitle")}
+          aria-label={t("tags.addTitle")}
+          dir={dirOf()}
           onClick={() => setEditing(true)}
         >
           <IconPlus />
-          برچسب
+          {t("tags.add")}
         </button>
       )}
     </div>

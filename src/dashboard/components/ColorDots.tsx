@@ -9,6 +9,8 @@
  */
 import type { HighlightColor } from "../../types/highlight";
 import { COLOR_KEYS, COLORS } from "../../../extension/shared/constants.js";
+import { t } from "../../../extension/shared/i18n.js";
+import type { TranslationKey } from "../../shared/i18n";
 
 export function ColorDots({ defaultColor, onSelect }: { defaultColor: HighlightColor; onSelect: (key: HighlightColor) => void }) {
   /* the registry keys are plain strings at runtime — the HighlightColor union
@@ -26,8 +28,8 @@ export function ColorDots({ defaultColor, onSelect }: { defaultColor: HighlightC
             key={k}
             data-key={k}
             role="radio"
-            title={"رنگ پیش‌فرض: " + c.label}
-            aria-label={c.label}
+            title={t("dots.title", { name: t(("color." + k) as TranslationKey) })}
+            aria-label={t(("color." + k) as TranslationKey)}
             aria-checked={active ? "true" : undefined}
             onClick={() => { if (!active) onSelect(k); }}
           >

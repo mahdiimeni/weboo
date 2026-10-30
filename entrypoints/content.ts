@@ -19,6 +19,7 @@
 import { defineContentScript } from "wxt/utils/define-content-script";
 
 import "../extension/shared/constants.js";
+import "../extension/shared/i18n.js";
 import "../extension/shared/backends/chrome-storage.js";
 import "../extension/shared/url.js";
 import "../extension/shared/utils.js";

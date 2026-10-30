@@ -41,6 +41,7 @@
  */
 import { format } from "../shared/format.js";
 import { detectDir } from "../shared/detect-dir.js";
+import { getLanguage } from "../shared/i18n.js"; /* v0.14.0 — the UI language of locale-sensitive sorting */
 import { tags } from "../shared/tags.js"; /* 7c-3 */
   var fmt = format;
 
@@ -164,8 +165,10 @@ import { tags } from "../shared/tags.js"; /* 7c-3 */
     if (sort === 'oldest') {
       groups.sort(function (a, b) { return a.earliest - b.earliest; });
     } else if (sort === 'page') {
+      /* the title order's locale follows the UI language (v0.14.0) */
+      var loc = getLanguage() === 'en' ? 'en' : 'fa';
       groups.sort(function (a, b) {
-        return (a.title || a.host).localeCompare(b.title || b.host, 'fa') || a.key.localeCompare(b.key);
+        return (a.title || a.host).localeCompare(b.title || b.host, loc) || a.key.localeCompare(b.key);
       });
     } else {
       groups.sort(function (a, b) { return b.latest - a.latest; });
@@ -491,9 +494,11 @@ import { tags } from "../shared/tags.js"; /* 7c-3 */
   }
 
   /* Shared display formats from the core (HL.format) — just delegated
-     exported directly. */
+     exported directly. num is the language-aware generalization (v0.14.0);
+     faNum stays the forced-Persian rendering for legacy consumers. */
   export const dash = {
     faNum: fmt.faNum,
+    num: fmt.num,
     fmtBytes: fmt.fmtBytes,
     dotColorOf: fmt.dotColorOf,
     faviconLetter: fmt.faviconLetter,

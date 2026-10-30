@@ -4,10 +4,12 @@
  * Replaces the view's renderLoadMore() writes into #load-more. Markup
  * contract byte-equal: button.btn.btn-ghost.load-more#load-more[hidden],
  * single text node «بارگذاری بیشتر (N مورد باقی‌مانده)» with the Persian
- * numeral formatter (dash.faNum — the one source). Clicking lifts the
+ * numeral formatter (dash.num — the language-aware source, v0.14.0).
+ * Clicking lifts the
  * controller's visibleLimit by 50 through the bridge's apply().
  */
 import { dash } from "../../../extension/dashboard/dashboard-data.js";
+import { t } from "../../../extension/shared/i18n.js";
 
 export function LoadMore({ shown, overflow, onLoadMore }: { shown: boolean; overflow: number; onLoadMore: () => void }) {
   return (
@@ -18,7 +20,7 @@ export function LoadMore({ shown, overflow, onLoadMore }: { shown: boolean; over
       hidden={!shown}
       onClick={onLoadMore}
     >
-      {"بارگذاری بیشتر (" + dash.faNum(overflow) + " مورد باقی‌مانده)"}
+      {t("list.loadMore", { n: dash.num(overflow) })}
     </button>
   );
 }

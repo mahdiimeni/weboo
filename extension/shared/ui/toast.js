@@ -10,6 +10,7 @@
  * Consumers: the content script (lazily — built on first show).
  */
 import { ui, uiBase } from "./base.js";
+import { dirOf } from "../i18n.js"; /* v0.14.0 — direction follows the UI language */
 
 
   var LIGHT = [
@@ -35,7 +36,8 @@ import { ui, uiBase } from "./base.js";
     '.hlx-toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(8px);',
     '  background: var(--toast-bg); color: var(--toast-fg); border: 1px solid var(--toast-bd);',
     '  padding: 9px 18px; border-radius: 999px; font-size: 13px; font-family: ' + uiBase.FONT + ';',
-    '  direction: rtl; box-shadow: var(--toast-shadow); opacity: 0; transition: all .22s ease;',
+    '  /* direction: the host lang/dir attributes drive it (v0.14.0) */',
+    '  box-shadow: var(--toast-shadow); opacity: 0; transition: all .22s ease;',
     '  pointer-events: none; z-index: 2147483647; white-space: nowrap; }',
     '.hlx-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }'
   ].join('\n');
@@ -58,6 +60,7 @@ import { ui, uiBase } from "./base.js";
         this._el = el;
       }
       var self = this;
+      this._el.setAttribute('dir', dirOf()); /* re-marked per show — follows a language change */
       this._el.textContent = String(msg || '');
       this._el.classList.add('show');
       clearTimeout(this._t);

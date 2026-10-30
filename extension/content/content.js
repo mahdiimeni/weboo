@@ -32,6 +32,7 @@ import { util } from "../shared/utils.js";
 import { createStore } from "../shared/store.js";
 import { runtime } from "../shared/runtime-bridge.js";
 import { ui } from "../shared/ui/base.js";
+import { setLanguage } from "../shared/i18n.js"; /* v0.14.0 — widget language follows settings */
 (function () {
   'use strict';
   if (window.__hlxContentInit) return;
@@ -226,6 +227,13 @@ import { ui } from "../shared/ui/base.js";
 
   store.onSettingsChanged(function (s) {
     ui.setTheme(s && s.theme); /* floating widgets get the same extension UI theme */
+    /* v0.14.0 — and the same UI language: the widget hosts take lang/dir and
+       the open widgets re-read their labels (the web page's own root
+       lang/dir is never touched — it belongs to the page). */
+    setLanguage(s && s.language);
+    ui.setLang(s && s.language);
+    hl.toolbar.refreshLabels();
+    if (hl.isPopoverOpen()) hl.popover.render(hl.popover.mode === 'edit' ? 'edit' : 'view');
     var wasDisabled = state.disabled;
     state.settings = s;
     var nowDisabled = !!((s.disabledHosts || []).indexOf(page.host) !== -1);
@@ -324,6 +332,8 @@ import { ui } from "../shared/ui/base.js";
     if (here && (here.norm !== page.norm || here.host !== page.host)) hl.setPage(here); /* navigated while settings loaded */
     state.disabled = !!((state.settings.disabledHosts || []).indexOf(page.host) !== -1);
     ui.setTheme(state.settings.theme); /* widgets render with the right theme from the very start */
+    ui.setLang(state.settings.language); /* v0.14.0 — and the right language/direction */
+    hl.toolbar.refreshLabels(); /* the widgets predate the settings read — labels re-read now */
     state.started = true;
     url.watchHref(window, function () { onHrefChange(); }, 300); /* SPA route changes from here on */
 

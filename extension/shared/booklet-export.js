@@ -43,6 +43,7 @@
  */
 import { APP_NAME, VERSION, COLORS } from "./constants.js";
 import { format } from "./format.js"; /* 7c-3 */
+import { t, count, getLanguage, dirOf } from "./i18n.js"; /* v0.14.0 — generated labels follow the UI language */
   var fmt = format;
 
   /* ---------- Local pure helpers ---------- */
@@ -69,12 +70,12 @@ import { format } from "./format.js"; /* 7c-3 */
   }
 
   function titleOf(g) {
-    return fmt.oneLine(g.title || g.host || g.key || 'بدون عنوان') || 'بدون عنوان';
+    return fmt.oneLine(g.title || g.host || g.key || t('common.untitled')) || t('common.untitled');
   }
 
   function colorLabel(r) {
     var c = COLORS[r && r.color];
-    return c ? c.label : '';
+    return c ? t('color.' + (r && r.color)) : '';
   }
 
   /** The article's display host — format.displayHost over url, host as fallback */
@@ -92,9 +93,9 @@ import { format } from "./format.js"; /* 7c-3 */
 
   /** «۳ هایلایت · ۱ یادداشت» — the counts segment (notes omitted at zero) */
   function countsSeg(g) {
-    var parts = [fmt.faNum((g.items || []).length) + ' هایلایت'];
+    var parts = [count('common.nHighlights', (g.items || []).length)];
     var n = notesOf(g);
-    if (n) parts.push(fmt.faNum(n) + ' یادداشت');
+    if (n) parts.push(count('common.nNotes', n));
     return parts.join(' · ');
   }
 
@@ -279,20 +280,23 @@ import { format } from "./format.js"; /* 7c-3 */
   /* ---------- Section builders (all strings, all escaped) ---------- */
 
   function coverSection(stats, exportedAt, toc) {
-    var segs = [fmt.faNum(stats.total) + ' هایلایت · ' + fmt.faNum(stats.articles) + ' مقاله'];
-    if (stats.notes) segs.push(fmt.faNum(stats.notes) + ' یادداشت');
+    var segs = [count('common.nHighlights', stats.total) + ' · ' + count('common.nArticles', stats.articles)];
+    if (stats.notes) segs.push(count('common.nNotes', stats.notes));
+    /* the document's chrome language = the UI language (v0.14.0); the
+       articles keep their OWN detected direction below it */
+    var chromeDir = dirOf();
     var lines = [];
-    lines.push('<section class="cover" dir="rtl" aria-label="جلد کتابچه">');
+    lines.push('<section class="cover" dir="' + chromeDir + '" aria-label="' + esc(t('ex.coverAria')) + '">');
     lines.push('  <div class="cover-brand"><span class="mark" aria-hidden="true"></span><span class="cover-brand-txt">' + esc(APP_NAME) + '</span></div>');
     lines.push('  <div class="cover-main">');
-    lines.push('    <h1 class="cover-title">کتابچه هایلایت‌ها</h1>');
-    lines.push('    <p class="cover-sub">مجموعه‌ی کامل هایلایت‌ها و یادداشت‌ها</p>');
+    lines.push('    <h1 class="cover-title">' + esc(t('ex.bookletTitle')) + '</h1>');
+    lines.push('    <p class="cover-sub">' + esc(t('ex.coverSub')) + '</p>');
     lines.push('    <p class="cover-stats">' + esc(segs.join(' · ')) + '</p>');
     if (exportedAt) lines.push('    <p class="cover-date">' + esc(fmt.fmtDate(exportedAt)) + '</p>');
     lines.push('  </div>');
     if (toc) {
       lines.push('  <div class="cover-toc">');
-      lines.push('    <h2 class="toc-title">فهرست مقاله‌ها</h2>');
+      lines.push('    <h2 class="toc-title">' + esc(t('ex.toc')) + '</h2>');
       toc.forEach(function (row) {
         /* an internal anchor per entry (row.i ↔ articleSection's id) — the
            index the reader clicks is the exact page the counter printed */
@@ -300,7 +304,7 @@ import { format } from "./format.js"; /* 7c-3 */
       });
       lines.push('  </div>');
     }
-    lines.push('  <p class="cover-foot">ساخته‌شده با «' + esc(APP_NAME) + '» · نسخه ' + esc(VERSION) + '</p>');
+    lines.push('  <p class="cover-foot">' + esc(t('ex.madeWith', { app: APP_NAME, v: VERSION })) + '</p>');
     lines.push('</section>');
     return lines.join('\n');
   }
@@ -308,17 +312,18 @@ import { format } from "./format.js"; /* 7c-3 */
   /** n: the article's 1-based position — the TOC's anchor target (id="art-n")
    *  and the CSS counter's printed number are the same number by construction. */
   function articleSection(g, mode, n) {
-    var t = titleOf(g);
+    var chromeDir = dirOf();
+    var title = titleOf(g);
     var dir = g.dir === 'ltr' ? 'ltr' : 'rtl';
     var host = hostOf(g);
     var url = safeUrl(g);
     var tags = (g.tags || []).filter(function (x) { return fmt.oneLine(x); }).slice(0, 8);
 
     var lines = [];
-    lines.push('<section class="article" id="art-' + n + '" dir="' + dir + '" aria-label="' + esc(t) + '">');
+    lines.push('<section class="article" id="art-' + n + '" dir="' + dir + '" aria-label="' + esc(title) + '">');
     lines.push('  <header class="art-head">');
-    lines.push('    <h2 class="art-title">' + esc(t) + '</h2>');
-    lines.push('    <p class="art-meta" dir="rtl">');
+    lines.push('    <h2 class="art-title">' + esc(title) + '</h2>');
+    lines.push('    <p class="art-meta" dir="' + chromeDir + '">');
     if (url) lines.push('      <a class="art-link" href="' + esc(url) + '"><span dir="ltr">' + esc(host || url) + '</span></a>');
     else if (host) lines.push('      <span dir="ltr">' + esc(host) + '</span>');
     if (host || url) lines.push('      <span class="art-sep" aria-hidden="true"> · </span>');
@@ -339,8 +344,8 @@ import { format } from "./format.js"; /* 7c-3 */
       if (!quote && !note) return; /* a record with neither renders nothing */
       lines.push('  <div class="hl">');
       if (quote) lines.push('    <blockquote class="hl-quote" dir="auto"' + quoteStyle(r, mode) + '>' + esc(quote) + '</blockquote>');
-      if (note) lines.push('    <div class="hl-note" dir="auto"><strong class="hl-note-lbl">یادداشت:</strong> ' + esc(note) + '</div>');
-      if (meta) lines.push('    <p class="hl-meta" dir="rtl">' + esc(meta) + '</p>');
+      if (note) lines.push('    <div class="hl-note" dir="auto"><strong class="hl-note-lbl">' + esc(t('ex.note')) + '</strong> ' + esc(note) + '</div>');
+      if (meta) lines.push('    <p class="hl-meta" dir="' + chromeDir + '">' + esc(meta) + '</p>');
       lines.push('  </div>');
     });
     lines.push('</section>');
@@ -384,27 +389,27 @@ import { format } from "./format.js"; /* 7c-3 */
     var toc = null;
     if (groups.length > 1) {
       toc = groups.map(function (g, i) {
-        return { i: i + 1, n: fmt.faNum(i + 1) + '.', title: titleOf(g), count: fmt.faNum((g.items || []).length) + ' هایلایت' };
+        return { i: i + 1, n: fmt.num(i + 1) + '.', title: titleOf(g), count: count('common.nHighlights', (g.items || []).length) };
       });
     }
 
     var body = [];
     body.push(coverSection(stats, exportedAt, toc));
     if (!groups.length) {
-      body.push('<p class="doc-empty" dir="rtl">هنوز هایلایتی ثبت نشده است.</p>');
+      body.push('<p class="doc-empty" dir="' + dirOf() + '">' + esc(t('ex.mdEmpty')) + '</p>');
     } else {
       groups.forEach(function (g, i) { body.push(articleSection(g, mode, i + 1)); });
     }
-    body.push('<footer class="foot" dir="rtl">ساخته‌شده با «' + esc(APP_NAME) + '» — همه‌ی داده‌ها فقط روی دستگاه شما ذخیره می‌شوند.</footer>');
+    body.push('<footer class="foot" dir="' + dirOf() + '">' + esc(t('ex.foot', { app: APP_NAME })) + '</footer>');
 
     return [
       '<!DOCTYPE html>',
-      '<html lang="fa" dir="rtl">',
+      '<html lang="' + getLanguage() + '" dir="' + dirOf() + '">',
       '<head>',
       '<meta charset="utf-8">',
       '<meta name="viewport" content="width=device-width, initial-scale=1">',
       '<meta name="color-scheme" content="light">', /* the booklet is a paper document — always light, print-first */
-      '<title>کتابچه هایلایت‌ها — ' + esc(APP_NAME) + '</title>',
+      '<title>' + esc(t('ex.bookletTitle')) + ' — ' + esc(APP_NAME) + '</title>',
       '<style>',
       font && font.rule ? CSS + '\n' + font.rule : CSS,
       '</style>',

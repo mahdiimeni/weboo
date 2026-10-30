@@ -51,6 +51,7 @@ const SETTINGS = {
   showBadge: true,
   disabledHosts: [] as string[],
   theme: "auto",
+  language: "fa" as const,
 };
 
 function rec(id: string, host: string, url: string, title: string, text: string, over: any = {}) {
@@ -201,5 +202,41 @@ describe("پاپ‌آپ — کارت صفحه‌ی هوشمند جهت (v1.2.7 +
     expect(dir).toBe("ltr");
     /* and the popup applied the same decision to the card */
     expect($("sec-page").getAttribute("dir")).toBe("ltr");
+  });
+});
+
+
+/* ---------- v0.14.0 — the language setting drives the whole popup ---------- */
+describe("پاپ‌آپ — زبان رابط کاربری (v0.14.0)", () => {
+  test("language=en → کل صفحه LTR می‌شود و برچسب‌ها انگلیسی‌اند؛ جهتِ محتوای صفحه مستقل می‌ماند", async () => {
+    await boot({
+      "hlx:settings": { ...SETTINGS, language: "en" },
+      "hlx:d:fa.wikipedia.org": {
+        m1: rec("m1", "fa.wikipedia.org", FA_URL, FA_TITLE, "متن فارسی هایلایت‌شده برای آزمایش جهت."),
+      },
+    }, FA_TAB);
+
+    /* the document root is flipped (the applyLangNow write side) */
+    expect(win.document.documentElement.getAttribute("lang")).toBe("en");
+    expect(win.document.documentElement.getAttribute("dir")).toBe("ltr");
+    /* the localStorage mirror for the classic anti-flash boot */
+    expect(win.localStorage.getItem("hlx:lang")).toBe("en");
+    /* static shell texts translated */
+    expect(win.document.querySelector('[data-i18n="popup.listTitle"]').textContent).toBe("This page’s highlights");
+    expect(win.document.querySelector('[data-i18n="popup.enabledHere"]').textContent).toBe("Enabled on this site");
+    /* dynamic view strings */
+    expect($("chip-hl").textContent).toBe("1 highlight");
+    /* content direction stays INDEPENDENT: the Persian page card keeps RTL */
+    expect($("sec-page").getAttribute("dir")).toBeNull();
+    /* dates render Gregorian (no Jalali year anywhere) */
+    expect(win.document.querySelector("#hl-list .date").textContent).not.toContain("۱۴");
+  });
+
+  test("زبان پیش‌فرض (بدون فیلد) → فارسی و RTL — قرارداد کاربران فعلی", async () => {
+    const seed: Record<string, any> = { ...SETTINGS };
+    delete seed.language; /* a pre-i18n record */
+    await boot({ "hlx:settings": seed }, FA_TAB);
+    expect(win.document.documentElement.getAttribute("dir")).toBe("rtl");
+    expect(win.document.querySelector('[data-i18n="popup.listTitle"]').textContent).toContain("هایلایت‌های این صفحه");
   });
 });

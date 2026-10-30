@@ -16,6 +16,7 @@ import { DisabledHosts } from "../../src/dashboard/components/DisabledHosts";
 import { BulkToggle } from "../../src/dashboard/components/BulkToggle";
 import { THEME_KEYS, THEMES, COLORS } from "../../extension/shared/constants.js";
 import { BULK_ACTION_META } from "../../src/dashboard/components/BulkToggle";
+import { t } from "../../extension/shared/i18n.js";
 import { THEME_HINTS } from "../../src/dashboard/components/ThemeRadios";
 import { ThemeRadios } from "../../src/dashboard/components/ThemeRadios";
 import { ColorDots } from "../../src/dashboard/components/ColorDots";
@@ -24,6 +25,7 @@ import { EmptyState } from "../../src/dashboard/components/EmptyState";
 import { PreviewModal, RestoreModal, BookletModal, BackupModal } from "../../src/dashboard/components/Modals";
 import type { BookletFontId, BookletBuildOptions } from "../../src/types/booklet";
 import { LoadMore } from "../../src/dashboard/components/LoadMore";
+import { setLanguage as setBundleLanguage } from "../../extension/shared/i18n.js";
 import { dash } from "../../extension/dashboard/dashboard-data.js";
 
 beforeEach(() => { setupDom(); });
@@ -258,8 +260,8 @@ describe("BulkToggle (Phase 8 slice 3)", () => {
     await tick();
     const btn = bar.querySelector("button#btn-bulk") as HTMLElement;
     const meta = BULK_ACTION_META.expand;
-    expect(btn.getAttribute("title")).toBe(meta.title);
-    expect(btn.querySelector(".bt-lbl")?.textContent).toBe(meta.label);
+    expect(btn.getAttribute("title")).toBe(t(meta.title));
+    expect(btn.querySelector(".bt-lbl")?.textContent).toBe(t(meta.label));
     expect(btn.querySelector(".bt-ic")?.getAttribute("aria-hidden")).toBe("true");
     expect(btn.querySelectorAll(".bt-ic polyline").length).toBe(2); /* two chevrons */
     root.unmount();
@@ -271,8 +273,8 @@ describe("BulkToggle (Phase 8 slice 3)", () => {
     await tick();
     const btn = bar.querySelector("button#btn-bulk") as HTMLElement;
     const meta = BULK_ACTION_META.collapse;
-    expect(btn.getAttribute("title")).toBe(meta.title);
-    expect(btn.querySelector(".bt-lbl")?.textContent).toBe(meta.label);
+    expect(btn.getAttribute("title")).toBe(t(meta.title));
+    expect(btn.querySelector(".bt-lbl")?.textContent).toBe(t(meta.label));
     expect(btn.querySelectorAll(".bt-ic polyline").length).toBe(2);
     root.unmount();
   });
@@ -309,7 +311,7 @@ describe("ThemeRadios + ColorDots + BehaviorSwitches (Phase 8 slice 7)", () => {
       const key = THEME_KEYS[i];
       expect(lab.querySelector("input")?.getAttribute("value")).toBe(key);
       expect(lab.querySelector("strong")?.textContent).toBe((THEMES as Record<string, { label: string }>)[key].label);
-      expect(lab.querySelector(".muted.small")?.textContent).toBe(THEME_HINTS[key]);
+      expect(lab.querySelector(".muted.small")?.textContent).toBe(t(THEME_HINTS[key]));
       expect((lab.querySelector("input") as HTMLInputElement).checked).toBe(key === "auto");
     });
     root.unmount();
@@ -805,9 +807,13 @@ describe("BookletModal — انتخاب مقاله‌ها و فونت (Task 88)"
   test("فونت دلخواه: تا نام نوشته نشود دکمه غیرفعال است؛ با نام، onBooklet دقیقاً همان را می‌برد", async () => {
     const capture: { o?: any } = {};
     const { root, host: h } = booklet(capture);
-    await tick();
+    /* the mount effect (fresh picker per open) resets the font selection —
+       wait for it to settle before interacting, or a slow-tick run resets
+       the radio AFTER the click (the observed flake: this test raced its
+       own effect on the untouched source too) */
+    await tick(); await tick(); await tick();
     (h.querySelector('input[name="bk-font"][value="custom"]') as HTMLInputElement).click();
-    await tick();
+    await tick(); await tick();
     const input = h.querySelector("#bk-custom-font") as HTMLInputElement;
     expect(input.disabled).toBe(false); /* enabled once the custom radio is picked */
     expect((h.querySelector("#bk-go") as HTMLButtonElement).disabled).toBe(true); /* no name yet */
@@ -889,5 +895,63 @@ describe("BookletModal — انتخاب مقاله‌ها و فونت (Task 88)"
     await tick();
     expect(md).toBe(1);
     root.unmount();
+  });
+});
+
+
+/* ---------- v0.14.0 — components render in BOTH interface languages ---------- */
+describe("i18n (v0.14.0) — components follow the interface language", () => {
+  test("StatsStrip digits: Persian in fa, Latin in en", async () => {
+    const host = document.createElement("section");
+    document.body.appendChild(host);
+    const mk = () => {
+      const r = createRoot(host);
+      r.render(createElement(StatsStrip, { stats: { total: 125, notes: 3, pages: 12, sites: 4 } } as any));
+      return r;
+    };
+    let root = mk();
+    await tick();
+    expect(host.querySelector("#st-total")?.textContent).toBe("۱۲۵");
+    root.unmount();
+    setBundleLanguage("en");
+    root = mk();
+    await tick();
+    expect(host.querySelector("#st-total")?.textContent).toBe("125");
+    root.unmount();
+    setBundleLanguage("fa");
+  });
+
+  test("EmptyState copy flips with the language", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    let root = createRoot(host);
+    setBundleLanguage("en");
+    root.render(createElement(EmptyState, { shown: true, hasRecords: true }));
+    await tick();
+    expect(host.querySelector("#empty-title")?.textContent).toBe("No results found.");
+    root.unmount();
+    setBundleLanguage("fa");
+    root = createRoot(host);
+    root.render(createElement(EmptyState, { shown: true, hasRecords: false }));
+    await tick();
+    expect(host.querySelector("#empty-title")?.textContent).toBe("هنوز هایلایتی ثبت نشده. اولین متن را انتخاب کنید!");
+    root.unmount();
+  });
+
+  test("LoadMore: plural-free fa label and the en rendering", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    let root = createRoot(host);
+    root.render(createElement(LoadMore, { shown: true, overflow: 130, onLoadMore: () => {} }));
+    await tick();
+    expect(host.querySelector("#load-more")?.textContent).toBe("بارگذاری بیشتر (۱۳۰ مورد باقی‌مانده)");
+    root.unmount();
+    setBundleLanguage("en");
+    root = createRoot(host);
+    root.render(createElement(LoadMore, { shown: true, overflow: 1, onLoadMore: () => {} }));
+    await tick();
+    expect(host.querySelector("#load-more")?.textContent).toBe("Load more (1 remaining)");
+    root.unmount();
+    setBundleLanguage("fa");
   });
 });

@@ -17,6 +17,7 @@ import { APP_ID, DEFAULT_SETTINGS, MSG } from '../shared/constants.js';
 import { backends } from '../shared/backends/chrome-storage.js';
 import { createStoreReader } from '../shared/store.js';
 import { parseMessage } from '../shared/message-guard.js';
+import { setLanguage, t } from '../shared/i18n.js'; /* v0.14.0 — the context menu follows the UI language */
 
 /* Composition root: the read-only reader (ISP) — the SW never writes;
    utils/format/clipboard/export are not loaded at all for this layer.
@@ -115,19 +116,45 @@ const reader = createStoreReader(backends.chromeStorage());
     }).catch(function () { /* page without content script */ });
   }
 
-  /* ---------- Context menu ---------- */
+  /* ---------- Context menu ----------
+     v0.14.0: the title follows the USER's UI language (settings.language),
+     not the browser locale — the same setting every other surface follows.
+     The menu is re-created on install/startup and UPDATED on settings
+     changes; the title keeps Chrome's %s (the selected text). */
+
+  const MENU_TITLE_KEY = 'menu.highlight'; /* carries the literal %s */
 
   function ensureContextMenus() {
     try {
-      const cb = function () { void chrome.runtime.lastError; /* duplicate id → stay silent */ };
-      const p = chrome.contextMenus.create({
-        id: MENU_ID,
-        title: '✨ هایلایت «%s»',
-        contexts: ['selection']
-      }, cb);
-      settle(p);
+      getSettingsCached().then(function (s) {
+        setLanguage(s && s.language);
+        const cb = function () { void chrome.runtime.lastError; /* duplicate id → stay silent */ };
+        const p = chrome.contextMenus.create({
+          id: MENU_ID,
+          title: t(MENU_TITLE_KEY),
+          contexts: ['selection']
+        }, cb);
+        settle(p);
+      }).catch(function () {
+        /* settings unreadable → the default (fa) title */
+        try {
+          const cb = function () { void chrome.runtime.lastError; };
+          const p = chrome.contextMenus.create({ id: MENU_ID, title: t(MENU_TITLE_KEY), contexts: ['selection'] }, cb);
+          settle(p);
+        } catch (e) { /* noop */ }
+      });
     } catch (e) { /* noop */ }
   }
+
+  try {
+    reader.onSettingsChanged(function (s) {
+      try {
+        setLanguage(s && s.language);
+        const p = chrome.contextMenus.update(MENU_ID, { title: t(MENU_TITLE_KEY) }, function () { void chrome.runtime.lastError; });
+        settle(p && p.then ? p : null);
+      } catch (e) { /* noop */ }
+    });
+  } catch (e) { /* noop */ }
 
   try {
     chrome.runtime.onInstalled.addListener(function () {

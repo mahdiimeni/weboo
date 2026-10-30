@@ -7,6 +7,8 @@
  * settings snapshot (the data layer's optimistic update makes the toggle
  * instant), onToggle reports {key, value}.
  */
+import { t } from "../../../extension/shared/i18n.js";
+
 interface Props {
   showToolbar: boolean;
   showBadge: boolean;
@@ -26,7 +28,7 @@ export function BehaviorSwitches({ showToolbar, showBadge, onToggle }: Props) {
           />
           <span className="track"><span className="knob" /></span>
         </span>
-        <span className="switch-lbl">نمایش نوار ابزار هنگام انتخاب متن</span>
+        <span className="switch-lbl">{t("behavior.toolbar")}</span>
       </label>
       <label className="switch-box">
         <span className="switch">
@@ -38,7 +40,7 @@ export function BehaviorSwitches({ showToolbar, showBadge, onToggle }: Props) {
           />
           <span className="track"><span className="knob" /></span>
         </span>
-        <span className="switch-lbl">نمایش شمارنده روی آیکون</span>
+        <span className="switch-lbl">{t("behavior.badge")}</span>
       </label>
     </>
   );

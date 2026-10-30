@@ -19,6 +19,7 @@ import { dash } from "../../../extension/dashboard/dashboard-data.js";
 import { format } from "../../../extension/shared/format.js";
 import { ArmIconButton, IconButton } from "./ArmIconButton";
 import { IconQuote } from "./icons";
+import { t, dirOf } from "../../../extension/shared/i18n.js";
 
 export interface ItemHandlers {
   onView: (rec: HighlightRecord) => void;
@@ -46,7 +47,7 @@ export function ItemCard({ rec, handlers }: { rec: HighlightRecord; handlers: It
         dir={textDir || undefined}
         role={onPreview ? "button" : undefined}
         tabIndex={onPreview ? 0 : undefined}
-        title={onPreview ? "نمایش متن کامل این هایلایت" : undefined}
+        title={onPreview ? t("item.previewTitle") : undefined}
         onClick={onPreview ? () => onPreview(rec) : undefined}
         onKeyDown={onPreview ? previewKeys : undefined}
       >
@@ -56,7 +57,7 @@ export function ItemCard({ rec, handlers }: { rec: HighlightRecord; handlers: It
         <div
           className={"note" + (onPreview ? " peek" : "")}
           dir={dash.detectTextDir(rec.note) || undefined}
-          title={onPreview ? "نمایش متن و یادداشت کامل این هایلایت" : undefined}
+          title={onPreview ? t("item.notePreviewTitle") : undefined}
           onClick={onPreview ? () => onPreview(rec) : undefined}
         >
           <span className="note-ic"><IconQuote /></span>
@@ -64,11 +65,11 @@ export function ItemCard({ rec, handlers }: { rec: HighlightRecord; handlers: It
         </div>
       ) : null}
       <div className="item-meta">
-        <span className="item-date" dir="rtl">{format.fmtDateTime(rec.updatedAt || rec.createdAt)}</span>
+        <span className="item-date" dir={dirOf()}>{format.fmtDateTime(rec.updatedAt || rec.createdAt)}</span>
         <div className="item-actions">
-          <IconButton icon="view" title="مشاهده در صفحه" onClick={() => handlers.onView(rec)} />
-          <IconButton icon="copy" title="کپی متن" onClick={() => handlers.onCopy(rec)} />
-          <ArmIconButton icon="trash" title="حذف این هایلایت" className="danger" onConfirm={() => handlers.onDelete(rec)} />
+          <IconButton icon="view" title={t("item.viewTitle")} onClick={() => handlers.onView(rec)} />
+          <IconButton icon="copy" title={t("common.copy")} onClick={() => handlers.onCopy(rec)} />
+          <ArmIconButton icon="trash" title={t("item.deleteTitle")} className="danger" onConfirm={() => handlers.onDelete(rec)} />
         </div>
       </div>
     </article>

@@ -149,6 +149,9 @@ body {
   font-size: 14px;
   line-height: 1.8;
 }
+/* English UI (v0.14.0): Latin-first stack — no new fonts, just the order.
+   Persian USER content inside cards still renders via the fallbacks. */
+html[dir="ltr"] body { font-family: 'Segoe UI', Vazirmatn, Tahoma, sans-serif; }
 
 /* Dark theme keeps the flat canvas — the gradient is a light-only layer */
 @media (prefers-color-scheme: dark) {

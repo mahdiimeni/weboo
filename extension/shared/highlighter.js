@@ -34,6 +34,7 @@ import { dom } from "./domwrap.js"; /* Phase 7b-3: the DOM engine — 16 HL.dom 
 import { util } from "./utils.js";
 import { clipboard } from "./clipboard.js";
 import { ui } from "./ui/base.js";
+import { t } from "./i18n.js"; /* v0.14.0 — user-facing strings follow the UI language */
 
   function createHighlighter(cfg) {
     cfg = cfg || {};
@@ -193,7 +194,7 @@ import { ui } from "./ui/base.js";
     function copyText(t) {
       if (!t) return;
       clipboard.copyText(t).then(function (ok) {
-        if (ok) toast('کپی شد ✓');
+        if (ok) toast(t('hl.copied'));
       });
     }
 
@@ -207,7 +208,7 @@ import { ui } from "./ui/base.js";
       }).catch(function () {
         if (!state.saveFailed) {
           state.saveFailed = true;
-          onError('ذخیره‌سازی با خطا مواجه شد.');
+          onError(t('hl.saveError'));
         }
       });
     }
@@ -256,13 +257,13 @@ import { ui } from "./ui/base.js";
 
       var ti = freshIndex();
       var offs = ti.offsetsOfRange(ctx.range);
-      if (!offs) { onError('این قسمت از صفحه قابل هایلایت نیست.'); clearSelection(); return null; }
+      if (!offs) { onError(t('hl.notHighlightable')); clearSelection(); return null; }
 
       var id = util.newId();
       var now = Date.now();
       var anchor = dom.serializeRange(ctx.range);
       var marks = dom.markRange(ctx.range, id, color);
-      if (!marks.length) { onError('این قسمت از صفحه قابل هایلایت نیست.'); clearSelection(); return null; }
+      if (!marks.length) { onError(t('hl.notHighlightable')); clearSelection(); return null; }
       state.ti = null;
 
       var rec = {
@@ -352,7 +353,7 @@ import { ui } from "./ui/base.js";
       var rec = state.recs.get(id);
       dom.unwrap(id);
       state.recs.delete(id);
-      if (rec) toast('هایلایت حذف شد.');
+      if (rec) toast(t('hl.deleted'));
       return store.remove(id, page.host).then(function () {
         onCount();
         if (hooks.onDeleted) hooks.onDeleted(id);
@@ -369,7 +370,7 @@ import { ui } from "./ui/base.js";
       onDelete: function (id) { removeHighlight(id); },
       onCopy: function (id) {
         var rec = state.recs.get(id);
-        if (rec) copyText(rec.text + (rec.note ? '\n\n📝 یادداشت: ' + rec.note : ''));
+        if (rec) copyText(rec.text + (rec.note ? '\n\n' + t('hl.notePrefix') + rec.note : ''));
       }
     });
     popover.h.onClose = function () { popoverOpen = false; };

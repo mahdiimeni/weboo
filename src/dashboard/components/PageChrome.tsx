@@ -18,6 +18,7 @@ import {
   clearAll,
 } from "../data";
 import { toast } from "../toast";
+import { t } from "../../../extension/shared/i18n.js";
 import { IconBooklet, IconExport, IconSettings, IconDanger, IconSelectBackup } from "./pageIcons";
 
 /** Region root — mounted into .topbar-actions (the four buttons + badge). */
@@ -27,25 +28,25 @@ export function TopbarActionsRegion() {
     <>
       <button type="button" className="btn btn-ghost" id="btn-booklet" onClick={() => setBookletOpen(true)}>
         <IconBooklet />
-        کتابچه
+        {t("tb.booklet")}
       </button>
       <button
         type="button"
         className="btn btn-ghost"
         id="btn-backup-select"
         aria-haspopup="dialog"
-        title="بک‌آپ انتخابی — از سایت‌ها، مقاله‌ها و برچسب‌ها"
+        title={t("tb.selectiveBackupTitle")}
         onClick={() => setBackupOpen(true)}
       >
         <IconSelectBackup />
-        خروجی انتخابی
+        {t("tb.selectiveBackup")}
       </button>
       <button
         type="button"
         className="btn btn-primary btn-icon"
         id="btn-export"
-        aria-label="خروجی پشتیبان"
-        title="خروجی پشتیبان (کل کتابخانه)"
+        aria-label={t("tb.backup")}
+        title={t("tb.backupTitle")}
         onClick={() => { void exportBackup(); }}
       >
         <IconExport />
@@ -54,15 +55,15 @@ export function TopbarActionsRegion() {
         type="button"
         className="btn btn-ghost btn-icon"
         id="btn-settings"
-        aria-label="تنظیمات"
-        title="تنظیمات"
+        aria-label={t("dash.settings")}
+        title={t("dash.settings")}
         aria-haspopup="dialog"
         aria-controls="drawer"
         onClick={() => setDrawerOpen(true)}
       >
         <IconSettings />
       </button>
-      <span className="size-badge" id="size-badge" title="حجم داده‌های ذخیره‌شده روی دستگاه">
+      <span className="size-badge" id="size-badge" title={t("tb.sizeBadgeTitle")}>
         {bytesInUse === null ? "—" : dash.fmtBytes(bytesInUse)}
       </span>
     </>
@@ -74,16 +75,16 @@ export function RestoreSectionRegion() {
   const inputRef = useRef<HTMLInputElement>(null);
   return (
     <section className="set-sec restore-sec">
-      <h3>بازیابی بک‌آپ</h3>
-      <p className="muted small">فایل پشتیبان JSON را انتخاب کن؛ پیش از اجرا، حالت ادغام یا جایگزینی کامل پرسیده می‌شود.</p>
+      <h3>{t("restore.title")}</h3>
+      <p className="muted small">{t("restore.desc")}</p>
       <button type="button" className="btn btn-ghost" id="btn-import" onClick={() => {
         if (inputRef.current) {
           inputRef.current.value = "";
-          try { inputRef.current.click(); } catch (e) { toast("باز کردن فایل ناموفق بود", "error"); }
+          try { inputRef.current.click(); } catch (e) { toast(t("restore.fileFail"), "error"); }
         }
       }}>
         <IconExport />
-        بازیابی بک‌آپ
+        {t("restore.title")}
       </button>
       <input
         type="file"
@@ -143,10 +144,10 @@ export function DangerSectionRegion() {
       await clearAll();
       /* User settings must survive (clearAll wipes every hlx key) */
       await setSettings(settings);
-      toast("همه‌ی هایلایت‌ها و یادداشت‌ها حذف شد", "success");
+      toast(t("danger.done"), "success");
       reset();
     } catch (e) {
-      toast("حذف ناموفق بود", "error");
+      toast(t("common.deleteFail"), "error");
     } finally {
       setBusy(false);
     }
@@ -156,9 +157,9 @@ export function DangerSectionRegion() {
     <section className="set-sec danger-zone">
       <h3>
         <IconDanger />
-        منطقه‌ی خطر
+        {t("danger.title")}
       </h3>
-      <p className="muted small">این عمل غیرقابل بازگشت است؛ پیشنهاد می‌کنیم ابتدا «خروجی پشتیبان» بگیرید.</p>
+      <p className="muted small">{t("danger.desc")}</p>
       <div className="danger-flow">
         <button
           type="button"
@@ -175,15 +176,15 @@ export function DangerSectionRegion() {
             try { inputRef.current?.focus(); } catch (e) { /* noop */ }
           }}
         >
-          {armed ? "مطمئنید؟" : "حذف همه‌ی هایلایت‌ها و یادداشت‌ها"}
+          {armed ? t("common.confirm") : t("danger.arm")}
         </button>
         <div className="danger-confirm" id="danger-confirm" hidden={!armed}>
           <input
             type="text"
             id="danger-input"
             ref={inputRef}
-            placeholder="برای تأیید، کلمه «حذف» یا delete را بنویس"
-            aria-label="تأیید حذف"
+            placeholder={t("danger.placeholder")}
+            aria-label={t("danger.inputAria")}
             onInput={() => {
               setWordOk(confirmWordOk(inputRef.current?.value));
             }}
@@ -195,9 +196,9 @@ export function DangerSectionRegion() {
             }}
           />
           <button type="button" className="btn btn-danger" id="danger-go" disabled={!wordOk || busy} onClick={() => { void go(); }}>
-            تأیید و حذف
+            {t("danger.go")}
           </button>
-          <button type="button" className="btn btn-ghost" id="danger-cancel" onClick={reset}>انصراف</button>
+          <button type="button" className="btn btn-ghost" id="danger-cancel" onClick={reset}>{t("common.cancel")}</button>
         </div>
       </div>
     </section>

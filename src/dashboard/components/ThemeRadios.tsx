@@ -11,13 +11,15 @@
  * contract) stays with the caller — this component only reports selection.
  */
 import type { ThemeKey } from "../../types/settings";
-import { THEME_KEYS, THEMES } from "../../../extension/shared/constants.js";
+import { THEME_KEYS } from "../../../extension/shared/constants.js";
+import { t } from "../../../extension/shared/i18n.js";
+import type { TranslationKey } from "../../shared/i18n";
 /* Short description of each theme (ex-dashView.THEME_HINTS — the view
-   retired with Task 5). */
-export const THEME_HINTS: Record<string, string> = {
-  auto: "روشن/تیره سیستم‌عامل را دنبال می‌کند",
-  light: "همیشه پس‌زمینه‌ی روشن",
-  dark: "همیشه پس‌زمینه‌ی تیره",
+   retired with Task 5) as i18n keys (v0.14.0). */
+export const THEME_HINTS: Record<string, TranslationKey> = {
+  auto: "theme.autoHint",
+  light: "theme.lightHint",
+  dark: "theme.darkHint",
 };
 
 export function ThemeRadios({ theme, onSelect }: { theme: ThemeKey; onSelect: (key: ThemeKey) => void }) {
@@ -37,8 +39,8 @@ export function ThemeRadios({ theme, onSelect }: { theme: ThemeKey; onSelect: (k
             onChange={() => { if (k !== cur) onSelect(k); }}
           />
           <span className="radio-txt">
-            <strong>{THEMES[k].label}</strong>
-            <span className="muted small">{THEME_HINTS[k] || ""}</span>
+            <strong>{t(("theme." + k) as TranslationKey)}</strong>
+            <span className="muted small">{THEME_HINTS[k] ? t(THEME_HINTS[k]) : ""}</span>
           </span>
         </label>
       ))}

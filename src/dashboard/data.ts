@@ -47,8 +47,9 @@ import { exportTools } from "../../extension/shared/export.js";
 import { markdown } from "../../extension/shared/markdown-export.js";
 import { booklet, BOOKLET_FONTS } from "../../extension/shared/booklet-export.js";
 import { matchesBackupSelection } from "../../extension/shared/store.js";
+import { t, count, applyDom } from "../../extension/shared/i18n.js";
 import type { HighlightRecord } from "../types/highlight";
-import type { Settings, ThemeKey } from "../types/settings";
+import type { Settings, ThemeKey, Language } from "../types/settings";
 import type { BackupSelection } from "../types/storage";
 import type { BookletBuildOptions, BookletFontId } from "../types/booklet";
 import { toast } from "./toast";
@@ -66,6 +67,9 @@ export interface Filters {
 export interface DashboardData {
   records: HighlightRecord[];
   settings: Settings;
+  /** the ACTIVE UI language (v0.14.0) — its snapshot identity drives the
+      regions' re-render so every t()/dirOf() read is fresh after a switch */
+  lang: Language;
   /** { urlNorm: [tag, …] } — article tags (v1.2.15) */
   tagMap: Record<string, string[]>;
   /** { host: {icon, capturedAt} } — captured favicons (hlx:f:<host>) */
@@ -95,6 +99,7 @@ export interface DashboardData {
 let state: DashboardData = {
   records: [],
   settings: {} as Settings,
+  lang: "fa",
   tagMap: {},
   favicons: {},
   filters: { q: "", colors: new Set(), tags: new Set(), notesOnly: false, sort: "newest" },
@@ -144,11 +149,27 @@ function applyThemeNow(theme: string | undefined): void {
   try { ui.applyThemeNow(theme || "auto"); } catch (e) { /* best-effort */ }
 }
 
+/**
+ * Language application (v0.14.0) — the page's ONE language write path:
+ * ui.applyLangNow sets the translation state + widget hosts + the document
+ * root's lang/dir + the "hlx:lang" mirror; then the static shell's
+ * data-i18n* markup and <title> follow, and the snapshot's lang identity
+ * flips so every subscribed region re-renders with the fresh dictionary.
+ * ORDER matters: the global dictionary must move BEFORE applyDom/render.
+ */
+function applyLanguage(lang: string | undefined): void {
+  try { ui.applyLangNow(lang || "fa"); } catch (e) { /* best-effort */ }
+  try { applyDom(document); } catch (e) { /* static shell is best-effort */ }
+  try { document.title = t("dash.title"); } catch (e) { /* noop */ }
+  setState({ lang: ui.getLang() as Language });
+}
+
 async function reloadSettings(): Promise<void> {
   try {
     const s = (await store.getSettings()) as Settings;
     setState({ settings: s });
     applyThemeNow(s.theme);
+    applyLanguage(s.language);
   } catch (e) { /* keep the previous snapshot */ }
 }
 
@@ -166,7 +187,7 @@ async function refreshAll(): Promise<void> {
     records = Array.from(m.values());
   } catch (e) {
     recordsOk = false;
-    toast("خواندن داده‌ها ناموفق بود", "error");
+    toast(t("toast.readFail"), "error");
   }
   try { favicons = ((await store.getFaviconMap()) || {}) as DashboardData["favicons"]; } catch (e) { /* degrade to no favicons */ }
   try { tagMap = (await store.getTags()) || {}; } catch (e) { /* degrade to no tags */ }
@@ -234,6 +255,9 @@ export function startData(): void {
     /* the controller's live re-apply contract: a theme change from another
        context (or the replace-mode import) takes effect here immediately */
     applyThemeNow(settings.theme);
+    /* v0.14.0 — the language rides the same channel: switching it in one
+       tab updates this dashboard (texts, direction, dates) without a reload */
+    if (settings.language !== ui.getLang()) applyLanguage(settings.language);
   });
 }
 
@@ -265,31 +289,31 @@ export async function setSettings(patch: Partial<Settings>): Promise<void> {
 
 export function openArticle(g: { url?: string }): void {
   const url = util.safeOpenUrl(g.url);
-  if (!url) { toast("آدرس این صفحه ثبت نشده است", "error"); return; }
+  if (!url) { toast(t("toast.openPageNoUrl"), "error"); return; }
   try { window.open(url, "_blank"); }
-  catch (e) { toast("باز کردن صفحه ناموفق بود", "error"); }
+  catch (e) { toast(t("toast.openPageFail"), "error"); }
 }
 
 export function viewRecord(rec: { url?: string; id: string }): void {
   const url = util.safeOpenUrl(rec.url);
-  if (!url) { toast("آدرس این هایلایت ثبت نشده است", "error"); return; }
+  if (!url) { toast(t("toast.openHlNoUrl"), "error"); return; }
   try { window.open(url + "#" + GOTO_HASH_PREFIX + rec.id, "_blank"); }
-  catch (e) { toast("باز کردن صفحه ناموفق بود", "error"); }
+  catch (e) { toast(t("toast.openPageFail"), "error"); }
 }
 
-export function copyText(t: string): void {
-  if (!t) { toast("چیزی برای کپی نیست", "info"); return; }
-  clipboard.copyText(t).then((ok: boolean) => {
-    toast(ok ? "کپی شد ✓" : "کپی ناموفق بود", ok ? "success" : "error");
+export function copyText(text: string): void {
+  if (!text) { toast(t("toast.nothingToCopy"), "info"); return; }
+  clipboard.copyText(text).then((ok: boolean) => {
+    toast(ok ? t("common.copyOk") : t("common.copyFail"), ok ? "success" : "error");
   });
 }
 
 export function deleteRecord(rec: { id: string; host: string }): void {
   store.remove(rec.id, rec.host).then(() => {
-    toast("هایلایت حذف شد", "success");
+    toast(t("toast.deleted"), "success");
     void refreshAll();
   }).catch(() => {
-    toast("حذف ناموفق بود", "error");
+    toast(t("common.deleteFail"), "error");
   });
 }
 
@@ -297,10 +321,10 @@ export function deleteGroup(g: { key: string; host: string }): void {
   store.removeForUrl(g.key, g.host).then(() => {
     /* Tags are article-scoped: deleting the article's highlights takes its tags too */
     store.removeArticleTags(g.key).catch(() => { /* best-effort cleanup */ });
-    toast("هایلایت‌های این صفحه حذف شد", "success");
+    toast(t("toast.groupDeleted"), "success");
     void refreshAll();
   }).catch(() => {
-    toast("حذف ناموفق بود", "error");
+    toast(t("common.deleteFail"), "error");
   });
 }
 
@@ -404,9 +428,9 @@ export async function exportBackup(): Promise<void> {
     const b = await store.exportData();
     const n = (b.meta && b.meta.count) || 0;
     exportTools.saveBackup(b);
-    toast("فایل بک‌آپ با " + dash.faNum(n) + " هایلایت دانلود شد", "success");
+    toast(count("toast.backupOk", n), "success");
   } catch (e) {
-    toast("خروجی گرفتن ناموفق بود", "error");
+    toast(t("toast.exportFail"), "error");
   }
 }
 
@@ -428,9 +452,9 @@ export async function exportSelectedBackup(selection: BackupSelection): Promise<
     const b = await store.exportData(selection);
     const n = (b.meta && b.meta.count) || 0;
     exportTools.saveBackup(b);
-    toast("فایل بک‌آپ انتخابی با " + dash.faNum(n) + " هایلایت دانلود شد", "success");
+    toast(count("toast.partialBackupOk", n), "success");
   } catch (e) {
-    toast("خروجی گرفتن ناموفق بود", "error");
+    toast(t("toast.exportFail"), "error");
   }
 }
 
@@ -438,18 +462,18 @@ export async function exportSelectedBackup(selection: BackupSelection): Promise<
  *  the modal (the old fileInput change handler, verbatim toasts). */
 export function acceptBackupFile(file: File): void {
   const reader = new FileReader();
-  reader.onerror = () => { toast("خواندن فایل ناموفق بود", "error"); };
+  reader.onerror = () => { toast(t("toast.fileReadFail"), "error"); };
   reader.onload = () => {
     let data: Record<string, unknown> | null = null;
     try { data = JSON.parse(String(reader.result)); } catch (e) { data = null; }
     if (!data || typeof data.app !== "string" || !BACKUP_APP_IDS.includes(data.app) || !data.highlights || typeof data.highlights !== "object") {
-      toast("فایل پشتیبان معتبر نیست", "error");
+      toast(t("toast.invalidBackup"), "error");
       return;
     }
     setState({ stagedBackup: data });
   };
   try { reader.readAsText(file, "utf-8"); }
-  catch (e) { toast("خواندن فایل ناموفق بود", "error"); }
+  catch (e) { toast(t("toast.fileReadFail"), "error"); }
 }
 
 export function clearStagedBackup(): void {
@@ -465,11 +489,11 @@ export async function clearAll(): Promise<void> {
 export async function importBackup(backup: Record<string, unknown>, mode: string): Promise<void> {
   try {
     const r = await store.importData(backup, mode);
-    toast(dash.faNum(r.added) + " مورد اضافه، " + dash.faNum(r.updated) + " به‌روزرسانی، " + dash.faNum(r.skipped) + " رد شد", "success");
+    toast(t("toast.importDone", { a: dash.num(r.added), u: dash.num(r.updated), s: dash.num(r.skipped) }), "success");
     void refreshAll();
   } catch (e) {
     /* the old imp-go contract: the modal stays open, the failure is toasted */
-    toast("بازیابی ناموفق بود" + (e && (e as Error).message ? ": " + (e as Error).message : ""), "error");
+    toast(t("toast.restoreFail") + (e && (e as Error).message ? ": " + (e as Error).message : ""), "error");
     throw e;
   }
 }
@@ -490,7 +514,7 @@ async function exportGroups() {
 
 export async function buildMarkdownExport(): Promise<void> {
   const gs = await exportGroups();
-  if (!gs.length) { toast("هایلایتی برای خروجی وجود ندارد", "error"); return; }
+  if (!gs.length) { toast(t("toast.nothingToExport"), "error"); return; }
   let total = 0;
   gs.forEach((g: { items: unknown[] }) => { total += g.items.length; });
   try {
@@ -499,32 +523,32 @@ export async function buildMarkdownExport(): Promise<void> {
       markdown.buildLibraryMarkdown({ groups: gs, exportedAt: Date.now() }),
       "text/markdown"
     );
-    toast("فایل Markdown با " + dash.faNum(total) + " هایلایت دانلود شد", "success");
+    toast(count("toast.mdOk", total), "success");
   } catch (e) {
-    toast("خروجی Markdown ناموفق بود", "error");
+    toast(t("toast.mdFail"), "error");
   }
 }
 
 export async function buildBookletExport(format: string, mode: string, options?: BookletBuildOptions): Promise<void> {
   const all = await exportGroups();
-  if (!all.length) { toast("هایلایتی برای خروجی وجود ندارد", "error"); return; }
+  if (!all.length) { toast(t("toast.nothingToExport"), "error"); return; }
   /* the selection rule's ONE home is the pure layer (empty selection = all) —
      the modal's default state and this filter can never disagree */
   const gs = dash.filterGroupsByKeys(all, (options && options.articles) || []);
-  if (!gs.length) { toast("مقاله‌ای برای کتابچه انتخاب نشده است", "error"); return; }
+  if (!gs.length) { toast(t("toast.noArticlesForBooklet"), "error"); return; }
   let total = 0;
   gs.forEach((g: { items: unknown[] }) => { total += g.items.length; });
   try {
     const html = booklet.buildBookletHtml({ groups: gs, mode: mode, exportedAt: Date.now(), font: options && options.font, customFont: options && options.customFont });
     if (format === "pdf") {
       exportTools.printHtml(html);
-      toast("پنجره‌ی چاپ باز شد — برای PDF گزینه‌ی «Save as PDF» را انتخاب کن", "info");
+      toast(t("toast.printOpened"), "info");
     } else {
       exportTools.downloadText(exportTools.bookletFileName(), html, "text/html");
-      toast("کتابچه HTML با " + dash.faNum(total) + " هایلایت دانلود شد", "success");
+      toast(count("toast.bookletOk", total), "success");
     }
   } catch (e) {
-    toast("ساخت کتابچه ناموفق بود", "error");
+    toast(t("toast.bookletFail"), "error");
   }
 }
 
@@ -540,25 +564,25 @@ export function bookletFontOptions(): Array<{ id: BookletFontId; label: string }
 
 export function addTag(key: string, rawTag: string): void {
   const tag = tagRules.sanitizeTag(rawTag);
-  if (!tag) { toast("نام برچسب معتبر نیست (حداکثر " + dash.faNum(TAG_MAX_LEN) + " نویسه)", "error"); return; }
+  if (!tag) { toast(t("toast.tagInvalid", { n: dash.num(TAG_MAX_LEN) }), "error"); return; }
   const cur = state.tagMap[key] || [];
-  if (tagRules.hasTag(cur, tag)) { toast("این برچسب روی این مقاله هست", "info"); return; }
-  if (cur.length >= TAG_MAX_PER_ARTICLE) { toast("حداکثر " + dash.faNum(TAG_MAX_PER_ARTICLE) + " برچسب برای هر مقاله", "error"); return; }
+  if (tagRules.hasTag(cur, tag)) { toast(t("toast.tagExists"), "info"); return; }
+  if (cur.length >= TAG_MAX_PER_ARTICLE) { toast(t("toast.tagCap", { n: dash.num(TAG_MAX_PER_ARTICLE) }), "error"); return; }
   store.setArticleTags(key, cur.concat([tag])).then(() => {
-    toast("برچسب «" + tag + "» اضافه شد", "success");
+    toast(t("toast.tagAdded", { tag: tag }), "success");
     void refreshAll();
   }).catch(() => {
-    toast("ذخیره‌ی برچسب ناموفق بود", "error");
+    toast(t("toast.tagSaveFail"), "error");
   });
 }
 
 export function removeTag(key: string, tag: string): void {
-  const next = (state.tagMap[key] || []).filter((t) => t !== tag);
+  const next = (state.tagMap[key] || []).filter((x) => x !== tag);
   store.setArticleTags(key, next).then(() => {
-    toast("برچسب حذف شد", "success");
+    toast(t("toast.tagRemoved"), "success");
     void refreshAll();
   }).catch(() => {
-    toast("حذف برچسب ناموفق بود", "error");
+    toast(t("toast.tagRemoveFail"), "error");
   });
 }
 

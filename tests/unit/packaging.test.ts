@@ -127,14 +127,14 @@ describe("emit کلاسیک (TypeScript → اسکریپت قابل تزریق)"
 });
 
 describe("کل مسیر محتوا ماژولی است (7c-2)", () => {
-  test("هر ۲۰ فایل manifest content_scripts سینتکس ماژول دارد", () => {
+  test("هر ۲۲ فایل manifest content_scripts سینتکس ماژول دارد", () => {
     /* Final-form two-way tripwire: since 7c-2 every content-side file carries
        import/export. One direction: no file may lose its module syntax (the
        WXT bundle would silently drop declared edges and identity exports rot).
        The opposite direction lives in the bundle test above: the emitted
        content-scripts/content.js must contain ZERO module statements. */
     const files = JSON.parse(readFile(ext("manifest.json"))).content_scripts[0].js;
-    expect(files.length).toBe(21);
+    expect(files.length).toBe(22); /* v0.14.0: shared/i18n.js joined the bundle */
     for (const f of files) {
       expect(/^\s*(import|export)\s/m.test(readFile(ext(f)))).toBe(true);
     }
@@ -217,10 +217,14 @@ describe("قرارداد میزبان‌های داشبورد (region mounts)", 
   test("سه بخشِ ثابتِ کشو، تیتر و میزبانِ درونی دارند؛ React بخش را نمی‌بلعد", () => {
     /* the shell owns the section chrome — h3s + the flex wrapper */
     const shell = readFile(ext("..", "entrypoints", "dashboard", "index.html"));
-    expect(shell).toContain("<h3>ظاهر</h3>");
-    expect(shell).toContain("<h3>رنگ پیش‌فرض هایلایت</h3>");
-    expect(shell).toContain("<h3>رفتار</h3>");
-    expect(shell).toContain('<div class="color-dots" id="color-dots" role="radiogroup" aria-label="رنگ پیش‌فرض هایلایت">');
+    /* v0.14.0: the section chrome carries data-i18n* keys (the static Persian
+       copy stays the pre-boot markup; i18n.applyDom translates at runtime) */
+    expect(shell).toContain('<h3 data-i18n="dash.sectionAppearance">ظاهر</h3>');
+    expect(shell).toContain('<h3 data-i18n="dash.sectionColor">رنگ پیش‌فرض هایلایت</h3>');
+    expect(shell).toContain('<h3 data-i18n="dash.sectionBehavior">رفتار</h3>');
+    expect(shell).toContain('<h3 data-i18n="lang.label">زبان رابط کاربری</h3>');
+    expect(shell).toContain('id="language-radios"');
+    expect(shell).toContain('<div class="color-dots" id="color-dots" role="radiogroup" aria-label="رنگ پیش‌فرض هایلایت" data-i18n-aria="dash.sectionColor">');
     expect(shell).toContain('id="theme-radios"');
     expect(shell).toContain('id="behavior-host"');
     /* the regions mount INTO the inner hosts — a section-level mount erased

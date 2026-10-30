@@ -14,6 +14,8 @@ import { dash } from "../../../extension/dashboard/dashboard-data.js";
 import { COLOR_KEYS, COLORS } from "../../../extension/shared/constants.js";
 import type { HighlightColor } from "../../types/highlight";
 import { tags as tagRules } from "../../../extension/shared/tags.js";
+import { t } from "../../../extension/shared/i18n.js";
+import type { TranslationKey } from "../../shared/i18n";
 import type { Filters } from "../data";
 import { IconSearch } from "./icons";
 
@@ -25,8 +27,8 @@ export function SearchBox({ onSearch }: { onSearch: (q: string) => void }) {
       <input
         type="search"
         id="q"
-        placeholder="جست‌وجو در متن، یادداشت یا عنوان صفحه…"
-        aria-label="جست‌وجو"
+        placeholder={t("search.placeholder")}
+        aria-label={t("search.aria")}
         onInput={(ev) => {
           const v = (ev.target as HTMLInputElement).value;
           if (timer.current) clearTimeout(timer.current);
@@ -39,7 +41,7 @@ export function SearchBox({ onSearch }: { onSearch: (q: string) => void }) {
 
 export function ColorChips({ colors, onToggle }: { colors: Filters["colors"]; onToggle: (key: string) => void }) {
   return (
-    <div className="color-chips" id="color-chips" role="group" aria-label="فیلتر رنگ">
+    <div className="color-chips" id="color-chips" role="group" aria-label={t("filter.colorAria")}>
       {(COLOR_KEYS as HighlightColor[]).map((k) => {
         const c = COLORS[k];
         const active = colors.has(k);
@@ -54,7 +56,7 @@ export function ColorChips({ colors, onToggle }: { colors: Filters["colors"]; on
             onClick={() => onToggle(k)}
           >
             <span className="dot" style={{ background: c.dot }} />
-            {c.label}
+            {t(("color." + k) as TranslationKey)}
           </button>
         );
       })}
@@ -69,7 +71,7 @@ export function NotesOnlySwitch({ on, onToggle }: { on: boolean; onToggle: (v: b
         <input type="checkbox" id="f-notes" checked={on} onChange={(e) => onToggle(e.target.checked)} />
         <span className="track"><span className="knob" /></span>
       </span>
-      <span className="switch-lbl">فقط یادداشت‌دار</span>
+      <span className="switch-lbl">{t("filter.notesOnly")}</span>
     </label>
   );
 }
@@ -77,11 +79,11 @@ export function NotesOnlySwitch({ on, onToggle }: { on: boolean; onToggle: (v: b
 export function SortSelect({ sort, onChange }: { sort: string; onChange: (s: string) => void }) {
   return (
     <label className="sort-box">
-      <span className="muted small">مرتب‌سازی:</span>
+      <span className="muted small">{t("filter.sortLabel")}</span>
       <select id="f-sort" value={sort} onChange={(e) => onChange(e.target.value)}>
-        <option value="newest">جدیدترین</option>
-        <option value="oldest">قدیمی‌ترین</option>
-        <option value="page">بر اساس صفحه</option>
+        <option value="newest">{t("sort.newest")}</option>
+        <option value="oldest">{t("sort.oldest")}</option>
+        <option value="page">{t("sort.page")}</option>
       </select>
     </label>
   );
@@ -95,8 +97,8 @@ export function TagChips({ tagMap, selected, onToggle }: {
   const counts = tagRules.tagCounts(tagMap);
   return (
     <div className="tag-filter" id="tag-filter" hidden={counts.length === 0}>
-      <span className="muted small tag-filter-lbl">برچسب مقاله‌ها:</span>
-      <div className="tag-chips" id="tag-chips" role="group" aria-label="فیلتر برچسب مقاله‌ها">
+      <span className="muted small tag-filter-lbl">{t("filter.tagsLabel")}</span>
+      <div className="tag-chips" id="tag-chips" role="group" aria-label={t("filter.tagsAria")}>
         {counts.map((t: { tag: string; count: number }) => {
           const active = selected.has(t.tag);
           return (
@@ -110,7 +112,7 @@ export function TagChips({ tagMap, selected, onToggle }: {
               onClick={() => onToggle(t.tag)}
             >
               {t.tag}
-              <span className="tchip-n">{dash.faNum(t.count)}</span>
+              <span className="tchip-n">{dash.num(t.count)}</span>
             </button>
           );
         })}

@@ -1,5 +1,5 @@
 /**
- * Weboo — shared UI infrastructure (Shadow DOM host + icons + widget theming)
+ * Weboo — shared UI infrastructure (Shadow DOM host + icons + widget theming/language)
  *
  * SRP: only the "home" of the floating widgets — makeHost and the SVG icons.
  * The actual widgets live in their sibling files:
@@ -10,13 +10,19 @@
  * Theme: HL.ui.setTheme marks the extension UI theme (auto|light|dark) as
  * data-theme on all live hosts; makeHost marks each new host too
  * (OCP: future widgets get theming without extra code).
+ * Language (v0.14.0): the same pattern — HL.ui.setLang marks the UI language
+ * as lang/dir on all live hosts (the shadow trees inherit both), makeHost
+ * marks each new host, and applyLangNow is the page-side write helper
+ * (document root + the "hlx:lang" mirror — the applyThemeNow twin).
  * DIP: widgets and this file know nothing about storage — the value is
  * injected from the composition root (content script: user settings). Each
  * widget's CSS contract: light palette on :host, dark in
  * media (unless light is forced), forced dark via :host([data-theme="dark"])
- * — the popup.css pattern.
+ * — the popup.css pattern. Direction is NOT hardcoded anywhere in widget
+ * CSS: the host's dir attribute drives it (fa → rtl, en → ltr).
  */
 import { THEME_KEYS } from "../constants.js"; /* the theme allow-list */
+import { setLanguage, getLanguage, dirOf, validLanguage } from "../i18n.js";
 import { domkit } from "../domkit.js";
 
 
@@ -25,11 +31,17 @@ import { domkit } from "../domkit.js";
   /* ---------- Content widget theming (aligned with the extension UI theme) ---------- */
 
   var theme = 'auto'; /* auto | light | dark — always a valid registry key */
+  var lang = 'fa';    /* fa | en — always a valid LANGUAGES key (i18n state mirrors it) */
   var hosts = [];     /* live Shadow DOM hosts (for live syncing) */
 
   function applyThemeAttr(host) {
     if (theme === 'auto') host.removeAttribute('data-theme');
     else host.setAttribute('data-theme', theme);
+  }
+
+  function applyLangAttr(host) {
+    host.setAttribute('lang', lang);
+    host.setAttribute('dir', dirOf(lang));
   }
 
   /**
@@ -49,10 +61,27 @@ import { domkit } from "../domkit.js";
   }
 
   /**
+   * Applies the UI language to all floating widgets (live syncing) AND to
+   * the translation state (i18n.setLanguage — one entry point so the global
+   * t() state and the host attributes can never drift). Invalid value →
+   * 'fa' (validation at the boundary — storage is raw and can hold anything).
+   * Returns: the applied language (for tests/mirroring — setTheme pattern).
+   */
+  function setLang(l) {
+    lang = validLanguage(l);
+    setLanguage(lang);
+    for (var i = hosts.length - 1; i >= 0; i--) {
+      if (!hosts[i].isConnected) { hosts.splice(i, 1); continue; } /* dead host */
+      applyLangAttr(hosts[i]);
+    }
+    return lang;
+  }
+
+  /**
    * Shadow DOM host: a fixed, zero-sized element with data-hlx-ui
    * (so the index engine and selection guards reject the extension's own UI).
-   * The host takes the current theme at creation time so the widget renders
-   * correctly from the very start.
+   * The host takes the current theme AND language at creation time so the
+   * widget renders correctly from the very start.
    */
   function makeHost() {
     var host = document.createElement('div');
@@ -67,6 +96,7 @@ import { domkit } from "../domkit.js";
     st.pointerEvents = 'none';
     document.documentElement.appendChild(host);
     applyThemeAttr(host);
+    applyLangAttr(host);
     hosts.push(host);
     startWatchdog();
     var root = host.attachShadow({ mode: 'open' });
@@ -118,7 +148,9 @@ import { domkit } from "../domkit.js";
   var BASE_CSS = [
     ':host, * { box-sizing: border-box; }',
     'button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; padding: 0; }',
-    '.fa { direction: rtl; font-family: ' + FONT + '; }'
+    /* Direction is NOT set here: the host's lang/dir attributes (v0.14.0)
+       drive it — fa → rtl, en → ltr — with no duplicated stylesheets. */
+    '.fa { font-family: ' + FONT + '; }'
   ].join('\n');
 
   /* ---------- SVG icons (lucide style) ---------- */
@@ -150,12 +182,34 @@ import { domkit } from "../domkit.js";
     return setTheme(applied);
   }
 
+  /* ---------- Language apply-now (v0.14.0 — the page-side write twin) ----------
+     Extension PAGES only (popup/dashboard): sets the translation state +
+     widget hosts (setLang), updates the document root's lang/dir, and
+     mirrors the value into "hlx:lang" for the classic anti-flash boot.
+     The CONTENT script never calls this — a web page's root lang/dir
+     belongs to the page; widgets there get setLang only. */
+  function applyLangNow(l) {
+    var applied = setLang(l);
+    try { localStorage.setItem('hlx:lang', applied); } catch (e) { /* mirror is best-effort */ }
+    try {
+      var root = document.documentElement;
+      if (root && root.setAttribute) {
+        root.setAttribute('lang', applied);
+        root.setAttribute('dir', dirOf(applied));
+      }
+    } catch (e) { /* no document — widget hosts are already updated */ }
+    return applied;
+  }
+
   /* Aggregation level `ui` — the widget files mount onto it by importing it
      (one object per world via module identity) */
   export const ui = {
     setTheme: setTheme,
     getTheme: function () { return theme; },
-    applyThemeNow: applyThemeNow
+    applyThemeNow: applyThemeNow,
+    setLang: setLang,
+    getLang: function () { return lang; },
+    applyLangNow: applyLangNow
   };
 
   export const uiBase = {

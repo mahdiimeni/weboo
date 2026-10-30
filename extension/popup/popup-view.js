@@ -18,6 +18,7 @@
 import { THEMES } from "../shared/constants.js";
 import { format } from "../shared/format.js";
 import { domkit } from "../shared/domkit.js"; /* 7c-3 */
+import { t, count } from "../shared/i18n.js"; /* v0.14.0 — labels follow the UI language */
   /* Module guard — same convention as the popup controller: HL rides on
      globalThis (in a real page window === globalThis; globalThis also works
      in unit tests) */
@@ -25,7 +26,7 @@ import { domkit } from "../shared/domkit.js"; /* 7c-3 */
   /* ---------- Shared widgets (aliases — single implementation in HL.format/HL.domkit) ---------- */
 
   const el = domkit.el;
-  const faNum = format.faNum;
+  const num = format.num; /* language-aware digits (v0.14.0) */
   const dotColorOf = format.dotColorOf;
 
   /* StickyNote icon — our own constant string (innerHTML only for constants) */
@@ -79,9 +80,9 @@ import { domkit } from "../shared/domkit.js"; /* 7c-3 */
     els.foot.hidden = false;
   }
 
-  /** (n) — the generic card's total counter (Persian digits) */
+  /** (n) — the generic card's total counter (language-aware digits) */
   function setGenericTotal(els, n) {
-    els.gTotal.textContent = faNum(n);
+    els.gTotal.textContent = num(n);
   }
 
   /* ---------- Page card ---------- */
@@ -95,17 +96,17 @@ import { domkit } from "../shared/domkit.js"; /* 7c-3 */
    */
   function fillPageCard(els, card) {
     const host = String((card && card.host) || '');
-    const hostLabel = host || 'فایل محلی';
+    const hostLabel = host || t('common.localFile');
     els.pageTitle.textContent = format.excerpt((card && card.title) || hostLabel, 60) || hostLabel;
     els.pageHost.textContent = hostLabel;
     els.fl.textContent = format.faviconLetter(host);
     domkit.mountFavicon(els.fl, (card && card.favicon) || null);
   }
 
-  /** sum = HL.pop.summarize(recs) → { total, notes } (Persian digits) */
+  /** sum = HL.pop.summarize(recs) → { total, notes } (language-aware) */
   function setChips(els, sum) {
-    els.chipHl.textContent = faNum(sum.total) + ' هایلایت';
-    els.chipNote.textContent = faNum(sum.notes) + ' یادداشت';
+    els.chipHl.textContent = count('common.nHighlights', sum.total);
+    els.chipNote.textContent = count('common.nNotes', sum.notes);
   }
 
   /**
@@ -151,7 +152,7 @@ import { domkit } from "../shared/domkit.js"; /* 7c-3 */
     const li = el('li', 'hl-item');
     li.setAttribute('role', 'button');
     li.tabIndex = 0;
-    li.title = 'پرش به این هایلایت';
+    li.title = t('popup.jumpTitle');
 
     const dot = el('span', 'dot');
     dot.style.background = dotColorOf(rec.color);
@@ -162,12 +163,12 @@ import { domkit } from "../shared/domkit.js"; /* 7c-3 */
 
     const meta = el('span', 'hl-meta');
     const date = el('span', 'date');
-    date.textContent = format.fmtDateTime(rec.updatedAt || rec.createdAt);
+    date.textContent = format.fmtDateTime(rec.updatedAt || rec.createdAt); /* language-aware (Jalali/Gregorian) */
     meta.appendChild(date);
     if (rec.note) {
       const ic = el('span', 'note-ic');
       ic.innerHTML = ICON_NOTE; /* our own constant */
-      ic.title = 'دارد یادداشت';
+      ic.title = t('popup.hasNote');
       meta.appendChild(ic);
     }
 
@@ -211,11 +212,11 @@ import { domkit } from "../shared/domkit.js"; /* 7c-3 */
 
   /* ---------- Theme button ---------- */
 
-  /** key: valid theme key (HL.pop.validTheme) — label from the HL.THEMES registry */
+  /** key: valid theme key (HL.pop.validTheme) — label from the i18n dictionary */
   function renderThemeBtn(els, key) {
     if (!els.btnTheme) return;
-    els.btnTheme.title = 'قالب: ' + THEMES[key].label;
-    els.btnTheme.setAttribute('aria-label', 'تغییر قالب (' + THEMES[key].label + ')');
+    els.btnTheme.title = t('popup.themeTitle', { name: t('theme.' + key) });
+    els.btnTheme.setAttribute('aria-label', t('popup.themeChangeAria', { name: t('theme.' + key) }));
     els.btnTheme.innerHTML = THEME_ICON[key]; /* our own constant */
   }
 

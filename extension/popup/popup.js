@@ -13,6 +13,7 @@ import { createStore } from "../shared/store.js";
 import { runtime } from "../shared/runtime-bridge.js";
 import { pop } from "./popup-data.js";
 import { popView as view } from "./popup-view.js";
+import { t, applyDom } from "../shared/i18n.js"; /* v0.14.0 */
 
 /**
  * Weboo — popup controller (platform-specific page)
@@ -82,7 +83,7 @@ import { popView as view } from "./popup-view.js";
     toast: $('toast')
   };
 
-  const state = { tab: null, nu: null, settings: null, recs: new Map(), on: true };
+  const state = { tab: null, nu: null, settings: null, recs: new Map(), on: true, mode: null };
 
   /* ---------- View delegates ---------- */
 
@@ -107,7 +108,7 @@ import { popView as view } from "./popup-view.js";
       try {
         chrome.tabs.sendMessage(tabId, msg, function (resp) {
           const err = (chrome.runtime && chrome.runtime.lastError) || null;
-          if (err) reject(new Error(err.message || 'ارسال پیام ناموفق بود'));
+          if (err) reject(new Error(err.message || 'message failed'));
           else resolve(resp);
         });
       } catch (e) { reject(e); }
@@ -150,7 +151,7 @@ import { popView as view } from "./popup-view.js";
     try {
       state.settings = await store.setSettings({ theme: next });
     } catch (e) {
-      toast('ذخیره تنظیمات ناموفق بود', 'error');
+      toast(t('common.saveFail'), 'error');
       return;
     }
     ui.applyThemeNow(next);
@@ -160,6 +161,7 @@ import { popView as view } from "./popup-view.js";
   /* ---------- Render modes ---------- */
 
   async function renderGeneric() {
+    state.mode = 'generic';
     view.showGeneric(els);
     let n = 0;
     try { n = (await store.getAllRecords()).size; }
@@ -168,10 +170,11 @@ import { popView as view } from "./popup-view.js";
   }
 
   async function renderPage() {
+    state.mode = 'page';
     view.showPage(els);
 
     const host = state.nu.host || '';
-    const hostLabel = host || 'فایل محلی';
+    const hostLabel = host || t('common.localFile');
 
     /* Real favicon — dataURL captured from the page itself (hlx:f:<host>);
        without it the first letter stays (fallback) */
@@ -223,7 +226,7 @@ import { popView as view } from "./popup-view.js";
       setSwitch(next);
       showApplied();
     } catch (e) {
-      toast('ذخیره تنظیمات ناموفق بود', 'error');
+      toast(t('common.saveFail'), 'error');
     }
   });
 
@@ -233,9 +236,9 @@ import { popView as view } from "./popup-view.js";
     try {
       const b = await store.exportData();
       exportTools.saveBackup(b);
-      toast('فایل بک‌آپ دانلود شد');
+      toast(t('popup.backupOk'));
     } catch (e) {
-      toast('خروجی گرفتن ناموفق بود', 'error');
+      toast(t('toast.exportFail'), 'error');
     }
   }
 
@@ -245,22 +248,32 @@ import { popView as view } from "./popup-view.js";
     try { view.setVersion(els, runtime.manifestVersion()); }
     catch (e) { view.setVersion(els, VERSION || ''); }
 
-    /* Theme: applied before any rendering (theme-boot.js's anti-flash has already
-       put the forced theme on <html>; here we sync it with the real settings) */
+    /* Theme + language: applied before any rendering (theme-boot.js's
+       anti-flash has already put the forced theme + the language on <html>;
+       here we sync both with the real settings — applyLangNow also walks the
+       page's data-i18n* statics and the document title) */
     try { state.settings = await store.getSettings(); }
     catch (e) { state.settings = Object.assign({}, DEFAULT_SETTINGS); }
     ui.applyThemeNow(state.settings.theme);
+    ui.applyLangNow(state.settings.language);
+    applyDom(document);
     view.renderThemeBtn(els, pop.validTheme(state.settings));
 
-    /* Live sync: settings changes (e.g. theme) from another tab's dashboard */
+    /* Live sync: settings changes (e.g. theme/language) from another tab's
+       dashboard — the visible mode re-renders so labels/digits/dates follow */
     store.onSettingsChanged(function (s) {
       state.settings = s || Object.assign({}, DEFAULT_SETTINGS);
       ui.applyThemeNow(state.settings.theme);
+      var langChanged = state.settings.language !== ui.getLang();
+      ui.applyLangNow(state.settings.language);
+      if (langChanged) applyDom(document);
       view.renderThemeBtn(els, pop.validTheme(state.settings));
       if (state.nu && state.nu.host) {
         var hosts = (state.settings && state.settings.disabledHosts) || [];
         setSwitch(hosts.indexOf(state.nu.host) === -1);
+        if (langChanged) { renderPage(); return; }
       }
+      if (langChanged && state.mode === 'generic') renderGeneric();
     });
 
     /* Header gear button: dashboard + opening the settings panel (#hlx-settings contract — consumer: dashboard.js) */
@@ -276,7 +289,7 @@ import { popView as view } from "./popup-view.js";
     if (!url) { await renderGeneric(); return; }
 
     const nu = urlUtil.normalizeUrl(url);
-    if (!nu || !pop.isSupportedSite(nu)) { view.showUnsupported(els); return; }
+    if (!nu || !pop.isSupportedSite(nu)) { state.mode = 'unsupported'; view.showUnsupported(els); return; }
 
     state.nu = nu;
     await renderPage();

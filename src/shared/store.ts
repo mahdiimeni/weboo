@@ -7,6 +7,7 @@
    ============================================================ */
 
 import { APP_ID, APP_NAME, BACKUP_APP_IDS, BACKUP_FORMAT, VERSION, COLORS, DEFAULT_SETTINGS } from "./constants.js";
+import { validLanguage } from "./i18n.js";
 import { tags as tagRules } from "./tags.js";
 
 interface StorageChange {
@@ -134,8 +135,17 @@ export interface BackupSelection {
     return { host: host, icon: icon, capturedAt: (at > 0 ? at : Date.now()) };
   }
 
+  /**
+   * The one settings merge (reads + imports + change events): defaults fill
+   * the gaps (a pre-i18n record without `language` → 'fa' — existing users
+   * keep their behavior), unknown fields pass through untouched, and the
+   * language is validated at this single boundary (storage is raw and can
+   * hold anything — the same rule as theme/color validation).
+   */
   function mergeSettings(s: unknown): Record<string, unknown> {
-    return Object.assign({}, DEFAULT_SETTINGS, s || {});
+    var merged = Object.assign({}, DEFAULT_SETTINGS, s || {});
+    merged.language = validLanguage(merged.language);
+    return merged;
   }
 
   /* ---------- Selective backup (pure module-scope rules) ---------- */

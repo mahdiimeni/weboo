@@ -7,6 +7,8 @@
  * flag): an empty store invites the first highlight; a filtered-out store
  * points at the filters.
  */
+import { t } from "../../../extension/shared/i18n.js";
+
 export function EmptyState({ shown, hasRecords }: { shown: boolean; hasRecords: boolean }) {
   return (
     <div className="empty" id="empty" hidden={!shown}>
@@ -17,12 +19,12 @@ export function EmptyState({ shown, hasRecords }: { shown: boolean; hasRecords: 
         </svg>
       </div>
       <p className="empty-t" id="empty-title">
-        {hasRecords ? "نتیجه‌ای پیدا نشد." : "هنوز هایلایتی ثبت نشده. اولین متن را انتخاب کنید!"}
+        {hasRecords ? t("empty.noResults") : t("empty.first")}
       </p>
       <p className="muted small" id="empty-sub">
         {hasRecords
-          ? "عبارت جست‌وجو یا فیلترهای رنگ و برچسب را تغییر بده."
-          : "روی هر صفحه‌ی وب، متن را انتخاب کن و از نوار شناور افزونه استفاده کن."}
+          ? t("empty.noResultsSub")
+          : t("empty.firstSub")}
       </p>
     </div>
   );

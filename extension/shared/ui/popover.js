@@ -47,6 +47,7 @@ import { detectDir } from "../detect-dir.js";
 import { format } from "../format.js";
 import { util } from "../utils.js";
 import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
+import { t, dirOf } from "../i18n.js"; /* v0.14.0 — labels follow the UI language */
 
   var svg = uiBase.svg;
   var ICON = uiBase.ICON;
@@ -119,7 +120,8 @@ import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
     '}',
     ':host([data-theme="light"]) { color-scheme: light; }',
     ':host([data-theme="dark"]) { color-scheme: dark; ' + DARK + ' }',
-    '.hlx-po { position: fixed; direction: rtl; width: 328px; max-width: calc(100vw - 20px);',
+    '/* direction: the host lang/dir attributes drive it (v0.14.0 — no hardcoded rtl) */',
+    '.hlx-po { position: fixed; width: 328px; max-width: calc(100vw - 20px);',
     '  background: var(--po-bg); color: var(--po-fg); border: 1px solid var(--po-border); border-radius: 14px;',
     '  box-shadow: 0 14px 44px rgba(0,0,0,.2); font-family: ' + uiBase.FONT + '; font-size: 13px;',
     '  pointer-events: auto; animation: hlx-po-pop .16s ease-out; z-index: 2147483647; }',
@@ -214,7 +216,9 @@ import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
     var el = document.createElement('div');
     el.className = 'fa hlx-po';
     el.setAttribute('role', 'dialog');
-    el.setAttribute('dir', 'rtl');
+    /* UI direction follows the interface language (v0.14.0): fa → rtl,
+       en → ltr — render() re-marks it on every rebuild. */
+    el.setAttribute('dir', dirOf());
     this.root.appendChild(el);
     this.el = el;
     el.style.display = 'none'; // invariant: starts hidden — only present() shows it
@@ -270,17 +274,19 @@ import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
     var d = this.data;
     if (!d) return;
     var esc = util.escapeHtml;
+    this.el.setAttribute('dir', dirOf()); /* UI chrome follows the language (v0.14.0) */
     var html = '';
 
     // Header: drag grip + colors + close
     html += '<div class="head">';
-    html += '<span class="grip" title="جابه‌جایی پنجره؛ بکشید و رها کنید" aria-hidden="true">' + svg(ICON.grip, 14) + '</span>';
+    html += '<span class="grip" title="' + esc(t('fw.gripTitle')) + '" aria-hidden="true">' + svg(ICON.grip, 14) + '</span>';
     (COLOR_KEYS || []).forEach(function (k) {
       var c = COLORS[k];
-      html += '<button class="c' + (k === d.color ? ' active' : '') + '" data-color="' + k + '" title="' + esc(c.label) + '" aria-label="رنگ ' + esc(c.label) + '" style="background:' + c.dot + '"></button>';
+      var colorName = t('color.' + k);
+      html += '<button class="c' + (k === d.color ? ' active' : '') + '" data-color="' + k + '" title="' + esc(colorName) + '" aria-label="' + esc(t('fw.colorAria', { name: colorName })) + '" style="background:' + c.dot + '"></button>';
     });
     html += '<span class="grow"></span>';
-    html += '<button class="x" data-act="close" title="بستن" aria-label="بستن">' + svg(ICON.close, 15) + '</button>';
+    html += '<button class="x" data-act="close" title="' + esc(t('common.close')) + '" aria-label="' + esc(t('common.close')) + '">' + svg(ICON.close, 15) + '</button>';
     html += '</div>';
 
     // Highlighted text — rendered in its own direction (v1.2.10)
@@ -292,19 +298,19 @@ import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
       html += '<div class="note-box' + (hasNote ? ' has' : '') + '">';
       if (hasNote) {
         html += '<div class="note-text"' + ltrDirAttr(d.note) + '>' + esc(d.note) + '</div>';
-        html += '<button class="edit-note" data-act="edit" title="ویرایش یادداشت" aria-label="ویرایش یادداشت">' + svg(ICON.pen, 15) + '</button>';
+        html += '<button class="edit-note" data-act="edit" title="' + esc(t('fw.editNote')) + '" aria-label="' + esc(t('fw.editNote')) + '">' + svg(ICON.pen, 15) + '</button>';
       } else {
-        html += '<span>برای این هایلایت یادداشتی ثبت نشده است.</span>';
-        html += '<button class="add-note" data-act="edit">' + svg(ICON.plus, 13) + ' افزودن یادداشت</button>';
+        html += '<span>' + esc(t('fw.noNote')) + '</span>';
+        html += '<button class="add-note" data-act="edit">' + svg(ICON.plus, 13) + ' ' + esc(t('fw.addNote')) + '</button>';
       }
       html += '</div>';
     } else {
       html += '<div style="margin:0 12px 10px">';
-      html += '<textarea placeholder="یادداشت شما برای این هایلایت…" data-role="note-input"' + ltrDirAttr(d.note || '') + '>' + esc(d.note || '') + '</textarea>';
+      html += '<textarea placeholder="' + esc(t('fw.notePlaceholder')) + '" data-role="note-input"' + ltrDirAttr(d.note || '') + '>' + esc(d.note || '') + '</textarea>';
       html += '<div class="row" style="margin-top:10px">';
-      html += '<span class="ok" data-role="ok">ذخیره شد ✓</span>';
-      html += '<button class="btn-g" data-act="cancel">لغو</button>';
-      html += '<button class="btn-p" data-act="save">ذخیره یادداشت</button>';
+      html += '<span class="ok" data-role="ok">' + esc(t('fw.saved')) + '</span>';
+      html += '<button class="btn-g" data-act="cancel">' + esc(t('common.cancel')) + '</button>';
+      html += '<button class="btn-p" data-act="save">' + esc(t('fw.saveNote')) + '</button>';
       html += '</div></div>';
     }
 
@@ -312,8 +318,8 @@ import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
     html += '<div class="foot">';
     html += '<span class="date">' + esc(format.fmtDateTime(d.createdAt)) + '</span>';
     html += '<span class="act">';
-    html += '<button class="ib" data-act="copy" title="کپی متن و یادداشت" aria-label="کپی">' + svg(ICON.copy, 15) + '</button>';
-    html += '<button class="ib del" data-act="del" title="حذف هایلایت" aria-label="حذف">' + svg(ICON.trash, 15) + '</button>';
+    html += '<button class="ib" data-act="copy" title="' + esc(t('fw.copyAllTitle')) + '" aria-label="' + esc(t('common.copyShort')) + '">' + svg(ICON.copy, 15) + '</button>';
+    html += '<button class="ib del" data-act="del" title="' + esc(t('fw.deleteTitle')) + '" aria-label="' + esc(t('common.delete')) + '">' + svg(ICON.trash, 15) + '</button>';
     html += '</span></div>';
 
     this.el.innerHTML = html;
@@ -353,7 +359,7 @@ import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
           self.dismiss();
         } else {
           btn.classList.add('confirm');
-          btn.textContent = 'حذف؟';
+          btn.textContent = t('fw.deleteConfirm');
           setTimeout(function () {
             if (btn.isConnected) { btn.classList.remove('confirm'); btn.innerHTML = svg(ICON.trash, 15); }
           }, 2600);

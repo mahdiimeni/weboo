@@ -32,6 +32,7 @@ is sent anywhere.
 | **Themes** | Auto, light and dark. The in-page widgets switch with the theme immediately. |
 | **Per-site switch** | Turn Weboo off on a given site without deleting the highlights already saved there. |
 | **Badge counter** | Optional count of highlights on the extension icon. |
+| **Persian or English UI** | The whole interface — dashboard, popup, floating tools — switches between Persian (RTL, Jalali dates) and English (LTR, Gregorian dates) from the settings, instantly. |
 
 ## Screenshots
 

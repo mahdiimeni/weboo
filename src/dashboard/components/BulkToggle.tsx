@@ -10,18 +10,22 @@
  *
  * The meta lives with the component (the view retired with Task 5).
  */
-/* Persian presentation of the two bulk modes (ex-dashView.BULK_ACTION_META —
-   the view retired with Task 5; the component owns its labels now). */
-export const BULK_ACTION_META: Record<string, { icon: string; label: string; title: string }> = {
+import { t } from "../../../extension/shared/i18n.js";
+import type { TranslationKey } from "../../shared/i18n";
+
+/* Presentation of the two bulk modes (ex-dashView.BULK_ACTION_META —
+   the view retired with Task 5; the component owns its labels now, as
+   i18n dictionary keys — v0.14.0). */
+export const BULK_ACTION_META: Record<string, { icon: string; label: TranslationKey; title: TranslationKey }> = {
   expand: {
     icon: "chevsDown",
-    label: "باز کردن همه‌ی مقاله‌ها",
-    title: "همه‌ی کارت مقاله‌ها باز می‌شوند و همه‌ی هایلایت‌های بارگذاری‌نشده هم بارگذاری می‌شوند",
+    label: "bulk.expand",
+    title: "bulk.expandTitle",
   },
   collapse: {
     icon: "chevsUp",
-    label: "بستن همه‌ی مقاله‌ها",
-    title: "همه‌ی کارت مقاله‌ها بسته می‌شوند و همه‌ی هایلایت‌های بارگذاری‌نشده هم بارگذاری می‌شوند؛ با باز کردن هر مقاله، هایلایت‌هایش کامل نمایش داده می‌شوند",
+    label: "bulk.collapse",
+    title: "bulk.collapseTitle",
   },
 };
 
@@ -50,13 +54,13 @@ export function BulkToggle({ action, onApply }: { action: string; onApply: () =>
       id="btn-bulk"
       className="btn btn-ghost bulk-toggle"
       hidden={!meta}
-      title={meta ? meta.title : undefined}
+      title={meta ? t(meta.title) : undefined}
       onClick={onApply}
     >
       {meta ? (
         <>
           <span className="bt-ic" aria-hidden="true">{CHEVS[action as keyof typeof CHEVS]}</span>
-          <span className="bt-lbl">{meta.label}</span>
+          <span className="bt-lbl">{t(meta.label)}</span>
         </>
       ) : null}
     </button>

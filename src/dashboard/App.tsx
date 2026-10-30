@@ -56,7 +56,8 @@ import {
   loadMore,
 } from "./data";
 import { toast } from "./toast";
-import type { ThemeKey } from "../types/settings";
+import { t } from "../../extension/shared/i18n.js";
+import type { ThemeKey, Language } from "../types/settings";
 import type { HighlightColor } from "../types/highlight";
 
 import { dash } from "../../extension/dashboard/dashboard-data.js";
@@ -72,6 +73,7 @@ import { BehaviorSwitches } from "./components/BehaviorSwitches";
 import { ui } from "../../extension/shared/ui/base.js";
 import { Toolbar } from "./components/Toolbar";
 import { DirSection } from "./components/DirSection";
+import { LanguageRadios } from "./components/LanguageRadios";
 import { PreviewModal, RestoreModal, BookletModal, BackupModal } from "./components/Modals";
 import { TopbarActionsRegion, RestoreSectionRegion, DangerSectionRegion } from "./components/PageChrome";
 export { TopbarActionsRegion, RestoreSectionRegion, DangerSectionRegion };
@@ -109,7 +111,7 @@ export function ThemeRegion() {
         if (k !== prev) ui.applyThemeNow(k);
         setSettings({ theme: k }).catch(() => {
           ui.applyThemeNow(prev);
-          toast("ذخیره تنظیمات ناموفق بود", "error");
+          toast(t("common.saveFail"), "error");
         });
       }}
     />
@@ -122,7 +124,7 @@ export function DotsRegion() {
   return (
     <ColorDots
       defaultColor={settings.defaultColor}
-      onSelect={(k: HighlightColor) => setSettings({ defaultColor: k }).catch(() => toast("ذخیره تنظیمات ناموفق بود", "error"))}
+      onSelect={(k: HighlightColor) => setSettings({ defaultColor: k }).catch(() => toast(t("common.saveFail"), "error"))}
     />
   );
 }
@@ -134,7 +136,22 @@ export function SwitchesRegion() {
     <BehaviorSwitches
       showToolbar={!!settings.showToolbar}
       showBadge={!!settings.showBadge}
-      onToggle={(key, value) => setSettings({ [key]: value }).catch(() => toast("ذخیره تنظیمات ناموفق بود", "error"))}
+      onToggle={(key, value) => setSettings({ [key]: value }).catch(() => toast(t("common.saveFail"), "error"))}
+    />
+  );
+}
+
+/** Region root — the «زبان رابط کاربری» radios (v0.14.0). The optimistic
+ *  write mirrors the theme region's contract; applyLanguage (data.ts) picks
+ *  the change up from the snapshot/state — texts, direction, dates and the
+ *  static shell follow without a reload. On a failed write the stored truth
+ *  returns through reloadSettings' rollback. */
+export function LanguageRegion() {
+  const { lang } = useSyncExternalStore(subscribeData, getData);
+  return (
+    <LanguageRadios
+      lang={lang}
+      onSelect={(k: Language) => { setSettings({ language: k }).catch(() => toast(t("common.saveFail"), "error")); }}
     />
   );
 }

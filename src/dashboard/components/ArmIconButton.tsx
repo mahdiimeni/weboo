@@ -9,6 +9,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { IconCopy, IconTrash, IconView, IconX } from "./icons";
+import { t } from "../../../extension/shared/i18n.js";
 
 const GLYPHS = {
   view: IconView,
@@ -49,7 +50,7 @@ export function ArmIconButton({
   icon,
   title,
   className,
-  confirmText = "مطمئنید؟",
+  confirmText = t("common.confirm"),
   onConfirm,
 }: {
   icon: ArmIcon;

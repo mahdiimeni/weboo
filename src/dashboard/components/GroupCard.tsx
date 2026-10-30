@@ -23,29 +23,19 @@ import { TagsRow, type TagHandlers } from "./TagsRow";
 import { ItemCard, type ItemHandlers } from "./ItemCard";
 import { ArmIconButton, IconButton } from "./ArmIconButton";
 import { IconChev, IconSort } from "./icons";
+import { t, dirOf, count } from "../../../extension/shared/i18n.js";
+import type { TranslationKey } from "../../shared/i18n";
 
-const ITEM_ORDER_META: Record<string, { label: string; title: string }> = {
-  newest: {
-    label: "جدیدترین",
-    title: "ترتیب فعلی هایلایت‌ها: از جدیدترین به قدیمی‌ترین؛ برای تغییر ترتیب، این دکمه را بزنید",
-  },
-  oldest: {
-    label: "قدیمی‌ترین",
-    title: "ترتیب فعلی هایلایت‌ها: از قدیمی‌ترین به جدیدترین؛ برای تغییر ترتیب، این دکمه را بزنید",
-  },
-  page: {
-    label: "صفحه",
-    title: "ترتیب فعلی هایلایت‌ها: به ترتیب قرارگیری در متن صفحه؛ برای تغییر ترتیب، این دکمه را بزنید",
-  },
-  "page-rev": {
-    label: "برعکسِ صفحه",
-    title: "ترتیب فعلی هایلایت‌ها: برعکسِ ترتیب قرارگیری در متن صفحه؛ برای تغییر ترتیب، این دکمه را بزنید",
-  },
+const ITEM_ORDER_META: Record<string, { label: TranslationKey; title: TranslationKey }> = {
+  newest: { label: "card.order.newest", title: "card.order.newestTitle" },
+  oldest: { label: "card.order.oldest", title: "card.order.oldestTitle" },
+  page: { label: "card.order.page", title: "card.order.pageTitle" },
+  "page-rev": { label: "card.order.pageRev", title: "card.order.pageRevTitle" },
 };
 
 /** Shared article-title presentation (v0.6.3) — the ONE fallback chain. */
 export function articleTitleOf(src: { title?: string; host?: string; url?: string }): string {
-  return (src && (src.title || src.host || src.url)) || "بدون عنوان";
+  return (src && (src.title || src.host || src.url)) || t("common.untitled");
 }
 
 export interface Group {
@@ -62,20 +52,21 @@ export interface Group {
 
 function OrderBtn({ order, onFlip }: { order: string; onFlip: () => void }) {
   const meta = ITEM_ORDER_META[order] || ITEM_ORDER_META.newest;
+  const label = t(meta.label);
   return (
     <button
       type="button"
       className="order-btn"
-      title={meta.title}
-      aria-label={"ترتیب نمایش هایلایت‌های این مقاله: " + meta.label}
-      dir="rtl"
+      title={t(meta.title)}
+      aria-label={t("card.orderAria", { label: label })}
+      dir={dirOf()}
       onClick={(ev) => {
         ev.stopPropagation();
         onFlip();
       }}
     >
       <span className="order-ic" aria-hidden="true"><IconSort /></span>
-      {meta.label}
+      {label}
     </button>
   );
 }
@@ -86,7 +77,7 @@ function FaviconSpot({ host, url }: { host: string; url?: string | null }) {
   const [imgState, setImgState] = useState<"loading" | "on" | "failed">("loading");
   const showImg = url && imgState !== "failed";
   return (
-    <span className={"fl" + (imgState === "on" ? " has-fav" : "")} title={host || "فایل محلی"}>
+    <span className={"fl" + (imgState === "on" ? " has-fav" : "")} title={host || t("common.localFile")}>
       {dash.faviconLetter(host)}
       {showImg ? (
         <img
@@ -149,17 +140,17 @@ export function GroupCard({ g, remaining, collapsed, order, handlers }: {
       >
         <FaviconSpot host={g.host} url={g.favicon || undefined} />
         <span className="group-txt">
-          <strong className="group-title">{format.excerpt(articleTitleOf(g), 60) || "بدون عنوان"}</strong>
+          <strong className="group-title">{format.excerpt(articleTitleOf(g), 60) || t("common.untitled")}</strong>
           <span className="group-url" title={g.url || g.host || ""}>{dash.displayHost(g.url || g.host)}</span>
         </span>
         <span className="gchips">
-          <span className="chip" dir="rtl">{dash.faNum(g.items.length + remaining) + " هایلایت"}</span>
-          {g.notes > 0 ? <span className="chip" dir="rtl">{dash.faNum(g.notes) + " یادداشت"}</span> : null}
+          <span className="chip" dir={dirOf()}>{count("common.nHighlights", g.items.length + remaining)}</span>
+          {g.notes > 0 ? <span className="chip" dir={dirOf()}>{count("common.nNotes", g.notes)}</span> : null}
         </span>
         {canFlip ? <OrderBtn order={order || "newest"} onFlip={() => handlers.onItemOrder(g)} /> : null}
         <span className="chev" aria-hidden="true"><IconChev /></span>
-        <IconButton icon="view" title="باز کردن این صفحه در تب جدید" onClick={() => handlers.onOpen(g)} />
-        <ArmIconButton icon="trash" title="حذف همه‌ی این صفحه" className="danger" onConfirm={() => handlers.onDeleteGroup(g)} />
+        <IconButton icon="view" title={t("card.viewPageTitle")} onClick={() => handlers.onOpen(g)} />
+        <ArmIconButton icon="trash" title={t("card.deleteGroupTitle")} className="danger" onConfirm={() => handlers.onDeleteGroup(g)} />
       </div>
 
       {/* article tags (v1.2.15) — between header and items, never hidden by
@@ -174,8 +165,8 @@ export function GroupCard({ g, remaining, collapsed, order, handlers }: {
       <div className="group-items" hidden={collapsed}>
         {g.items.map((rec) => <ItemCard key={rec.id} rec={rec} handlers={handlers} />)}
         {remaining > 0 ? (
-          <div className="item-more" dir="rtl">
-            {"…" + dash.faNum(remaining) + " مورد دیگر از این صفحه (برای نمایش، «بارگذاری بیشتر» را بزنید)"}
+          <div className="item-more" dir={dirOf()}>
+            {t("card.remaining", { n: dash.num(remaining) })}
           </div>
         ) : null}
       </div>

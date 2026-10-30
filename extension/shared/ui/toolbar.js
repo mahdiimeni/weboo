@@ -18,6 +18,7 @@
  */
 import { ui, uiBase } from "./base.js";
 import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
+import { t, dirOf } from "../i18n.js"; /* v0.14.0 — labels follow the UI language */
 
   var svg = uiBase.svg;
   var ICON = uiBase.ICON;
@@ -58,7 +59,8 @@ import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
     '}',
     ':host([data-theme="light"]) { color-scheme: light; }',
     ':host([data-theme="dark"]) { color-scheme: dark; ' + DARK + ' }',
-    '.hlx-tb { position: fixed; direction: rtl; display: flex; align-items: center; gap: 2px;',
+    '/* direction: the host lang/dir attributes drive it (v0.14.0 — no hardcoded rtl) */',
+    '.hlx-tb { position: fixed; display: flex; align-items: center; gap: 2px;',
     '  background: var(--tb-bg); color: var(--tb-fg); border: 1px solid var(--tb-border);',
     '  border-radius: 999px; padding: 6px 8px; box-shadow: var(--tb-shadow);',
     '  font-family: ' + uiBase.FONT + '; pointer-events: auto; animation: hlx-pop .14s ease-out; }',
@@ -95,18 +97,19 @@ import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
     var el = document.createElement('div');
     el.className = 'fa hlx-tb';
     el.setAttribute('role', 'toolbar');
-    el.setAttribute('aria-label', 'ابزار هایلایت');
     var html = '';
     (COLOR_KEYS || []).forEach(function (k) {
       var c = COLORS[k];
-      html += '<button class="c" data-color="' + k + '" title="هایلایت ' + c.label + '" aria-label="هایلایت ' + c.label + '" style="background:' + c.dot + '"></button>';
+      var label = t('fw.highlightColor', { name: t('color.' + k) });
+      html += '<button class="c" data-color="' + k + '" title="' + label + '" aria-label="' + label + '" style="background:' + c.dot + '"></button>';
     });
     html += '<span class="sep"></span>';
-    html += '<button class="b note" data-act="note" title="هایلایت + یادداشت" aria-label="هایلایت با یادداشت">' + svg(ICON.pen, 17) + '</button>';
-    html += '<button class="b" data-act="copy" title="کپی متن" aria-label="کپی متن انتخاب‌شده">' + svg(ICON.copy, 15) + '</button>';
+    html += '<button class="b note" data-act="note" title="' + t('fw.noteTitle') + '" aria-label="' + t('fw.noteAria') + '">' + svg(ICON.pen, 17) + '</button>';
+    html += '<button class="b" data-act="copy" title="' + t('common.copy') + '" aria-label="' + t('fw.copyAria') + '">' + svg(ICON.copy, 15) + '</button>';
     el.innerHTML = html;
     this.root.appendChild(el);
     this.el = el;
+    this.refreshLabels(); /* labels + the UI direction attribute (one home) */
     el.style.display = 'none'; // invariant: starts hidden — only present() shows it
 
     // preventDefault on mousedown so the text selection is not lost
@@ -125,6 +128,30 @@ import { COLORS, COLOR_KEYS } from "../constants.js"; /* 7c-2 */
     window.addEventListener('scroll', reposition, { passive: true, capture: true });
     window.addEventListener('resize', reposition);
   }
+
+  /**
+   * Re-reads every user-visible label from the i18n dictionary and re-marks
+   * the UI direction (v0.14.0) — the composition root calls it when the
+   * language changes so an OPEN toolbar follows without a rebuild.
+   */
+  FloatingToolbar.prototype.refreshLabels = function () {
+    var el = this.el;
+    if (!el) return;
+    el.setAttribute('dir', dirOf());
+    el.setAttribute('aria-label', t('fw.toolbarAria'));
+    var dots = el.querySelectorAll('button.c');
+    for (var i = 0; i < dots.length; i++) {
+      var k = dots[i].getAttribute('data-color');
+      if (!k) continue;
+      var label = t('fw.highlightColor', { name: t('color.' + k) });
+      dots[i].setAttribute('title', label);
+      dots[i].setAttribute('aria-label', label);
+    }
+    var note = el.querySelector('button.note');
+    if (note) { note.setAttribute('title', t('fw.noteTitle')); note.setAttribute('aria-label', t('fw.noteAria')); }
+    var copy = el.querySelector('button[data-act="copy"]');
+    if (copy) { copy.setAttribute('title', t('common.copy')); copy.setAttribute('aria-label', t('fw.copyAria')); }
+  };
 
   FloatingToolbar.prototype.present = function (ctx) {
     this.ctx = ctx;

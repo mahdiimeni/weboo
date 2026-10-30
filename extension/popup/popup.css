@@ -104,6 +104,8 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: Vazirmatn, 'Segoe UI', Tahoma, sans-serif;
+/* English UI (v0.14.0): Latin-first stack — no new fonts, just the order. */
+html[dir="ltr"] body { font-family: 'Segoe UI', Vazirmatn, Tahoma, sans-serif; }
   font-size: 13px;
   line-height: 1.8;
 }
@@ -233,6 +235,10 @@ body {
    via flex, text-align:start and inset-inline (same pattern as the dashboard's
    v1.2.6 group cards). */
 .page-card[dir="ltr"] .page-host { text-align: left; }
+/* English UI (v0.14.0): the same LTR alignment applies to EVERY card — the
+   host name follows the popup's direction, not the card's, in en mode. */
+html[dir="ltr"] .page-host { text-align: left; }
+html[dir="ltr"] .toggle-txt .small { text-align: left; }
 .chips { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
 .chip {
   font-size: 11.5px; font-weight: 700;

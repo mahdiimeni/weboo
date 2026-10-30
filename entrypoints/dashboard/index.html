@@ -21,9 +21,9 @@
         </span>
         <span class="brand-txt">
           <strong>وبو</strong>
-          <span class="muted small">داشبورد مدیریت</span>
+          <span class="muted small" data-i18n="dash.brandSub">داشبورد مدیریت</span>
         </span>
-        <span class="ver" id="ver" title="نسخه">v0.13.0</span>
+        <span class="ver" id="ver" title="نسخه" data-i18n-title="common.version">v0.14.0</span>
       </div>
       <!-- Topbar actions (v0.6.3): «کتابچه» first (unchanged), then the two
            icon-only buttons (خروجی پشتیبان primary / تنظیمات ghost — their
@@ -42,7 +42,7 @@
   <main class="container">
 
     <!-- Stats -->
-    <section class="stats" aria-label="آمار کلی">
+    <section class="stats" aria-label="آمار کلی" data-i18n-aria="dash.statsAria">
       <div class="stat-card">
         <span class="stat-num" id="st-total">۰</span>
         <span class="stat-lbl">کل هایلایت‌ها</span>
@@ -62,7 +62,7 @@
     </section>
 
     <!-- Filter toolbar -->
-    <section class="toolbar" aria-label="فیلتر و جست‌وجو">
+    <section class="toolbar" aria-label="فیلتر و جست‌وجو" data-i18n-aria="dash.toolbarAria">
       <div class="search-box">
         <svg class="search-ic" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <input type="search" id="q" placeholder="جست‌وجو در متن، یادداشت یا عنوان صفحه…" aria-label="جست‌وجو">
@@ -94,7 +94,7 @@
     </section>
 
     <!-- Main list -->
-    <section class="list-wrap" aria-label="هایلایت‌ها">
+    <section class="list-wrap" aria-label="هایلایت‌ها" data-i18n-aria="dash.listAria">
       <!-- Bulk expand/collapse (v0.3.0) — one button flips every article card;
            both modes also load all unloaded highlights (the controller wires it,
            the view renders the next action; hidden until the first render) -->
@@ -115,34 +115,42 @@
 
   <!-- Footer -->
   <footer class="foot">
-    <p class="muted small">وبو — همه‌ی داده‌ها فقط روی همین دستگاه ذخیره می‌شوند؛ هیچ چیزی به سرور ارسال نمی‌شود.</p>
+    <p class="muted small" data-i18n="dash.footer">وبو — همه‌ی داده‌ها فقط روی همین دستگاه ذخیره می‌شوند؛ هیچ چیزی به سرور ارسال نمی‌شود.</p>
   </footer>
 
   <!-- Settings panel overlay -->
   <div class="overlay" id="overlay" aria-hidden="true"></div>
 
   <!-- Settings panel (left-side drawer) -->
-  <aside class="drawer" id="drawer" role="dialog" aria-modal="false" aria-label="تنظیمات" aria-hidden="true">
+  <aside class="drawer" id="drawer" role="dialog" aria-modal="false" aria-label="تنظیمات" aria-hidden="true" data-i18n-aria="dash.settingsAria">
     <div class="drawer-head">
-      <strong>تنظیمات</strong>
-      <button type="button" class="icon-btn" id="drawer-close" aria-label="بستن تنظیمات" title="بستن">
+      <strong data-i18n="dash.settings">تنظیمات</strong>
+      <button type="button" class="icon-btn" id="drawer-close" aria-label="بستن تنظیمات" title="بستن" data-i18n-aria="dash.drawerCloseAria" data-i18n-title="common.close">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
     </div>
     <div class="drawer-body">
 
       <section class="set-sec">
-        <h3>ظاهر</h3>
-        <div class="radio-list" id="theme-radios" role="radiogroup" aria-label="قالب رابط"></div>
+        <h3 data-i18n="dash.sectionAppearance">ظاهر</h3>
+        <div class="radio-list" id="theme-radios" role="radiogroup" aria-label="قالب رابط" data-i18n-aria="dash.themeGroupAria"></div>
+      </section>
+      <section class="set-sec">
+        <h3 data-i18n="lang.label">زبان رابط کاربری</h3>
+        <p class="muted small" data-i18n="lang.desc">روی پنجره، داشبورد و ابزارهای شناور فوراً اعمال می‌شود.</p>
+        <!-- LanguageRadiosRegion mounts here (language-radios) — the v0.14.0
+             selector; options ride the shared i18n dictionary (LANGUAGES) -->
+        <div class="radio-list" id="language-radios" role="radiogroup" aria-label="زبان رابط کاربری" data-i18n-aria="lang.groupAria"></div>
+      </section>
+
+
+      <section class="set-sec">
+        <h3 data-i18n="dash.sectionColor">رنگ پیش‌فرض هایلایت</h3>
+        <div class="color-dots" id="color-dots" role="radiogroup" aria-label="رنگ پیش‌فرض هایلایت" data-i18n-aria="dash.sectionColor"></div>
       </section>
 
       <section class="set-sec">
-        <h3>رنگ پیش‌فرض هایلایت</h3>
-        <div class="color-dots" id="color-dots" role="radiogroup" aria-label="رنگ پیش‌فرض هایلایت"></div>
-      </section>
-
-      <section class="set-sec">
-        <h3>رفتار</h3>
+        <h3 data-i18n="dash.sectionBehavior">رفتار</h3>
         <!-- SwitchesRegion mounts here (behavior-host) — the region renders
              the byte-equal switch-box labels; the static copies existed only
              for the pre-React shell. -->

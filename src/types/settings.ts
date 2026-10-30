@@ -11,6 +11,11 @@ import type { HighlightColor } from './highlight';
 
 export type ThemeKey = 'auto' | 'light' | 'dark';
 
+/** UI language — drives the interface language, direction and the calendar
+ *  of the displayed dates (fa → rtl + Jalali, en → ltr + Gregorian). Mirrors
+ *  LANG_KEYS in shared/i18n (src/shared/i18n.ts — the runtime registry). */
+export type Language = 'fa' | 'en';
+
 export interface Settings {
   defaultColor: HighlightColor;
   showToolbar: boolean;
@@ -18,4 +23,7 @@ export interface Settings {
   /** Hosts where the extension is switched off (highlights hidden, data kept). */
   disabledHosts: string[];
   theme: ThemeKey;
+  /** UI language (v0.14.0). Missing on pre-i18n records → 'fa' (the default
+   *  keeps existing users' behavior; mergeSettings sanitizes invalid values). */
+  language: Language;
 }

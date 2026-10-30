@@ -38,6 +38,7 @@ import { dash } from "../../../extension/dashboard/dashboard-data.js";
 import { format } from "../../../extension/shared/format.js";
 import { APP_NAME, VERSION } from "../../../extension/shared/constants.js";
 import { sanitizeFontFamily } from "../../../extension/shared/booklet-export.js";
+import { t, count } from "../../../extension/shared/i18n.js";
 import { IconQuote } from "./icons";
 import { articleTitleOf } from "./GroupCard";
 
@@ -169,33 +170,33 @@ export function RestoreModal({ req, onClose, onImport }: {
 
   return (
     <ModalShell id="modal" labelledBy="modal-title" open={req.open} onClose={onClose} overlayCloses={false}>
-      <h2 id="modal-title">بازیابی بک‌آپ</h2>
+      <h2 id="modal-title">{t("restore.title")}</h2>
       <div className="modal-summary" id="modal-summary">
-        <SumRow k="نام مجموعه" v={(b && b.name) || APP_NAME} />
-        <SumRow k="تعداد هایلایت‌ها" v={dash.faNum(count)} />
-        <SumRow k="تاریخ خروجی" v={b && b.exportedAt ? format.fmtDateTime(b.exportedAt) : "—"} />
-        <SumRow k="نسخه" v={"v" + ((b && b.version) || VERSION)} />
-        {partial ? <SumRow k="نوع" v="بک‌آپ انتخابی (بخشی از کتابخانه)" /> : null}
+        <SumRow k={t("modal.name")} v={(b && b.name) || APP_NAME} />
+        <SumRow k={t("modal.highlights")} v={dash.num(count)} />
+        <SumRow k={t("modal.exportDate")} v={b && b.exportedAt ? format.fmtDateTime(b.exportedAt) : "—"} />
+        <SumRow k={t("common.version")} v={"v" + ((b && b.version) || VERSION)} />
+        {partial ? <SumRow k={t("modal.type")} v={t("modal.partialValue")} /> : null}
       </div>
       <div className="radio-list">
         <label className="radio">
           <input type="radio" name="imp-mode" value="merge" checked={mode === "merge"} onChange={() => setMode("merge")} />
           <span className="radio-txt">
-            <strong>ادغام (merge)</strong>
-            <span className="muted small">رکوردهای جدیدتر برنده می‌شوند؛ داده‌های فعلی حفظ می‌شوند.</span>
+            <strong>{t("modal.merge")}</strong>
+            <span className="muted small">{t("modal.mergeDesc")}</span>
           </span>
         </label>
         <label className="radio radio-danger">
           <input type="radio" name="imp-mode" value="replace" checked={mode === "replace"} onChange={() => setMode("replace")} />
           <span className="radio-txt">
-            <strong>جایگزینی کامل (replace)</strong>
-            <span className="warn small">همه‌ی داده‌های فعلی حذف می‌شوند!</span>
+            <strong>{t("modal.replace")}</strong>
+            <span className="warn small">{t("modal.replaceDesc")}</span>
           </span>
         </label>
       </div>
       <div className="modal-actions">
-        <button type="button" className="btn btn-ghost" id="imp-cancel" onClick={onClose}>انصراف</button>
-        <button type="button" className="btn btn-primary" id="imp-go" disabled={busy} onClick={() => { void go(); }}>شروع بازیابی</button>
+        <button type="button" className="btn btn-ghost" id="imp-cancel" onClick={onClose}>{t("common.cancel")}</button>
+        <button type="button" className="btn btn-primary" id="imp-go" disabled={busy} onClick={() => { void go(); }}>{t("modal.start")}</button>
       </div>
     </ModalShell>
   );
@@ -250,24 +251,24 @@ export function BookletModal({ req, onClose, stats, articleOptions, fontOptions,
 
   return (
     <ModalShell id="booklet-modal" labelledBy="booklet-title" open={req.open} onClose={onClose} overlayCloses={false}>
-      <h2 id="booklet-title">کتابچه و Markdown</h2>
+      <h2 id="booklet-title">{t("bk.title")}</h2>
       <div className="modal-summary" id="booklet-summary">
-        <SumRow k="هایلایت‌ها" v={dash.faNum(s.total)} />
-        <SumRow k="مقاله‌ها" v={dash.faNum(s.pages)} />
-        <SumRow k="یادداشت‌ها" v={dash.faNum(s.notes)} />
+        <SumRow k={t("modal.highlights")} v={dash.num(s.total)} />
+        <SumRow k={t("sel.articles")} v={dash.num(s.pages)} />
+        <SumRow k={t("stats.notes")} v={dash.num(s.notes)} />
       </div>
 
       <section className="exp-sec">
         <h3>Markdown</h3>
-        <p className="muted small">برای Obsidian و هر ویرایشگر Markdown — کل کتابخانه در یک فایل، هر مقاله یک بخش.</p>
+        <p className="muted small">{t("bk.mdDesc")}</p>
         <button type="button" className="btn btn-primary" id="md-go" disabled={busy} onClick={() => { void onMarkdown().then(onClose); }}>
-          دریافت فایل Markdown
+          {t("bk.mdBtn")}
         </button>
       </section>
 
-      <SelSection title="مقاله‌های کتابچه" hint="بدون انتخاب، همه‌ی مقاله‌ها در کتابچه می‌آیند؛ با انتخاب، فقط همین‌ها.">
+      <SelSection title={t("bk.pickerTitle")} hint={t("bk.pickerHint")}>
         {ao.length ? (
-          <div className="sel-list" role="group" aria-label="انتخاب مقاله‌های کتابچه">
+          <div className="sel-list" role="group" aria-label={t("bk.pickerAria")}>
             {ao.map((a) => (
               <label className="sel-item" key={a.key}>
                 <input
@@ -275,72 +276,72 @@ export function BookletModal({ req, onClose, stats, articleOptions, fontOptions,
                   checked={articles.has(a.key)}
                   onChange={() => setArticles(toggleInSet(articles, a.key))}
                 />
-                <span className="sel-label" dir="auto">{format.excerpt(a.title, 60) || "بدون عنوان"}</span>
+                <span className="sel-label" dir="auto">{format.excerpt(a.title, 60) || t("common.untitled")}</span>
                 <span className="muted small sel-side">{a.host}</span>
-                <span className="muted small">{dash.faNum(a.count)} هایلایت</span>
+                <span className="muted small">{count("common.nHighlights", a.count)}</span>
               </label>
             ))}
           </div>
         ) : (
-          <SelEmpty text="مقاله‌ای ثبت نشده است" />
+          <SelEmpty text={t("sel.emptyArticles")} />
         )}
         <div className="sel-status muted small" id="booklet-status" role="status">
           {pickedCount === 0
-            ? "همه‌ی مقاله‌ها در کتابچه خواهند بود."
-            : <><strong>{dash.faNum(pickedHighlights)}</strong> هایلایت از <strong>{dash.faNum(pickedCount)}</strong> مقاله در کتابچه خواهد بود.</>}
+            ? t("bk.allArticles")
+            : t("bk.pickedStatus", { n: dash.num(pickedHighlights), m: dash.num(pickedCount) })}
         </div>
       </SelSection>
 
       <section className="exp-sec">
-        <h3>کتابچه چاپی</h3>
-        <p className="muted small">طراحی‌شده برای چاپ A4 — جلد، فهرست و هر مقاله در صفحه‌ای جدا.</p>
-        <div className="radio-list" role="radiogroup" aria-label="قالب کتابچه">
+        <h3>{t("bk.printTitle")}</h3>
+        <p className="muted small">{t("bk.printDesc")}</p>
+        <div className="radio-list" role="radiogroup" aria-label={t("bk.formatAria")}>
           <label className="radio">
             <input type="radio" name="bk-format" value="html" checked={fmt === "html"} onChange={() => setFmt("html")} />
             <span className="radio-txt">
-              <strong>فایل HTML</strong>
-              <span className="muted small">یک فایل آماده‌ی چاپ — در مرورگر باز کن و Ctrl+P بزن.</span>
+              <strong>{t("bk.html")}</strong>
+              <span className="muted small">{t("bk.htmlDesc")}</span>
             </span>
           </label>
           <label className="radio">
             <input type="radio" name="bk-format" value="pdf" checked={fmt === "pdf"} onChange={() => setFmt("pdf")} />
             <span className="radio-txt">
-              <strong>PDF</strong>
-              <span className="muted small">پنجره‌ی چاپ مرورگر باز می‌شود — «Save as PDF» را انتخاب کن.</span>
+              <strong>{t("bk.pdf")}</strong>
+              <span className="muted small">{t("bk.pdfDesc")}</span>
             </span>
           </label>
         </div>
-        <div className="radio-list" role="radiogroup" aria-label="حالت رنگ کتابچه">
+        <div className="radio-list" role="radiogroup" aria-label={t("bk.colorAria")}>
           <label className="radio">
             <input type="radio" name="bk-color" value="color" checked={colorMode === "color"} onChange={() => setColorMode("color")} />
             <span className="radio-txt">
-              <strong>رنگی</strong>
-              <span className="muted small">با رنگ اصلی هایلایت‌ها</span>
+              <strong>{t("bk.color")}</strong>
+              <span className="muted small">{t("bk.colorDesc")}</span>
             </span>
           </label>
           <label className="radio">
             <input type="radio" name="bk-color" value="bw" checked={colorMode === "bw"} onChange={() => setColorMode("bw")} />
             <span className="radio-txt">
-              <strong>سیاه‌وسفید</strong>
-              <span className="muted small">جوهر کمتر — مناسب چاپگر معمولی</span>
+              <strong>{t("bk.bw")}</strong>
+              <span className="muted small">{t("bk.bwDesc")}</span>
             </span>
           </label>
         </div>
-        <div className="radio-list" role="radiogroup" aria-label="فونت کتابچه">
+        <div className="radio-list" role="radiogroup" aria-label={t("bk.fontAria")}>
           {fo.map((f) => (
             <label className="radio" key={f.id}>
               <input type="radio" name="bk-font" value={f.id} checked={font === f.id} onChange={() => setFont(f.id)} />
               <span className="radio-txt">
-                <strong>{f.label} — پیش‌فرض</strong>
-                <span className="muted small">اگر روی سیستم نصب نباشد، مرورگر فونت مشابهی نشان می‌دهد</span>
+                <strong>{t("bk.fontDefault", { name: f.label })}</strong>
+                <span className="muted small">{t("bk.fontDesc")}</span>
               </span>
             </label>
           ))}
           <label className="radio">
             <input type="radio" name="bk-font" value="custom" checked={font === "custom"} onChange={() => setFont("custom")} />
             <span className="radio-txt">
-              <strong>فونت دلخواه</strong>
-              <span className="muted small">هر فونتی که روی دستگاه شما نصب است — نامش را دقیق بنویسید</span>
+              <strong>{t("bk.fontCustom")}</strong>
+              <span className="muted small">{t("bk.fontCustomDesc")}</span>
               <input
                 type="text"
                 id="bk-custom-font"
@@ -348,7 +349,7 @@ export function BookletModal({ req, onClose, stats, articleOptions, fontOptions,
                 value={customFont}
                 disabled={font !== "custom"}
                 maxLength={60}
-                placeholder="مثلاً: B Nazanin"
+                placeholder={t("bk.fontCustomPlaceholder")}
                 onChange={(e) => setCustomFont(e.target.value)}
               />
             </span>
@@ -361,12 +362,12 @@ export function BookletModal({ req, onClose, stats, articleOptions, fontOptions,
           disabled={busy || (font === "custom" && !sanitizeFontFamily(customFont))}
           onClick={() => { void onBooklet(fmt, colorMode, { articles: Array.from(articles), font: font, customFont: font === "custom" ? customFont : undefined }).then(onClose); }}
         >
-          ساخت کتابچه
+          {t("bk.build")}
         </button>
       </section>
 
       <div className="modal-actions">
-        <button type="button" className="btn btn-ghost" id="bk-cancel" ref={cancelRef} onClick={onClose}>بستن</button>
+        <button type="button" className="btn btn-ghost" id="bk-cancel" ref={cancelRef} onClick={onClose}>{t("common.close")}</button>
       </div>
     </ModalShell>
   );
@@ -428,12 +429,12 @@ export function BackupModal({ req, onClose, options, countOf, onExport }: {
 
   return (
     <ModalShell id="backup-modal" labelledBy="backup-title" open={req.open} onClose={onClose} overlayCloses={false}>
-      <h2 id="backup-title">بک‌آپ انتخابی</h2>
-      <p className="muted small">بخشی از کتابخانه را خروجی بگیر — هر سایت، مقاله یا برچسبی که انتخاب کنی، هایلایت‌هایش داخل فایل می‌آیند.</p>
+      <h2 id="backup-title">{t("sel.title")}</h2>
+      <p className="muted small">{t("sel.desc")}</p>
 
-      <SelSection title="سایت‌ها" hint="تمام هایلایت‌های این سایت‌ها">
+      <SelSection title={t("sel.sites")} hint={t("sel.sitesHint")}>
         {o.sites.length ? (
-          <div className="sel-list" role="group" aria-label="انتخاب سایت‌ها">
+          <div className="sel-list" role="group" aria-label={t("sel.sitesAria")}>
             {o.sites.map((s) => (
               <label className="sel-item" key={s.host}>
                 <input
@@ -442,18 +443,18 @@ export function BackupModal({ req, onClose, options, countOf, onExport }: {
                   onChange={() => setHosts(toggleInSet(hosts, s.host))}
                 />
                 <span className="sel-label">{s.host}</span>
-                <span className="muted small">{dash.faNum(s.articles)} مقاله</span>
+                <span className="muted small">{count("common.nArticles", s.articles)}</span>
               </label>
             ))}
           </div>
         ) : (
-          <SelEmpty text="سایتی ثبت نشده است" />
+          <SelEmpty text={t("sel.emptySites")} />
         )}
       </SelSection>
 
-      <SelSection title="مقاله‌ها" hint="هایلایت‌های همین مقاله‌ها">
+      <SelSection title={t("sel.articles")} hint={t("sel.articlesHint")}>
         {o.articles.length ? (
-          <div className="sel-list" role="group" aria-label="انتخاب مقاله‌ها">
+          <div className="sel-list" role="group" aria-label={t("sel.articlesAria")}>
             {o.articles.map((a) => (
               <label className="sel-item" key={a.key}>
                 <input
@@ -461,20 +462,20 @@ export function BackupModal({ req, onClose, options, countOf, onExport }: {
                   checked={articles.has(a.key)}
                   onChange={() => setArticles(toggleInSet(articles, a.key))}
                 />
-                <span className="sel-label" dir="auto">{format.excerpt(a.title, 60) || "بدون عنوان"}</span>
+                <span className="sel-label" dir="auto">{format.excerpt(a.title, 60) || t("common.untitled")}</span>
                 <span className="muted small sel-side">{a.host}</span>
-                <span className="muted small">{dash.faNum(a.count)} هایلایت</span>
+                <span className="muted small">{count("common.nHighlights", a.count)}</span>
               </label>
             ))}
           </div>
         ) : (
-          <SelEmpty text="مقاله‌ای ثبت نشده است" />
+          <SelEmpty text={t("sel.emptyArticles")} />
         )}
       </SelSection>
 
-      <SelSection title="برچسب‌ها" hint="تمام هایلایت‌های مقاله‌های دارای این برچسب">
+      <SelSection title={t("sel.tags")} hint={t("sel.tagsHint")}>
         {o.tags.length ? (
-          <div className="sel-list" role="group" aria-label="انتخاب برچسب‌ها">
+          <div className="sel-list" role="group" aria-label={t("sel.tagsAria")}>
             {o.tags.map((t) => (
               <label className="sel-item" key={t.tag}>
                 <input
@@ -483,25 +484,25 @@ export function BackupModal({ req, onClose, options, countOf, onExport }: {
                   onChange={() => setTags(toggleInSet(tags, t.tag))}
                 />
                 <span className="sel-label" dir="auto">{t.tag}</span>
-                <span className="muted small">{dash.faNum(t.count)} مقاله</span>
+                <span className="muted small">{count("common.nArticles", t.count)}</span>
               </label>
             ))}
           </div>
         ) : (
-          <SelEmpty text="برچسبی ثبت نشده است" />
+          <SelEmpty text={t("sel.emptyTags")} />
         )}
       </SelSection>
 
       <div className="sel-status muted small" id="backup-status" role="status">
         {picked === 0
-          ? "حداقل یک مورد را انتخاب کنید."
+          ? t("sel.pickOne")
           : matched === 0
-            ? "هیچ هایلایتی با این انتخاب مطابقت ندارد."
-            : <><strong>{dash.faNum(matched)}</strong> هایلایت در فایل خواهد بود.</>}
+            ? t("sel.noMatch")
+            : count("sel.status", matched)}
       </div>
 
       <div className="modal-actions">
-        <button type="button" className="btn btn-ghost" id="backup-cancel" onClick={onClose}>انصراف</button>
+        <button type="button" className="btn btn-ghost" id="backup-cancel" onClick={onClose}>{t("common.cancel")}</button>
         <button
           type="button"
           className="btn btn-primary"
@@ -509,7 +510,7 @@ export function BackupModal({ req, onClose, options, countOf, onExport }: {
           disabled={!canGo}
           onClick={() => { if (canGo) void onExport(sel).then(onClose); }}
         >
-          دریافت فایل بک‌آپ
+          {t("sel.download")}
         </button>
       </div>
     </ModalShell>
@@ -547,7 +548,7 @@ export function PreviewModal({ rec, onClose }: { rec: HighlightRecord | null; on
     >
       <div className="hl-head">
         <h2 id="hl-title" title={full} dir={titleDir || undefined}>
-          {format.excerpt(full, 60) || "بدون عنوان"}
+          {format.excerpt(full, 60) || t("common.untitled")}
         </h2>
       </div>
       <div className="hl-body" id="hl-body">

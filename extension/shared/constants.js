@@ -6,7 +6,7 @@
 
   export const APP_NAME = 'وبو';
   export const APP_ID = 'weboo';
-  export const VERSION = '0.13.0';
+  export const VERSION = '0.14.0';
   export const BACKUP_FORMAT = 1;
   /**
    * Every app id the backup import gate accepts (v0.8.0 rebrand: exports
@@ -33,9 +33,12 @@
   /**
    * Highlight color registry — single source of order/label/color dot.
    * Sync convention: every key here must have a matching background-color
-   * rule for data-hl-color="<key>" in content/mark-style.css (and vice versa).
-   * The tests/unit/colors.test.ts test verifies this convention on every run
-   * so adding a new color stays a one-entry registry change + one CSS rule.
+   * rule for data-hl-color="<key>" in content/mark-style.css (and vice versa)
+   * plus display-label entries color.<key> in shared/i18n.js, so adding a
+   * new color stays a registry change + one CSS rule + two dictionary lines.
+   * The tests/unit/colors.test.ts test verifies the CSS convention on every run.
+   * Display labels come from the i18n dictionary (t('color.<key>')) — the
+   * `label` fields are the Persian source copy, kept for the registry contract.
    */
   export const COLORS = {
     yellow: { label: 'زرد',       dot: '#f5b800' },
@@ -56,6 +59,8 @@
    * HL.ui.setTheme (ui/base.js) on the Shadow DOM hosts of the content widgets
    * (floating toolbar/note popover/toast) — widgets are keyed via data-theme
    * on their own :host and through the composition root (settings).
+   * Display labels are the i18n dictionary's job (t('theme.<key>')) — the
+   * `label` fields are the Persian source copy, kept for the registry contract.
    */
   export const THEMES = {
     auto:  { label: 'هماهنگ با سیستم' },
@@ -82,7 +87,11 @@
     showToolbar: true,
     showBadge: true,
     disabledHosts: [],
-    theme: 'auto'
+    theme: 'auto',
+    /* v0.14.0 — UI language ('fa' | 'en'; registry: shared/i18n.js LANGUAGES).
+       The default keeps existing users on the Persian/RTL interface; the
+       missing-field case is the same value (mergeSettings validates). */
+    language: 'fa'
   };
 
 

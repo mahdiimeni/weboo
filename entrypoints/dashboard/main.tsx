@@ -12,7 +12,7 @@
  * restore/drawer sections, danger zone).
  */
 import { createRoot } from "react-dom/client";
-import { StatsRegion, HostsRegion, BulkRegion, ThemeRegion, DotsRegion, SwitchesRegion, EmptyRegion, MoreRegion, ToolbarRegion, ListRegion, PreviewModalRegion, RestoreModalRegion, BookletModalRegion, BackupModalRegion, TopbarActionsRegion, RestoreSectionRegion, DangerSectionRegion } from "../../src/dashboard/App";
+import { StatsRegion, HostsRegion, BulkRegion, ThemeRegion, DotsRegion, SwitchesRegion, LanguageRegion, EmptyRegion, MoreRegion, ToolbarRegion, ListRegion, PreviewModalRegion, RestoreModalRegion, BookletModalRegion, BackupModalRegion, TopbarActionsRegion, RestoreSectionRegion, DangerSectionRegion } from "../../src/dashboard/App";
 import { startData } from "../../src/dashboard/data";
 import { initDrawerChrome } from "../../src/dashboard/chrome";
 
@@ -37,6 +37,11 @@ if (bulkHost) mounts.push([bulkHost, <BulkRegion />]);
    section (v0.8.2 regression). The shell owns the section chrome. */
 const themeHost = document.getElementById("theme-radios");
 if (themeHost) mounts.push([themeHost, <ThemeRegion />]);
+
+/* v0.14.0 — the «زبان رابط کاربری» radios (the language section's inner
+   host — the shell owns the section chrome, the same region-mount contract) */
+const languageHost = document.getElementById("language-radios");
+if (languageHost) mounts.push([languageHost, <LanguageRegion />]);
 
 const dotsHost = document.getElementById("color-dots");
 if (dotsHost) mounts.push([dotsHost, <DotsRegion />]);

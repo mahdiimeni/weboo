@@ -23,6 +23,7 @@
  */
 import { APP_NAME, VERSION, COLORS } from "./constants.js";
 import { format } from "./format.js"; /* 7c-3 */
+import { t, count } from "./i18n.js"; /* v0.14.0 — generated labels follow the UI language */
   var fmt = format;
 
   /* ---------- Local pure helpers ---------- */
@@ -33,25 +34,25 @@ import { format } from "./format.js"; /* 7c-3 */
     return (g.items || []).filter(function (r) { return r.note; }).length;
   }
 
-  /** Persian color label of a record ('' for unknown keys — no invented data) */
+  /** Localized color label of a record ('' for unknown keys — no invented data) */
   function colorLabel(r) {
     var c = COLORS[r && r.color];
-    return c ? c.label : '';
+    return c ? t('color.' + (r && r.color)) : '';
   }
 
   /** «۳ هایلایت · ۱ یادداشت» — the per-article counts segment (notes omitted
       when zero — an article without notes doesn't mention them). */
   function countsLine(g) {
-    var parts = [fmt.faNum((g.items || []).length) + ' هایلایت'];
+    var parts = [count('common.nHighlights', (g.items || []).length)];
     var n = notesOf(g);
-    if (n) parts.push(fmt.faNum(n) + ' یادداشت');
+    if (n) parts.push(count('common.nNotes', n));
     return parts.join(' · ');
   }
 
   /** The article's heading text — title, falling back to the host (the same
       identity fallback the dashboard card gives) and finally the key. */
   function titleOf(g) {
-    return fmt.oneLine(g.title || g.host || g.key || 'بدون عنوان') || 'بدون عنوان';
+    return fmt.oneLine(g.title || g.host || g.key || t('common.untitled')) || t('common.untitled');
   }
 
   /** `[منبع](url)` — only for http(s)/file URLs (a `javascript:`-style record
@@ -59,7 +60,7 @@ import { format } from "./format.js"; /* 7c-3 */
   function sourceLink(g) {
     var u = String(g.url || '');
     if (!/^(https?|file):/i.test(u)) return '';
-    return '[منبع](' + u + ')';
+    return '[' + t('ex.source') + '](' + u + ')';
   }
 
   /** `برچسب‌ها: \`a\` · \`b\`` — inline-code tags (visible everywhere, no
@@ -67,7 +68,7 @@ import { format } from "./format.js"; /* 7c-3 */
   function tagsLine(g) {
     var tags = (g.tags || []).filter(function (t) { return fmt.oneLine(t); });
     if (!tags.length) return '';
-    return 'برچسب‌ها: ' + tags.map(function (t) { return '`' + fmt.oneLine(t) + '`'; }).join(' · ');
+    return t('ex.tags') + ' ' + tags.map(function (x) { return '`' + fmt.oneLine(x) + '`'; }).join(' · ');
   }
 
   /** The meta line under a highlight — «date · color» (color label dropped for
@@ -88,7 +89,7 @@ import { format } from "./format.js"; /* 7c-3 */
     var quote = fmt.oneLine(r.text);
     if (quote) out.push('> ' + quote);
     var note = fmt.oneLine(r.note);
-    if (note) out.push('**یادداشت:** ' + note);
+    if (note) out.push('**' + t('ex.note') + '** ' + note);
     var meta = metaLine(r);
     if (meta) out.push(meta);
     return out;
@@ -140,16 +141,18 @@ import { format } from "./format.js"; /* 7c-3 */
     out.push('articles: ' + groups.length);
     out.push('---');
     out.push('');
-    out.push('# کتابچه هایلایت‌های من');
+    out.push('# ' + t('ex.mdTitle'));
     out.push('');
-    var summary = 'خروجی از «' + APP_NAME + '» — ' + fmt.faNum(total) + ' هایلایت از ' +
-      fmt.faNum(groups.length) + ' مقاله';
+    /* the summary composes localized fragments (plural-capable counts) */
+    var summary = t('ex.exportedFrom', { app: APP_NAME }) + ' — ' +
+      count('common.nHighlights', total) + t('common.from') +
+      count('common.nArticles', groups.length);
     if (exportedAt) summary += ' · ' + fmt.fmtDate(exportedAt);
     out.push('> ' + summary);
 
     if (!groups.length) {
       out.push('');
-      out.push('> هنوز هایلایتی ثبت نشده است.');
+      out.push('> ' + t('ex.mdEmpty'));
       return out.join('\n') + '\n';
     }
 

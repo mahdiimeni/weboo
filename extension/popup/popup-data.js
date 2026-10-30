@@ -15,6 +15,7 @@
 import { THEME_KEYS } from "../shared/constants.js";
 import { format } from "../shared/format.js";
 import { detectDir } from "../shared/detect-dir.js"; /* 7c-3 */
+import { t, count } from "../shared/i18n.js"; /* v0.14.0 — labels follow the UI language */
   /* Module guard — same convention as the popup controller: HL rides on
      globalThis (in a real page window === globalThis; globalThis also works
      in unit tests) */
@@ -70,11 +71,14 @@ import { detectDir } from "../shared/detect-dir.js"; /* 7c-3 */
       .slice(0, cap);
   }
 
-  /** (shown, total) → 'X از Y' when truncated, else 'N مورد' (Persian digits) */
+  /**
+   * (shown, total) → 'X از Y' when truncated, else 'N مورد' — digits follow
+   * the UI language (format.num) and the words the i18n dictionary (v0.14.0).
+   */
   function countLabel(shown, total) {
     return shown < total
-      ? fmt.faNum(shown) + ' از ' + fmt.faNum(total)
-      : fmt.faNum(total) + ' مورد';
+      ? t('popup.countOf', { a: fmt.num(shown), b: fmt.num(total) })
+      : count('common.nItems', total);
   }
 
   /* ---------- Site toggle ---------- */

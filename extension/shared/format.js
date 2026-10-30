@@ -4,13 +4,23 @@
  * Pure, DOM-free functions; consumers: the core popover (ui/popover),
  * the popup, the dashboard (via HL.dash) and tests.
  *
+ * Language-awareness (v0.14.0): user-visible rendering follows the ACTIVE
+ * UI language (shared/i18n.js): fa → Persian digits + Jalali calendar +
+ * Persian units; en → Latin digits + Gregorian calendar + Latin units.
+ * Internal values stay language-independent (timestamps are UTC epochs,
+ * isoDate stays Gregorian for machine-readable metadata). faNum remains the
+ * ONE home of forced Persian digits (Persian-chrome islands and legacy
+ * consumers); `num` is the language-aware generalization.
+ *
  * Phase 2 migration (TypeScript): this file is compiled by
  * `bun run build:ext` (tsconfig.extension.json) into
  * extension/shared/format.js — the classic script the extension loads.
  * Never edit the .js directly; edit here.
  */
 import { COLORS } from "./constants.js";
+import { getLanguage } from "./i18n.js";
 /* ---------- Numbers and sizes ---------- */
+/** Forced Persian digits — the ONE home of Persian digit rendering. */
 function faNum(n) {
     try {
         return Number(n || 0).toLocaleString('fa-IR');
@@ -19,14 +29,27 @@ function faNum(n) {
         return String(n || 0);
     }
 }
+/** Language-aware digits: Persian in fa, Latin in en (decimal «٫» vs «.»). */
+function num(n) {
+    if (getLanguage() === 'en') {
+        try {
+            return Number(n || 0).toLocaleString('en-US');
+        }
+        catch (e) {
+            return String(n || 0);
+        }
+    }
+    return faNum(n);
+}
 function fmtBytes(b) {
     b = Number(b) || 0;
+    var en = getLanguage() === 'en';
     try {
         if (b < 1024)
-            return b.toLocaleString('fa-IR') + ' بایت';
+            return b.toLocaleString(en ? 'en-US' : 'fa-IR') + (en ? ' B' : ' بایت');
         if (b < 1048576)
-            return (b / 1024).toLocaleString('fa-IR', { maximumFractionDigits: 1 }) + ' کیلوبایت';
-        return (b / 1048576).toLocaleString('fa-IR', { maximumFractionDigits: 2 }) + ' مگابایت';
+            return (b / 1024).toLocaleString(en ? 'en-US' : 'fa-IR', { maximumFractionDigits: 1 }) + (en ? ' KB' : ' کیلوبایت');
+        return (b / 1048576).toLocaleString(en ? 'en-US' : 'fa-IR', { maximumFractionDigits: 2 }) + (en ? ' MB' : ' مگابایت');
     }
     catch (e) {
         return String(b);
@@ -35,13 +58,16 @@ function fmtBytes(b) {
 /* ---------- Dates and text ---------- */
 function fmtDateTime(ts) {
     try {
-        return new Date(ts).toLocaleString('fa-IR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        const en = getLanguage() === 'en';
+        return new Date(ts).toLocaleString(en ? 'en-US' : 'fa-IR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
     catch (e) {
         return '';
     }
 }
-/** Persian short date (no time) — the export documents' date lines (v0.6.0).
+/** Short date (no time) — the export documents' date lines (v0.6.0).
+ *  fa → Jalali calendar (fa-IR), en → Gregorian (en-US). The calendar is a
+ *  PRESENTATION choice: stored timestamps and isoDate stay Gregorian.
  *  Invalid input → '' (Bun/ICU renders Invalid Dates as "Invalid Date"
  *  instead of throwing — the explicit guard keeps garbage out of exports). */
 function fmtDate(ts) {
@@ -49,7 +75,7 @@ function fmtDate(ts) {
         const d = new Date(ts);
         if (isNaN(d.getTime()))
             return '';
-        return d.toLocaleDateString('fa-IR', { year: 'numeric', month: 'short', day: 'numeric' });
+        return d.toLocaleDateString(getLanguage() === 'en' ? 'en-US' : 'fa-IR', { year: 'numeric', month: 'short', day: 'numeric' });
     }
     catch (e) {
         return '';
@@ -111,6 +137,7 @@ function displayHost(url) {
 }
 export const format = {
     faNum: faNum,
+    num: num,
     fmtBytes: fmtBytes,
     fmtDateTime: fmtDateTime,
     fmtDate: fmtDate,

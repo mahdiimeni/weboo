@@ -13,13 +13,14 @@
  * role=button + tabIndex + aria-expanded; the body goes hidden; the chevron
  * rotates via the .collapsed class.
  */
-import { dash } from "../../../extension/dashboard/dashboard-data.js";
 import { GroupCard, type Group, type GroupCardHandlers } from "./GroupCard";
 import { IconArrowLtr, IconArrowRtl, IconChev } from "./icons";
+import { t, count } from "../../../extension/shared/i18n.js";
+import type { TranslationKey } from "../../shared/i18n";
 
-const DIR_SECTION_LABELS: Record<string, string> = {
-  rtl: "راست‌چین‌ها",
-  ltr: "چپ‌چین‌ها",
+const DIR_SECTION_LABELS: Record<string, TranslationKey> = {
+  rtl: "dirsec.rtl",
+  ltr: "dirsec.ltr",
 };
 
 export interface DirSectionData {
@@ -62,15 +63,15 @@ export function DirSection({ section, lead, collapsed, cardState, handlers }: {
       >
         <h2 className="dir-sec-title" id={"hlx-dir-" + dir}>
           <span className="dir-ic" aria-hidden="true">{dir === "ltr" ? <IconArrowLtr /> : <IconArrowRtl />}</span>
-          {DIR_SECTION_LABELS[dir]}
+          {t(DIR_SECTION_LABELS[dir])}
         </h2>
-        <span className="dir-sec-count">{dash.faNum(section.entries.length) + " مقاله"}</span>
+        <span className="dir-sec-count">{count("common.nArticles", section.entries.length)}</span>
         {lead ? (
           <span
             className="dir-sec-lead"
-            title="تازه‌ترین مقاله‌ی هایلایت‌شده در این بخش است؛ برای همین این بخش بالاتر نمایش داده می‌شود"
+            title={t("dirsec.leadTitle")}
           >
-            آخرین هایلایت اینجاست
+            {t("dirsec.lead")}
           </span>
         ) : null}
         <span className="dir-sec-chev" aria-hidden="true"><IconChev /></span>

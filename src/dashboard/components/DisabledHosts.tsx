@@ -23,6 +23,7 @@
 import { useRef } from "react";
 import { dash } from "../../../extension/dashboard/dashboard-data.js";
 import { toast } from "../toast";
+import { t } from "../../../extension/shared/i18n.js";
 
 const XIcon = () => (
   /* dashView.ICONS.x — width 12, stroke-width 2.4, no linejoin (byte-equal) */
@@ -46,14 +47,14 @@ export function DisabledHosts({ hosts, onRemove, onAdd }: Props) {
   async function commit() {
     const el = inputRef.current;
     const h = dash.sanitizeHost(el ? el.value : "");
-    if (!h) { toast("دامنه‌ی معتبر وارد کنید (مثل example.com)", "error"); return; }
-    if (hosts.indexOf(h) !== -1) { toast("این دامنه قبلاً اضافه شده است", "info"); return; }
+    if (!h) { toast(t("hosts.invalid"), "error"); return; }
+    if (hosts.indexOf(h) !== -1) { toast(t("hosts.duplicate"), "info"); return; }
     try {
       await onAdd(h);
       if (el) el.value = "";
-      toast("سایت " + h + " غیرفعال شد", "success");
+      toast(t("hosts.disabledOk", { host: h }), "success");
     } catch (e) {
-      toast("ذخیره تنظیمات ناموفق بود", "error");
+      toast(t("common.saveFail"), "error");
     }
   }
 
@@ -61,21 +62,21 @@ export function DisabledHosts({ hosts, onRemove, onAdd }: Props) {
     try {
       await onRemove(h);
     } catch (e) {
-      toast("ذخیره تنظیمات ناموفق بود", "error");
+      toast(t("common.saveFail"), "error");
     }
   }
 
   return (
     <>
-      <h3>سایت‌های غیرفعال</h3>
-      <p className="muted small">روی این سایت‌ها هایلایت ساخته یا نمایش داده نمی‌شود (داده‌ها حذف نمی‌شوند).</p>
+      <h3>{t("hosts.title")}</h3>
+      <p className="muted small">{t("hosts.desc")}</p>
       <div className="host-chips" id="host-chips">
         {hosts.length === 0
-          ? <p className="muted small">هنوز سایتی غیرفعال نشده است.</p>
+          ? <p className="muted small">{t("hosts.empty")}</p>
           : hosts.map((h) => (
             <span className="hchip" key={h}>
               {h}
-              <button type="button" className="hchip-x" title={"حذف " + h} aria-label={"حذف " + h} onClick={() => { void remove(h); }}>
+              <button type="button" className="hchip-x" title={t("hosts.removeTitle", { host: h })} aria-label={t("hosts.removeTitle", { host: h })} onClick={() => { void remove(h); }}>
                 <XIcon />
               </button>
             </span>
@@ -86,11 +87,11 @@ export function DisabledHosts({ hosts, onRemove, onAdd }: Props) {
           type="text"
           id="host-input"
           ref={inputRef}
-          placeholder="افزودن دامنه (مثل example.com)"
-          aria-label="دامنه‌ی جدید"
+          placeholder={t("hosts.addPlaceholder")}
+          aria-label={t("hosts.inputAria")}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void commit(); } }}
         />
-        <button type="button" className="btn btn-ghost" id="host-add" onClick={() => { void commit(); }}>افزودن</button>
+        <button type="button" className="btn btn-ghost" id="host-add" onClick={() => { void commit(); }}>{t("common.add")}</button>
       </div>
     </>
   );
