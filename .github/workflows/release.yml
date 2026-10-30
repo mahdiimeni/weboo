@@ -1,0 +1,78 @@
+# Release automation — a version-tag push builds, gates, and publishes.
+#
+# Trigger: pushing a tag like v0.12.0 (must equal extension/manifest.json's
+# version — scripts/validate-release.mjs enforces it and fails the run on a
+# mismatch, before anything is published).
+#
+# The chain reuses the repo's own scripts — nothing is re-implemented here:
+#   frozen install → typecheck → lint → test → build:wxt (parity gate) →
+#   zip (dist/weboo-v<VERSION>.zip) → validate → gh release create.
+#
+# Permissions: workflow-level contents:read; only the release job gets
+# contents:write (least privilege). No secrets beyond GITHUB_TOKEN.
+
+name: release
+
+"on":
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the tagged commit
+        uses: actions/checkout@v5
+
+      - name: Set up Bun (pinned — upgrades are dedicated commits)
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      - name: Install dependencies (frozen lockfile)
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Lint
+        run: bun run lint
+
+      - name: Unit tests
+        run: bun run test
+
+      - name: Build + WXT parity gate
+        run: bun run build:wxt
+
+      - name: Build the release ZIP
+        run: bun run zip
+
+      - name: Validate tag / manifest / ZIP integrity
+        run: node scripts/validate-release.mjs "$GITHUB_REF_NAME"
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
+      - name: Create the GitHub Release and upload the ZIP
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          ZIP: dist/weboo-v${{ github.ref_name }}.zip
+        run: |
+          # --verify-tag: the tag must exist on the remote (it triggered this run)
+          # gh release create fails if a release for this tag already exists —
+          # a conflicting state fails the run instead of overwriting anything.
+          gh release create "$TAG" "$ZIP" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --title "Weboo $TAG" \
+            --generate-notes

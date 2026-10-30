@@ -227,6 +227,20 @@ Release zips stay in `dist/` permanently. They are the release history of the
 project, including the older `highlighter-extension-*` archives from before the
 v0.8.0 rename to Weboo.
 
+Publishing a release is one command — a version tag:
+
+```bash
+git tag v0.12.0 && git push origin v0.12.0
+```
+
+The tag must equal the version in `extension/manifest.json` (bump all five
+places first). Pushing it triggers the `release` workflow: frozen install, the
+full gate (typecheck, lint, tests, build + parity), the zip build, a
+tag/manifest/ZIP consistency check, then a GitHub Release with the installable
+ZIP attached beside GitHub's automatic source archives. If a run fails, open it
+under Actions — the failing step names the cause: a version mismatch, a failed
+gate, or an existing release for that tag.
+
 ## Credits
 
 Weboo is designed and built by [Mahdi Imeni](https://github.com/mahdiimeni),
