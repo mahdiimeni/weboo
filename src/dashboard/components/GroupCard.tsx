@@ -128,8 +128,12 @@ export function GroupCard({ g, remaining, collapsed, order, handlers }: {
     }
   }
 
+  /* the detected direction is explicit in BOTH branches (v0.14.2) — the old
+     "rtl inherits the document" rule breaks in an ltr UI; groupRecords'
+     contentDir never returns neutral, so a missing dir (hand-built test
+     groups) still inherits */
   return (
-    <div className={"group" + (collapsed ? " collapsed" : "")} data-key={g.key} dir={g.dir === "ltr" ? "ltr" : undefined}>
+    <div className={"group" + (collapsed ? " collapsed" : "")} data-key={g.key} dir={(g.dir as "ltr" | "rtl") || undefined}>
       <div
         className="group-head"
         role="button"

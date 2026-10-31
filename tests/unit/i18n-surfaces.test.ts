@@ -114,6 +114,15 @@ describe("format in en mode", () => {
     HL.setLanguage("fa");
   });
 
+  test("faviconLetter fallback follows the UI language (v0.14.2)", () => {
+    expect(HL.format.faviconLetter("x.test")).toBe("X"); /* a real host — first letter, both languages */
+    HL.setLanguage("fa");
+    expect(HL.format.faviconLetter("")).toBe("و");
+    HL.setLanguage("en");
+    expect(HL.format.faviconLetter("")).toBe("W");
+    HL.setLanguage("fa");
+  });
+
   test("invalid timestamps keep the '' contract (fmtDate — the export guard) in both languages", () => {
     HL.setLanguage("en");
     expect(HL.format.fmtDate(NaN)).toBe("");
@@ -190,7 +199,7 @@ describe("floating widgets in en mode", () => {
     });
     po.present({ id: "r1", color: "yellow", note: "", quote: "متن فارسی", createdAt: NOON, rect: { left: 100, top: 100, right: 220, bottom: 124, width: 120, height: 24 }, });
     expect(po.el.getAttribute("dir")).toBe("ltr"); /* UI chrome LTR … */
-    expect(po.el.querySelector(".q")?.getAttribute("dir")).toBeNull(); /* … Persian quote stays RTL (no attr — inheritance) */
+    expect(po.el.querySelector(".q")?.getAttribute("dir")).toBe("rtl"); /* … Persian quote carries EXPLICIT rtl (v0.14.2) */
     expect(po.el.querySelector(".add-note")?.textContent).toContain("Add a note");
     expect(po.el.querySelector(".note-box span")?.textContent).toBe("No note for this highlight yet.");
     po.render("edit");
@@ -211,6 +220,42 @@ describe("floating widgets in en mode", () => {
     expect(po.el.querySelector(".q")?.getAttribute("dir")).toBe("ltr"); /* English quote → LTR inside the RTL chrome */
     expect((po.el.querySelector(".edit-note") as HTMLElement).getAttribute("title")).toBe("ویرایش یادداشت"); /* noted state's control */
     po.dismiss();
+  });
+
+  test("content direction survives the ltr popover chrome (v0.14.2 cross-cases)", () => {
+    HL.ui.setLang("en");
+    const po = new HL.ui.NotePopover({
+      onColorChange: () => {}, onSaveNote: () => {}, onDelete: () => {}, onCopy: () => {}, onClose: () => {},
+    });
+    po.present({ id: "r3", color: "pink", note: "یادداشت فارسی", quote: "نقل‌قول فارسی", createdAt: NOON,
+      rect: { left: 100, top: 100, right: 220, bottom: 124, width: 120, height: 24 } });
+    expect(po.el.getAttribute("dir")).toBe("ltr"); /* chrome … */
+    expect(po.el.querySelector(".q").getAttribute("dir")).toBe("rtl"); /* … Persian quote explicit rtl */
+    expect(po.el.querySelector(".note-text").getAttribute("dir")).toBe("rtl"); /* … and the saved note */
+    /* neutral text (digits only) inherits the chrome — no attribute */
+    po.present({ id: "r4", color: "pink", note: "", quote: "12345 67890", createdAt: NOON,
+      rect: { left: 100, top: 100, right: 220, bottom: 124, width: 120, height: 24 } });
+    expect(po.el.querySelector(".q").getAttribute("dir")).toBeNull();
+    po.dismiss();
+    HL.ui.setLang("fa");
+  });
+
+  test("typing direction is explicit for Persian in the ltr popover too (v0.14.2)", () => {
+    HL.ui.setLang("en");
+    const po = new HL.ui.NotePopover({
+      onColorChange: () => {}, onSaveNote: () => {}, onDelete: () => {}, onCopy: () => {}, onClose: () => {},
+    });
+    po.present({ id: "r5", color: "pink", note: "", quote: "x", createdAt: NOON, editNow: true,
+      rect: { left: 100, top: 100, right: 220, bottom: 124, width: 120, height: 24 } });
+    const ta = po.el.querySelector('[data-role="note-input"]');
+    ta.value = "سلام";
+    ta.dispatchEvent(new (globalThis.window.Event)("input", { bubbles: true }));
+    expect(ta.getAttribute("dir")).toBe("rtl"); /* Persian typing → explicit rtl */
+    ta.value = "";
+    ta.dispatchEvent(new (globalThis.window.Event)("input", { bubbles: true }));
+    expect(ta.getAttribute("dir")).toBeNull(); /* emptied → neutral, inherits the chrome */
+    po.dismiss();
+    HL.ui.setLang("fa");
   });
 
   test("toast re-marks its direction on every show", () => {

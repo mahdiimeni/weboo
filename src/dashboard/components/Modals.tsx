@@ -38,7 +38,7 @@ import { dash } from "../../../extension/dashboard/dashboard-data.js";
 import { format } from "../../../extension/shared/format.js";
 import { APP_NAME, VERSION } from "../../../extension/shared/constants.js";
 import { sanitizeFontFamily } from "../../../extension/shared/booklet-export.js";
-import { t, count } from "../../../extension/shared/i18n.js";
+import { t, count, dirOf } from "../../../extension/shared/i18n.js";
 import { IconQuote } from "./icons";
 import { articleTitleOf } from "./GroupCard";
 
@@ -565,7 +565,7 @@ export function PreviewModal({ rec, onClose }: { rec: HighlightRecord | null; on
               </div>
             ) : null}
             <div className="hl-meta">
-              <span className="hl-meta-t" dir="rtl">{format.fmtDateTime(rec.updatedAt || rec.createdAt)}</span>
+              <span className="hl-meta-t" dir={dirOf()}>{format.fmtDateTime(rec.updatedAt || rec.createdAt)}</span>
             </div>
           </>
         ) : null}

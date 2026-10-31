@@ -175,19 +175,25 @@ import { t, dirOf } from "../i18n.js"; /* v0.14.0 — labels follow the UI langu
     '.hlx-po .ok.show { opacity: 1; }'
   ].join('\n');
 
-  /* ---------- Content direction (v1.2.10) ----------
+  /* ---------- Content direction (v1.2.10, generalized v0.14.2) ----------
      The decision lives in detectDir.detectTextDir — the single source the
      popup and dashboard already consume; this view only applies it (DIP, the
-     same split as detect-dir.js documents): LTR content gets dir="ltr", RTL
-     takes no attribute at all (the window's rtl default). */
+     same split as detect-dir.js documents). The DETECTED direction is applied
+     EXPLICITLY for both branches: the old "RTL takes no attribute" rule
+     assumed the document was always rtl — in an ltr UI the Persian text must
+     carry dir="rtl" or it inherits ltr. NEUTRAL text (no strong letters —
+     digits, URLs, punctuation) still takes no attribute and inherits the
+     popover chrome's direction. */
 
   function ltrDirAttr(text) {
-    return detectDir.detectTextDir(text) === 'ltr' ? ' dir="ltr"' : '';
+    var d = detectDir.detectTextDir(text);
+    return d ? ' dir="' + d + '"' : '';
   }
 
   /** Typing direction — re-decided on every keystroke via the oninput delegation. */
   function syncNoteDir(ta) {
-    if (detectDir.detectTextDir(ta.value) === 'ltr') ta.setAttribute('dir', 'ltr');
+    var d = detectDir.detectTextDir(ta.value);
+    if (d) ta.setAttribute('dir', d);
     else ta.removeAttribute('dir');
   }
 

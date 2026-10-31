@@ -18,7 +18,7 @@
 import { THEMES } from "../shared/constants.js";
 import { format } from "../shared/format.js";
 import { domkit } from "../shared/domkit.js"; /* 7c-3 */
-import { t, count } from "../shared/i18n.js"; /* v0.14.0 — labels follow the UI language */
+import { t, count, dirOf } from "../shared/i18n.js"; /* v0.14.0 — labels follow the UI language */
   /* Module guard — same convention as the popup controller: HL rides on
      globalThis (in a real page window === globalThis; globalThis also works
      in unit tests) */
@@ -110,21 +110,19 @@ import { t, count } from "../shared/i18n.js"; /* v0.14.0 — labels follow the U
   }
 
   /**
-   * THE v1.2.8 CONTRACT — precise smart-direction scope (decision: HL.pop.directionOf).
-   * 'ltr' → only "the page's own content" flips: the page card (favicon/title/host)
-   * and the list items (ul#hl-list). The Persian header of the list section
-   * («هایلایت‌های این صفحه» + counter) never gets dir — Persian UI, RTL layout.
-   * sec-list is never touched either. RTL takes no attribute at all (rtl
-   * inheritance of the document).
+   * THE v1.2.8 CONTRACT, generalized for both UI languages (v0.14.2) —
+   * precise smart-direction scope (decision: HL.pop.directionOf): only "the
+   * page's own content" carries the direction — the page card (favicon/
+   * title/host) and the list items (ul#hl-list). The list-section header
+   * (the translated chrome above the ul) never gets dir. The DETECTED
+   * direction is applied EXPLICITLY in both branches now: the old
+   * "rtl takes no attribute" rule relied on the document always being rtl —
+   * in an ltr UI the Persian content must carry dir="rtl" or it inherits ltr.
    */
   function applyCardDirection(els, dir) {
-    if (dir === 'ltr') {
-      els.secPage.setAttribute('dir', 'ltr');
-      els.hlList.setAttribute('dir', 'ltr');
-    } else {
-      els.secPage.removeAttribute('dir');
-      els.hlList.removeAttribute('dir');
-    }
+    var d = dir === 'ltr' ? 'ltr' : 'rtl';
+    els.secPage.setAttribute('dir', d);
+    els.hlList.setAttribute('dir', d);
   }
 
   /* ---------- Highlight list ---------- */
@@ -163,6 +161,9 @@ import { t, count } from "../shared/i18n.js"; /* v0.14.0 — labels follow the U
 
     const meta = el('span', 'hl-meta');
     const date = el('span', 'date');
+    /* the date is UI chrome inside a content-directed list (v0.14.2) — the
+       same island idiom as the dashboard's .item-date */
+    date.setAttribute('dir', dirOf());
     date.textContent = format.fmtDateTime(rec.updatedAt || rec.createdAt); /* language-aware (Jalali/Gregorian) */
     meta.appendChild(date);
     if (rec.note) {

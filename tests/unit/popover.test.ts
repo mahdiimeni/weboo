@@ -52,10 +52,10 @@ function dragFrom(el: any, from: { x: number; y: number }, to: { x: number; y: n
 }
 
 describe("NotePopover — جهت هوشمند محتوا (v1.2.10)", () => {
-  test("نقل‌قول فارسی → .q بدون dir (پیش‌فرض RTL — رگرسیون)", () => {
+  test("نقل‌قول فارسی → .q با dir=rtl (صریح — v0.14.2: در رابط LTR هم جهت حفظ می‌شود)", () => {
     const po = makePopover();
     present(po);
-    expect(po.el.querySelector(".q").getAttribute("dir")).toBe(null);
+    expect(po.el.querySelector(".q").getAttribute("dir")).toBe("rtl");
   });
 
   test("نقل‌قول انگلیسی → .q با dir=ltr", () => {
@@ -82,13 +82,13 @@ describe("NotePopover — جهت هوشمند محتوا (v1.2.10)", () => {
     expect(po.el.querySelector('[data-role="note-input"]').getAttribute("dir")).toBe("ltr");
   });
 
-  test("یادداشت خالی یا فارسی → ویرایشگر بدون dir (تایپ راست‌به‌چپ)", () => {
+  test("یادداشت خالی → ویرایشگر بدون dir (خنثی ارث می‌برد)؛ یادداشت فارسی → dir=rtl صریح (v0.14.2)", () => {
     const po = makePopover();
     present(po, "x6", { editNow: true });
     expect(po.el.querySelector('[data-role="note-input"]').getAttribute("dir")).toBe(null);
     const po2 = makePopover();
     present(po2, "x7", { note: "یادداشت فارسی", editNow: true });
-    expect(po2.el.querySelector('[data-role="note-input"]').getAttribute("dir")).toBe(null);
+    expect(po2.el.querySelector('[data-role="note-input"]').getAttribute("dir")).toBe("rtl");
   });
 
   test("تایپ زنده: جهت ویرایشگر با هر کلید دوباره تصمیم می‌گیرد", () => {
@@ -98,9 +98,9 @@ describe("NotePopover — جهت هوشمند محتوا (v1.2.10)", () => {
     ta.value = "Hello"; /* first English keystrokes */
     ta.dispatchEvent(new win.Event("input", { bubbles: true }));
     expect(ta.getAttribute("dir")).toBe("ltr");
-    ta.value = "سلام دنیا"; /* Persian letters now dominate */
+    ta.value = "سلام دنیا"; /* Persian letters now dominate → explicit rtl (v0.14.2) */
     ta.dispatchEvent(new win.Event("input", { bubbles: true }));
-    expect(ta.getAttribute("dir")).toBe(null);
+    expect(ta.getAttribute("dir")).toBe("rtl");
     ta.value = "English again"; /* flips back */
     ta.dispatchEvent(new win.Event("input", { bubbles: true }));
     expect(ta.getAttribute("dir")).toBe("ltr");
@@ -138,10 +138,10 @@ describe("NotePopover — جهت هوشمند محتوا (v1.2.10)", () => {
     expect(po.el.querySelector(".note-text").getAttribute("dir")).toBe("ltr");
   });
 
-  test("یادداشت فارسی ذخیره‌شده → .note-text بدون dir (رگرسیون RTL) (v1.2.11)", () => {
+  test("یادداشت فارسی ذخیره‌شده → .note-text با dir=rtl صریح (v0.14.2 — در رابط LTR هم حفظ می‌شود)", () => {
     const po = makePopover();
     present(po, "x12", { note: "یادداشت فارسی ذخیره‌شده" });
-    expect(po.el.querySelector(".note-text").getAttribute("dir")).toBe(null);
+    expect(po.el.querySelector(".note-text").getAttribute("dir")).toBe("rtl");
   });
 
   test("یادداشت خنثی (فقط رقم) → .note-text بدون dir (v1.2.11)", () => {

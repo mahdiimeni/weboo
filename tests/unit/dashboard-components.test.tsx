@@ -26,6 +26,7 @@ import { PreviewModal, RestoreModal, BookletModal, BackupModal } from "../../src
 import type { BookletFontId, BookletBuildOptions } from "../../src/types/booklet";
 import { LoadMore } from "../../src/dashboard/components/LoadMore";
 import { setLanguage as setBundleLanguage } from "../../extension/shared/i18n.js";
+import { GroupCard } from "../../src/dashboard/components/GroupCard";
 import { dash } from "../../extension/dashboard/dashboard-data.js";
 
 beforeEach(() => { setupDom(); });
@@ -810,10 +811,11 @@ describe("BookletModal — انتخاب مقاله‌ها و فونت (Task 88)"
     /* the mount effect (fresh picker per open) resets the font selection —
        wait for it to settle before interacting, or a slow-tick run resets
        the radio AFTER the click (the observed flake: this test raced its
-       own effect on the untouched source too) */
-    await tick(); await tick(); await tick();
+       own effect on the untouched source too). Five ticks ≈ 100ms clears the
+       scheduler even on a loaded machine. */
+    await tick(); await tick(); await tick(); await tick(); await tick();
     (h.querySelector('input[name="bk-font"][value="custom"]') as HTMLInputElement).click();
-    await tick(); await tick();
+    await tick(); await tick(); await tick();
     const input = h.querySelector("#bk-custom-font") as HTMLInputElement;
     expect(input.disabled).toBe(false); /* enabled once the custom radio is picked */
     expect((h.querySelector("#bk-go") as HTMLButtonElement).disabled).toBe(true); /* no name yet */
@@ -951,6 +953,68 @@ describe("i18n (v0.14.0) — components follow the interface language", () => {
     root.render(createElement(LoadMore, { shown: true, overflow: 1, onLoadMore: () => {} }));
     await tick();
     expect(host.querySelector("#load-more")?.textContent).toBe("Load more (1 remaining)");
+    root.unmount();
+    setBundleLanguage("fa");
+  });
+});
+
+
+/* ---------- v0.14.2 — content direction is explicit in an LTR UI ---------- */
+describe("i18n (v0.14.2) — smart content direction in both UI languages", () => {
+  const noop = () => {};
+  const handlers = {
+    onOpen: noop, onDeleteGroup: noop, onToggle: noop, onItemOrder: noop,
+    onAddTag: noop, onRemoveTag: noop, onView: noop, onCopy: noop, onDelete: noop,
+  };
+
+  function group(dir?: string) {
+    return {
+      key: "https://a.test/p", host: "a.test", url: "https://a.test/p",
+      title: "عنوان مقاله", dir, notes: 0, items: [], favicon: null, tags: [],
+    };
+  }
+
+  test("GroupCard: a Persian article card takes EXPLICIT dir=rtl (was: no attribute — broke in the ltr UI)", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    let root = createRoot(host);
+    root.render(createElement(GroupCard, { g: group("rtl"), remaining: 0, collapsed: true, order: "newest", handlers } as any));
+    await tick();
+    expect(host.querySelector(".group")?.getAttribute("dir")).toBe("rtl");
+    root.unmount();
+    root = createRoot(host);
+    root.render(createElement(GroupCard, { g: group("ltr"), remaining: 0, collapsed: true, order: "newest", handlers } as any));
+    await tick();
+    expect(host.querySelector(".group")?.getAttribute("dir")).toBe("ltr");
+    root.unmount();
+    /* hand-built groups without a dir (tests) keep inheriting — groupRecords always sets one */
+    root = createRoot(host);
+    root.render(createElement(GroupCard, { g: group(undefined), remaining: 0, collapsed: true, order: "newest", handlers } as any));
+    await tick();
+    expect(host.querySelector(".group")?.getAttribute("dir")).toBeNull();
+    root.unmount();
+  });
+
+  test("PreviewModal: the date island follows the UI language, the frame follows the text", async () => {
+    const rec = {
+      id: "r1", host: "a.test", url: "https://a.test/p", urlNorm: "https://a.test/p",
+      title: "عنوان", text: "متن فارسی برای آزمایش", note: "", color: "teal",
+      createdAt: Date.UTC(2024, 9, 27, 12), updatedAt: Date.UTC(2024, 9, 27, 12),
+    } as any;
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    let root = createRoot(host);
+    setBundleLanguage("en");
+    root.render(createElement(PreviewModal, { rec, onClose: noop }));
+    await tick();
+    expect(host.querySelector(".hl-card")?.getAttribute("dir")).toBe("rtl"); /* content frame */
+    expect(host.querySelector(".hl-meta-t")?.getAttribute("dir")).toBe("ltr"); /* UI-chrome date */
+    root.unmount();
+    setBundleLanguage("fa");
+    root = createRoot(host);
+    root.render(createElement(PreviewModal, { rec, onClose: noop }));
+    await tick();
+    expect(host.querySelector(".hl-meta-t")?.getAttribute("dir")).toBe("rtl");
     root.unmount();
     setBundleLanguage("fa");
   });

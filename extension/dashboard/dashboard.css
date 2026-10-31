@@ -870,6 +870,8 @@ html[dir="ltr"] body { font-family: 'Segoe UI', Vazirmatn, Tahoma, sans-serif; }
 }
 .host-add input:focus { outline: none; border-color: var(--accent); }
 .host-add input::placeholder { direction: rtl; text-align: right; }
+/* English UI (v0.14.2): the localized placeholder follows the document direction */
+html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left; }
 
 .danger-zone {
   border: 1px solid var(--danger-line);

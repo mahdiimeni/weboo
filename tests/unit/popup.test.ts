@@ -135,7 +135,7 @@ describe("پاپ‌آپ — کارت صفحه‌ی هوشمند جهت (v1.2.7 +
     expect($("hl-list").children.length).toBe(2);
   });
 
-  test("صفحه‌ی فارسی → هیچ صفتی نمی‌گیرد (ارث rtl سند — دقیقاً مثل قبل)", async () => {
+  test("صفحه‌ی فارسی → dir=rtl صریح (v0.14.2 — در رابط LTR هم جهت محتوا حفظ می‌شود)", async () => {
     await boot({
       "hlx:settings": SETTINGS,
       "hlx:d:fa.wikipedia.org": {
@@ -143,9 +143,9 @@ describe("پاپ‌آپ — کارت صفحه‌ی هوشمند جهت (v1.2.7 +
       },
     }, FA_TAB);
 
-    expect($("sec-page").getAttribute("dir")).toBeNull();
-    expect($("sec-list").getAttribute("dir")).toBeNull();
-    expect($("hl-list").getAttribute("dir")).toBeNull();
+    expect($("sec-page").getAttribute("dir")).toBe("rtl");
+    expect($("sec-list").getAttribute("dir")).toBeNull(); /* the section stays chrome — only the ul carries content dir */
+    expect($("hl-list").getAttribute("dir")).toBe("rtl");
     expect($("page-title").textContent).toBe(FA_TITLE);
     expect($("hl-list").children.length).toBe(1);
   });
@@ -168,9 +168,9 @@ describe("پاپ‌آپ — کارت صفحه‌ی هوشمند جهت (v1.2.7 +
       },
     }, FA_TAB);
 
-    expect($("sec-page").getAttribute("dir")).toBeNull();
+    expect($("sec-page").getAttribute("dir")).toBe("rtl"); /* conservative default, now explicit */
     expect($("sec-list").getAttribute("dir")).toBeNull();
-    expect($("hl-list").getAttribute("dir")).toBeNull();
+    expect($("hl-list").getAttribute("dir")).toBe("rtl");
   });
 
   test("سکشن‌های UI فارسی دست‌نخورده می‌مانند (سوئیچ سایت هرگز dir نمی‌گیرد)", async () => {
@@ -206,6 +206,26 @@ describe("پاپ‌آپ — کارت صفحه‌ی هوشمند جهت (v1.2.7 +
 });
 
 
+/* ---------- v0.14.2 — content direction survives an LTR UI ---------- */
+describe("پاپ‌آپ — جهت محتوا در رابط انگلیسی (v0.14.2)", () => {
+  test("رابط انگلیسی + صفحه‌ی فارسی → کارت و لیست dir=rtl صریح؛ تاریخِ آیتم جزیره‌ی LTR می‌ماند", async () => {
+    await boot({
+      "hlx:settings": { ...SETTINGS, language: "en" },
+      "hlx:d:fa.wikipedia.org": {
+        w1: rec("w1", "fa.wikipedia.org", FA_URL, FA_TITLE, "مغز ما هنگام خواندن وارد گفت‌وگو با نویسنده می‌شود"),
+      },
+    }, FA_TAB);
+
+    expect(win.document.documentElement.getAttribute("dir")).toBe("ltr"); /* UI chrome LTR … */
+    expect($("sec-page").getAttribute("dir")).toBe("rtl"); /* … Persian page card stays RTL */
+    expect($("hl-list").getAttribute("dir")).toBe("rtl"); /* … and its highlights too */
+    /* the list header is chrome — no dir, inherits the ltr document */
+    expect(win.document.querySelector(".list-head > strong").getAttribute("dir")).toBeNull();
+    /* the item date is UI chrome inside the rtl list — its own ltr island */
+    expect(win.document.querySelector("#hl-list .date").getAttribute("dir")).toBe("ltr");
+  });
+});
+
 /* ---------- v0.14.0 — the language setting drives the whole popup ---------- */
 describe("پاپ‌آپ — زبان رابط کاربری (v0.14.0)", () => {
   test("language=en → کل صفحه LTR می‌شود و برچسب‌ها انگلیسی‌اند؛ جهتِ محتوای صفحه مستقل می‌ماند", async () => {
@@ -226,8 +246,9 @@ describe("پاپ‌آپ — زبان رابط کاربری (v0.14.0)", () => {
     expect(win.document.querySelector('[data-i18n="popup.enabledHere"]').textContent).toBe("Enabled on this site");
     /* dynamic view strings */
     expect($("chip-hl").textContent).toBe("1 highlight");
-    /* content direction stays INDEPENDENT: the Persian page card keeps RTL */
-    expect($("sec-page").getAttribute("dir")).toBeNull();
+    /* content direction stays INDEPENDENT: the Persian page card keeps RTL —
+       explicitly since v0.14.2 (the old pin expected "no attribute", the bug) */
+    expect($("sec-page").getAttribute("dir")).toBe("rtl");
     /* dates render Gregorian (no Jalali year anywhere) */
     expect(win.document.querySelector("#hl-list .date").textContent).not.toContain("۱۴");
   });

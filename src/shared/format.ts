@@ -104,11 +104,13 @@ import { getLanguage } from "./i18n.js";
     return (c && c.dot) || (colors && colors.yellow && colors.yellow.dot) || '#f5b800';
   }
 
-  /** First letter of the host for the marker tile (when there is no favicon) */
+  /** First letter of the host for the marker tile (when there is no favicon).
+   *  The hostless fallback follows the UI language (v0.14.2): «و» in fa, the
+   *  brand's initial in en. */
   function faviconLetter(host?: string | null) {
     const h = String(host || '').replace(/^www\./, '');
     const ch = (h.charAt(0) || '').toUpperCase();
-    return ch || 'و';
+    return ch || (getLanguage() === 'en' ? 'W' : 'و');
   }
 
   /** URL without scheme for compact display */
