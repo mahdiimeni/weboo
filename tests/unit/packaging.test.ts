@@ -199,6 +199,21 @@ describe("نسخه‌ی واحد در کل افزونه", () => {
   });
 });
 
+describe("توضیحات کروم-کروم (browser-chrome strings — v0.20.1)", () => {
+  test("description: انگلیسی، مختصر، داخل سقف ۱۳۲ نویسه‌ی وب‌استور", () => {
+    const manifest = JSON.parse(readFile(ext("manifest.json")));
+    const desc = manifest.description;
+    expect(typeof desc).toBe("string");
+    expect(desc.length).toBeGreaterThan(0);
+    expect(desc.length).toBeLessThanOrEqual(132); /* Chrome Web Store's hard limit */
+    expect(desc).not.toMatch(/[\u0600-\u06FF]/); /* entirely English — the chrome://extensions face */
+    /* the keyboard-shortcut tooltip (the Shortcuts dialog's face) follows */
+    const cmdDesc = manifest.commands["highlight-selection"].description;
+    expect(cmdDesc).not.toMatch(/[\u0600-\u06FF]/);
+    expect(cmdDesc.length).toBeLessThanOrEqual(132);
+  });
+});
+
 describe("برند یک‌جا در کل افزونه (APP_NAME)", () => {
   test("manifest + popup + dashboard هم‌ارز APP_NAME هستند", () => {
     const manifest = JSON.parse(readFile(ext("manifest.json")));
