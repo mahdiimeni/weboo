@@ -29,7 +29,7 @@
 
   try {
     var l = localStorage.getItem('hlx:lang');
-    if (l === 'fa' || l === 'en') {
+    if (l === 'fa' || l === 'en' || l === 'de') {
       var r = document.documentElement;
       r.setAttribute('lang', l);
       r.setAttribute('dir', l === 'fa' ? 'rtl' : 'ltr');

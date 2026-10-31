@@ -41,7 +41,7 @@
  */
 import { format } from "../shared/format.js";
 import { detectDir } from "../shared/detect-dir.js";
-import { getLanguage } from "../shared/i18n.js"; /* v0.14.0 — the UI language of locale-sensitive sorting */
+import { getLanguage, LOCALES } from "../shared/i18n.js"; /* the UI language + locale of locale-sensitive sorting */
 import { tags } from "../shared/tags.js"; /* 7c-3 */
   var fmt = format;
 
@@ -165,8 +165,8 @@ import { tags } from "../shared/tags.js"; /* 7c-3 */
     if (sort === 'oldest') {
       groups.sort(function (a, b) { return a.earliest - b.earliest; });
     } else if (sort === 'page') {
-      /* the title order's locale follows the UI language (v0.14.0) */
-      var loc = getLanguage() === 'en' ? 'en' : 'fa';
+      /* the title order's locale follows the UI language (LOCALES — one home) */
+      var loc = LOCALES[getLanguage()];
       groups.sort(function (a, b) {
         return (a.title || a.host).localeCompare(b.title || b.host, loc) || a.key.localeCompare(b.key);
       });

@@ -8,7 +8,7 @@
  *
  * Design:
  *  - The ENGLISH dictionary is the canonical key set (`TranslationKey`); the
- *    Persian dictionary is typed `Record<TranslationKey, …>` — a key present
+ *    Persian and German dictionaries are typed `Record<TranslationKey, …>` — a key present
  *    in one and missing in the other is a COMPILE error (types-contract test
  *    re-pins it at runtime; a grep test covers the JS-only call sites).
  *  - `t(key, params)` interpolates `{name}` placeholders. A plural value is
@@ -76,6 +76,7 @@ const en = {
     'lang.label': 'Interface language',
     'lang.fa': 'Persian',
     'lang.en': 'English',
+    'lang.de': 'German',
     /* ---------- dashboard shell (static markup via data-i18n) ---------- */
     'dash.title': 'Dashboard — Weboo',
     'dash.brandSub': 'Management dashboard',
@@ -369,6 +370,7 @@ const fa = {
     'lang.label': 'زبان رابط کاربری',
     'lang.fa': 'فارسی',
     'lang.en': 'English',
+    'lang.de': 'Deutsch',
     'lang.desc': 'روی پنجره، داشبورد و ابزارهای شناور فوراً اعمال می‌شود.',
     /* ---------- dashboard shell ---------- */
     'dash.title': 'داشبورد — وبو',
@@ -619,19 +621,326 @@ const fa = {
     'ex.coverAria': 'جلد کتابچه'
 };
 /* ------------------------------------------------------------------ */
+/* German — typed against the canonical key set (compile-time parity);  */
+/* Sie-form register; plural objects only where German morphology needs */
+/* them (Artikel/Tag are invariable after numerals)                     */
+/* ------------------------------------------------------------------ */
+const de = {
+    /* ---------- app identity ---------- */
+    'app.name': 'Weboo',
+    /* ---------- common ---------- */
+    'common.cancel': 'Abbrechen',
+    'common.close': 'Schließen',
+    'common.delete': 'Löschen',
+    'common.add': 'Hinzufügen',
+    'common.confirm': 'Sicher?',
+    'common.version': 'Version',
+    'common.untitled': 'Ohne Titel',
+    'common.localFile': 'Lokale Datei',
+    'common.from': ' von ',
+    'common.copy': 'Text kopieren',
+    'common.copyShort': 'Kopieren',
+    'common.copyOk': 'Kopiert ✓',
+    'common.copyFail': 'Kopieren fehlgeschlagen',
+    'common.saveFail': 'Speichern der Einstellungen fehlgeschlagen',
+    'common.deleteFail': 'Löschen fehlgeschlagen',
+    'common.nHighlights': { one: '1 Highlight', other: '{n} Highlights' },
+    'common.nNotes': { one: '1 Notiz', other: '{n} Notizen' },
+    'common.nArticles': '{n} Artikel',
+    'common.nItems': { one: '1 Element', other: '{n} Elemente' },
+    /* ---------- colors ---------- */
+    'color.yellow': 'Gelb',
+    'color.orange': 'Orange',
+    'color.green': 'Grün',
+    'color.teal': 'Türkis',
+    'color.pink': 'Pink',
+    'color.purple': 'Lila',
+    /* ---------- themes ---------- */
+    'theme.auto': 'System',
+    'theme.light': 'Hell',
+    'theme.dark': 'Dunkel',
+    'theme.autoHint': 'Folgt der Hell-/Dunkeleinstellung des Systems',
+    'theme.lightHint': 'Immer ein heller Hintergrund',
+    'theme.darkHint': 'Immer ein dunkler Hintergrund',
+    /* ---------- interface language ---------- */
+    'lang.label': 'Sprache der Benutzeroberfläche',
+    'lang.fa': 'فارسی',
+    'lang.en': 'English',
+    'lang.de': 'Deutsch',
+    'lang.desc': 'Gilt sofort für Popup, Dashboard und schwebende Werkzeuge.',
+    'lang.groupAria': 'Sprache der Benutzeroberfläche',
+    /* ---------- dashboard shell ---------- */
+    'dash.title': 'Dashboard — Weboo',
+    'dash.brandSub': 'Verwaltungs-Dashboard',
+    'dash.statsAria': 'Gesamtstatistik',
+    'dash.toolbarAria': 'Filter und Suche',
+    'dash.listAria': 'Highlights',
+    'dash.footer': 'Weboo — alle Daten bleiben ausschließlich auf diesem Gerät; nichts wird an einen Server gesendet.',
+    'dash.settings': 'Einstellungen',
+    'dash.settingsAria': 'Einstellungen',
+    'dash.drawerCloseAria': 'Einstellungen schließen',
+    'dash.sectionAppearance': 'Erscheinungsbild',
+    'dash.sectionColor': 'Standard-Highlight-Farbe',
+    'dash.sectionBehavior': 'Verhalten',
+    'dash.themeGroupAria': 'Design der Oberfläche',
+    'dots.title': 'Standardfarbe: {name}',
+    'behavior.toolbar': 'Schwebende Werkzeugleiste bei Textauswahl zeigen',
+    'behavior.badge': 'Zähler auf dem Symbol anzeigen',
+    /* ---------- dashboard topbar ---------- */
+    'tb.booklet': 'Booklet',
+    'tb.selectiveBackup': 'Selektiver Export',
+    'tb.selectiveBackupTitle': 'Selektives Backup — nach Websites, Artikeln und Tags',
+    'tb.backup': 'Backup-Export',
+    'tb.backupTitle': 'Backup-Export (gesamte Bibliothek)',
+    'tb.sizeBadgeTitle': 'Größe der auf diesem Gerät gespeicherten Daten',
+    /* ---------- dashboard stats ---------- */
+    'stats.total': 'Highlights insgesamt',
+    'stats.notes': 'Notizen',
+    'stats.pages': 'Seiten',
+    'stats.sites': 'Websites',
+    /* ---------- dashboard filter toolbar ---------- */
+    'search.placeholder': 'Text, Notizen oder Seitentitel durchsuchen…',
+    'search.aria': 'Suche',
+    'filter.colorAria': 'Farbfilter',
+    'filter.notesOnly': 'Nur mit Notizen',
+    'filter.sortLabel': 'Sortierung:',
+    'sort.newest': 'Neueste',
+    'sort.oldest': 'Älteste',
+    'sort.page': 'Nach Seite',
+    'filter.tagsLabel': 'Artikel-Tags:',
+    'filter.tagsAria': 'Artikel-Tag-Filter',
+    /* ---------- list chrome ---------- */
+    'bulk.expand': 'Alle Artikel aufklappen',
+    'bulk.expandTitle': 'Alle Artikelkarten klappen auf und alle nicht geladenen Highlights werden geladen',
+    'bulk.collapse': 'Alle Artikel einklappen',
+    'bulk.collapseTitle': 'Alle Artikelkarten klappen sich zu und alle nicht geladenen Highlights werden geladen; beim Öffnen eines Artikels werden dessen Highlights vollständig angezeigt',
+    'list.loadMore': 'Mehr laden ({n} verbleibend)',
+    'empty.noResults': 'Keine Ergebnisse gefunden.',
+    'empty.noResultsSub': 'Anderen Suchbegriff oder andere Farb-/Tag-Filter ausprobieren.',
+    'empty.first': 'Noch keine Highlights. Markieren Sie Ihren ersten Text!',
+    'empty.firstSub': 'Wählen Sie auf einer beliebigen Webseite Text aus und benutzen Sie die schwebende Werkzeugleiste der Erweiterung.',
+    'dirsec.rtl': 'RTL-Artikel',
+    'dirsec.ltr': 'LTR-Artikel',
+    'dirsec.lead': 'Der neueste Highlight ist hier',
+    'dirsec.leadTitle': 'Der zuletzt markierte Artikel befindet sich in diesem Abschnitt, deshalb wird er zuerst angezeigt',
+    /* ---------- article card ---------- */
+    'card.order.newest': 'Neueste',
+    'card.order.oldest': 'Älteste',
+    'card.order.page': 'Seite',
+    'card.order.pageRev': 'Seite rückwärts',
+    'card.order.newestTitle': 'Aktuelle Reihenfolge der Highlights: von den neuesten zu den ältesten; zum Umdrehen drücken',
+    'card.order.oldestTitle': 'Aktuelle Reihenfolge der Highlights: von den ältesten zu den neuesten; zum Umdrehen drücken',
+    'card.order.pageTitle': 'Aktuelle Reihenfolge der Highlights: in Lesereihenfolge der Seite; zum Umdrehen drücken',
+    'card.order.pageRevTitle': 'Aktuelle Reihenfolge der Highlights: umgekehrte Lesereihenfolge der Seite; zum Umdrehen drücken',
+    'card.orderAria': 'Reihenfolge der Highlights dieses Artikels: {label}',
+    'card.viewPageTitle': 'Diese Seite in einem neuen Tab öffnen',
+    'card.deleteGroupTitle': 'Alles von dieser Seite löschen',
+    'card.remaining': '…{n} weitere von dieser Seite (zum Anzeigen „Mehr laden“ drücken)',
+    /* ---------- highlight item ---------- */
+    'item.previewTitle': 'Vollständigen Text dieses Highlights anzeigen',
+    'item.notePreviewTitle': 'Vollständigen Text und die Notiz dieses Highlights anzeigen',
+    'item.viewTitle': 'Auf der Seite ansehen',
+    'item.deleteTitle': 'Dieses Highlight löschen',
+    /* ---------- tags row ---------- */
+    'tags.add': 'Tag',
+    'tags.addTitle': 'Diesem Artikel einen Tag hinzufügen',
+    'tags.placeholder': 'Tag-Name…',
+    'tags.inputAria': 'Neuer Tag-Name',
+    'tags.removeTitle': 'Tag {tag} entfernen',
+    /* ---------- disabled hosts ---------- */
+    'hosts.title': 'Deaktivierte Websites',
+    'hosts.desc': 'Auf diesen Websites werden keine Highlights erstellt oder angezeigt (Daten bleiben erhalten).',
+    'hosts.empty': 'Noch keine Website deaktiviert.',
+    'hosts.addPlaceholder': 'Domain hinzufügen (z. B. example.com)',
+    'hosts.inputAria': 'Neue Domain',
+    'hosts.invalid': 'Gültige Domain eingeben (z. B. example.com)',
+    'hosts.duplicate': 'Diese Domain ist bereits in der Liste',
+    'hosts.disabledOk': '{host} ist jetzt deaktiviert',
+    'hosts.removeTitle': '{host} entfernen',
+    /* ---------- language section ---------- */
+    /* ---------- restore section + modal ---------- */
+    'restore.title': 'Backup wiederherstellen',
+    'restore.desc': 'Wählen Sie eine JSON-Backup-Datei; vor dem Ausführen wird zwischen Zusammenführen und vollständigem Ersetzen gefragt.',
+    'restore.fileFail': 'Datei konnte nicht geöffnet werden',
+    'modal.name': 'Name der Sammlung',
+    'modal.highlights': 'Highlights',
+    'modal.exportDate': 'Exportdatum',
+    'modal.type': 'Typ',
+    'modal.partialValue': 'Selektives Backup (Teil der Bibliothek)',
+    'modal.merge': 'Zusammenführen',
+    'modal.mergeDesc': 'Neuere Einträge gewinnen; die aktuellen Daten bleiben erhalten.',
+    'modal.replace': 'Vollständig ersetzen',
+    'modal.replaceDesc': 'Alle aktuellen Daten werden gelöscht!',
+    'modal.start': 'Wiederherstellung starten',
+    /* ---------- danger zone ---------- */
+    'danger.title': 'Gefahrenzone',
+    'danger.desc': 'Das kann nicht rückgängig gemacht werden — exportieren Sie zuerst ein Backup.',
+    'danger.arm': 'Alle Highlights und Notizen löschen',
+    'danger.placeholder': 'Zur Bestätigung „delete“ eingeben',
+    'danger.inputAria': 'Löschen bestätigen',
+    'danger.go': 'Bestätigen und löschen',
+    'danger.done': 'Alle Highlights und Notizen wurden gelöscht',
+    /* ---------- modals ---------- */
+    'bk.title': 'Booklet & Markdown',
+    'bk.mdDesc': 'Für Obsidian und jeden Markdown-Editor — die gesamte Bibliothek in einer Datei, ein Abschnitt pro Artikel.',
+    'bk.mdBtn': 'Markdown-Datei herunterladen',
+    'bk.pickerTitle': 'Booklet-Artikel',
+    'bk.pickerHint': 'Ohne Auswahl kommen alle Artikel ins Booklet; mit Auswahl nur diese.',
+    'bk.pickerAria': 'Booklet-Artikel auswählen',
+    'bk.allArticles': 'Alle Artikel kommen ins Booklet.',
+    'bk.pickedStatus': '{n} Highlights aus {m} Artikeln kommen ins Booklet.',
+    'bk.printTitle': 'Druckbares Booklet',
+    'bk.printDesc': 'Für A4-Druck gestaltet — Deckblatt, Inhaltsverzeichnis und ein Artikel pro Seite.',
+    'bk.formatAria': 'Booklet-Format',
+    'bk.html': 'HTML-Datei',
+    'bk.htmlDesc': 'Eine druckfertige Datei — im Browser öffnen und Strg+P drücken.',
+    'bk.pdf': 'PDF',
+    'bk.pdfDesc': 'Der Druckdialog des Browsers öffnet sich — dort „Save as PDF“ wählen.',
+    'bk.colorAria': 'Farbmodus des Booklets',
+    'bk.color': 'Farbig',
+    'bk.colorDesc': 'Mit den Originalfarben der Highlights',
+    'bk.bw': 'Schwarz-Weiß',
+    'bk.bwDesc': 'Weniger Tinte — gut für normale Drucker',
+    'bk.fontAria': 'Booklet-Schriftart',
+    'bk.fontDefault': '{name} — Standard',
+    'bk.fontDesc': 'Ist sie nicht installiert, zeigt der Browser eine ähnliche Schrift',
+    'bk.fontCustom': 'Eigene Schriftart',
+    'bk.fontCustomDesc': 'Jede auf Ihrem Gerät installierte Schrift — geben Sie den genauen Namen ein',
+    'bk.fontCustomPlaceholder': 'z. B. B Nazanin',
+    'bk.build': 'Booklet erstellen',
+    'sel.title': 'Selektives Backup',
+    'sel.desc': 'Exportieren Sie einen Teil der Bibliothek — jede gewählte Website, jeder Artikel oder Tag nimmt seine Highlights mit in die Datei.',
+    'sel.sites': 'Websites',
+    'sel.sitesHint': 'Alle Highlights dieser Websites',
+    'sel.sitesAria': 'Websites auswählen',
+    'sel.articles': 'Artikel',
+    'sel.articlesHint': 'Highlights dieser Artikel',
+    'sel.articlesAria': 'Artikel auswählen',
+    'sel.tags': 'Tags',
+    'sel.tagsHint': 'Alle Highlights von Artikeln mit diesem Tag',
+    'sel.tagsAria': 'Tags auswählen',
+    'sel.emptySites': 'Noch keine Websites',
+    'sel.emptyArticles': 'Noch keine Artikel',
+    'sel.emptyTags': 'Noch keine Tags',
+    'sel.pickOne': 'Wählen Sie mindestens einen Eintrag aus.',
+    'sel.noMatch': 'Keine Highlights passen zu dieser Auswahl.',
+    'sel.status': { one: '1 Highlight kommt in die Datei.', other: '{n} Highlights kommen in die Datei.' },
+    'sel.download': 'Backup-Datei herunterladen',
+    /* ---------- dashboard toasts ---------- */
+    'toast.openPageNoUrl': 'Diese Seite hat keine gespeicherte Adresse',
+    'toast.openPageFail': 'Seite konnte nicht geöffnet werden',
+    'toast.openHlNoUrl': 'Dieses Highlight hat keine gespeicherte Adresse',
+    'toast.nothingToCopy': 'Nichts zu kopieren',
+    'toast.deleted': 'Highlight gelöscht',
+    'toast.groupDeleted': 'Die Highlights dieser Seite wurden gelöscht',
+    'toast.readFail': 'Daten konnten nicht gelesen werden',
+    'toast.backupOk': { one: 'Backup-Datei mit 1 Highlight heruntergeladen', other: 'Backup-Datei mit {n} Highlights heruntergeladen' },
+    'toast.partialBackupOk': { one: 'Selektives Backup mit 1 Highlight heruntergeladen', other: 'Selektives Backup mit {n} Highlights heruntergeladen' },
+    'toast.exportFail': 'Export fehlgeschlagen',
+    'toast.fileReadFail': 'Datei konnte nicht gelesen werden',
+    'toast.invalidBackup': 'Keine gültige Weboo-Backup-Datei',
+    'toast.importDone': '{a} hinzugefügt, {u} aktualisiert, {s} übersprungen',
+    'toast.restoreFail': 'Wiederherstellung fehlgeschlagen',
+    'toast.mdOk': { one: 'Markdown-Datei mit 1 Highlight heruntergeladen', other: 'Markdown-Datei mit {n} Highlights heruntergeladen' },
+    'toast.mdFail': 'Markdown-Export fehlgeschlagen',
+    'toast.nothingToExport': 'Es gibt keine Highlights zum Exportieren',
+    'toast.noArticlesForBooklet': 'Für das Booklet wurden keine Artikel ausgewählt',
+    'toast.printOpened': 'Der Druckdialog wurde geöffnet — für ein PDF „Save as PDF“ wählen',
+    'toast.bookletOk': { one: 'HTML-Booklet mit 1 Highlight heruntergeladen', other: 'HTML-Booklet mit {n} Highlights heruntergeladen' },
+    'toast.bookletFail': 'Booklet konnte nicht erstellt werden',
+    'toast.tagInvalid': 'Ungültiger Tag-Name (maximal {n} Zeichen)',
+    'toast.tagExists': 'Dieser Tag ist bereits an diesem Artikel',
+    'toast.tagCap': 'Maximal {n} Tags pro Artikel',
+    'toast.tagAdded': 'Tag „{tag}“ hinzugefügt',
+    'toast.tagSaveFail': 'Speichern des Tags fehlgeschlagen',
+    'toast.tagRemoved': 'Tag entfernt',
+    'toast.tagRemoveFail': 'Entfernen des Tags fehlgeschlagen',
+    /* ---------- popup ---------- */
+    'popup.brandSub': 'Highlights & Notizen — 100 % lokal',
+    'popup.settingsBtnTitle': 'Dashboard & Einstellungen',
+    'popup.unsupportedT': 'Diese Seite wird nicht unterstützt',
+    'popup.unsupportedDesc': 'Die Erweiterung funktioniert nur auf http-, https- und file-Seiten.',
+    'popup.openDash': 'Dashboard öffnen',
+    'popup.genericLbl': 'Gespeicherte Highlights insgesamt',
+    'popup.genericHint': 'Klicken Sie auf einer Webseite auf das Erweiterungssymbol, um die Highlights dieser Seite zu sehen.',
+    'popup.enabledHere': 'Auf dieser Website aktiv',
+    'popup.toggleAria': 'Erweiterung auf dieser Website aktiv',
+    'popup.applied': 'Angewendet ✓',
+    'popup.refreshHint': 'Wenn die Highlights nicht sofort erscheinen, laden Sie die Seite neu.',
+    'popup.listTitle': 'Highlights dieser Seite',
+    'popup.emptyT': 'Auf dieser Seite gibt es noch keine Highlights.',
+    'popup.emptyHint': 'Text auswählen und die schwebende Werkzeugleiste benutzen!',
+    'popup.dashboardBtn': 'Gesamtes Dashboard',
+    'popup.jumpTitle': 'Zu diesem Highlight springen',
+    'popup.hasNote': 'Hat eine Notiz',
+    'popup.themeTitle': 'Design: {name}',
+    'popup.themeChangeAria': 'Design wechseln ({name})',
+    'popup.countOf': '{a} von {b}',
+    'popup.backupOk': 'Backup-Datei heruntergeladen',
+    /* ---------- floating widgets ---------- */
+    'fw.toolbarAria': 'Highlight-Werkzeugleiste',
+    'fw.highlightColor': '{name} markieren',
+    'fw.noteTitle': 'Highlight + Notiz',
+    'fw.noteAria': 'Highlight mit Notiz',
+    'fw.copyAria': 'Den ausgewählten Text kopieren',
+    'fw.gripTitle': 'Fenster verschieben; ziehen und loslassen',
+    'fw.colorAria': 'Farbe {name}',
+    'fw.noNote': 'Für dieses Highlight gibt es noch keine Notiz.',
+    'fw.addNote': 'Notiz hinzufügen',
+    'fw.editNote': 'Notiz bearbeiten',
+    'fw.notePlaceholder': 'Ihre Notiz zu diesem Highlight…',
+    'fw.saved': 'Gespeichert ✓',
+    'fw.saveNote': 'Notiz speichern',
+    'fw.copyAllTitle': 'Text und Notiz kopieren',
+    'fw.deleteTitle': 'Highlight löschen',
+    'fw.deleteConfirm': 'Löschen?',
+    /* ---------- highlighter toasts ---------- */
+    'hl.copied': 'Kopiert ✓',
+    'hl.saveError': 'Speichern fehlgeschlagen.',
+    'hl.notHighlightable': 'Dieser Teil der Seite kann nicht markiert werden.',
+    'hl.deleted': 'Highlight gelöscht.',
+    'hl.notePrefix': '📝 Notiz: ',
+    /* ---------- service worker context menu ---------- */
+    'menu.highlight': '✨ „%s“ markieren',
+    /* ---------- export documents ---------- */
+    'ex.mdTitle': 'Mein Highlight-Booklet',
+    'ex.exportedFrom': 'Exportiert aus „{app}“',
+    'ex.mdEmpty': 'Noch keine Highlights.',
+    'ex.note': 'Notiz:',
+    'ex.tags': 'Tags:',
+    'ex.source': 'Quelle',
+    'ex.bookletTitle': 'Highlight-Booklet',
+    'ex.coverSub': 'Die vollständige Sammlung der Highlights und Notizen',
+    'ex.toc': 'Inhaltsverzeichnis',
+    'ex.madeWith': 'Erstellt mit „{app}“ · Version {v}',
+    'ex.foot': 'Erstellt mit „{app}“ — alle Daten bleiben ausschließlich auf Ihrem Gerät.',
+    'ex.coverAria': 'Booklet-Deckblatt'
+};
+/* ------------------------------------------------------------------ */
 /* Language registry + state                                           */
 /* ------------------------------------------------------------------ */
 /**
  * The language registry — order is the selector's display order; `dir` is
  * THE UI-direction policy (a language property, independent of content
- * direction — see shared/detect-dir.js).
+ * direction — see shared/detect-dir.js). A new language = one entry here,
+ * one dictionary below, and the union/type mirror in src/types/settings.ts.
  */
 export const LANGUAGES = {
     fa: { label: 'lang.fa', dir: 'rtl' },
-    en: { label: 'lang.en', dir: 'ltr' }
+    en: { label: 'lang.en', dir: 'ltr' },
+    de: { label: 'lang.de', dir: 'ltr' }
 };
-export const LANG_KEYS = ['fa', 'en'];
-const DICTS = { fa: fa, en: en };
+export const LANG_KEYS = ['fa', 'en', 'de'];
+/**
+ * The BCP-47 locale each language renders numbers and dates with — the ONE
+ * home of that mapping (format.js consumes it; no scattered conditionals).
+ */
+export const LOCALES = {
+    fa: 'fa-IR',
+    en: 'en-US',
+    de: 'de-DE'
+};
+const DICTS = { fa: fa, en: en, de: de };
 const DEFAULT_LANG = 'fa';
 /* Module-scoped state with explicit ownership: composition roots set it
    (content.js / popup.js / data.ts / the SW); everything else reads. */
@@ -640,7 +949,7 @@ const subscribers = new Set();
 /** Validates raw storage values — anything unknown degrades to the default
  *  (the same boundary-validation pattern as themes/colors). */
 export function validLanguage(v) {
-    return (v === 'fa' || v === 'en') ? v : DEFAULT_LANG;
+    return (LANG_KEYS.indexOf(v) !== -1) ? v : DEFAULT_LANG;
 }
 /** The active UI language. */
 export function getLanguage() {
@@ -683,7 +992,8 @@ const INTERP_RE = /\{(\w+)\}/g;
  * Persian numerals never pluralize — its plural-capable keys stay strings).
  */
 export function t(key, params) {
-    const raw = DICTS[current][key] !== undefined ? DICTS[current][key] : DICTS[current === 'fa' ? 'en' : 'fa'][key];
+    const own = DICTS[current][key];
+    const raw = own !== undefined ? own : DICTS.en[key]; /* fallback: the canonical dictionary, then the key itself */
     let s;
     if (raw && typeof raw === 'object') {
         const n = Number(params && params.n);
@@ -706,7 +1016,8 @@ export function t(key, params) {
  */
 export function count(key, n) {
     const num = Number(n) || 0;
-    const raw = DICTS[current][key] !== undefined ? DICTS[current][key] : DICTS[current === 'fa' ? 'en' : 'fa'][key];
+    const own = DICTS[current][key];
+    const raw = own !== undefined ? own : DICTS.en[key];
     let s;
     if (raw && typeof raw === 'object') {
         s = (num === 1) ? raw.one : raw.other;
@@ -716,7 +1027,7 @@ export function count(key, n) {
     }
     let formatted;
     try {
-        formatted = num.toLocaleString(current === 'en' ? 'en-US' : 'fa-IR');
+        formatted = num.toLocaleString(LOCALES[current]);
     }
     catch (e) {
         formatted = String(num);

@@ -6,7 +6,7 @@
 
   export const APP_NAME = 'وبو';
   export const APP_ID = 'weboo';
-  export const VERSION = '0.14.2';
+  export const VERSION = '0.15.0';
   export const BACKUP_FORMAT = 1;
   /**
    * Every app id the backup import gate accepts (v0.8.0 rebrand: exports
@@ -88,7 +88,7 @@
     showBadge: true,
     disabledHosts: [],
     theme: 'auto',
-    /* v0.14.0 — UI language ('fa' | 'en'; registry: shared/i18n.js LANGUAGES).
+    /* v0.15.0 — UI language ('fa' | 'en' | 'de'; registry: shared/i18n.js LANGUAGES).
        The default keeps existing users on the Persian/RTL interface; the
        missing-field case is the same value (mergeSettings validates). */
     language: 'fa'

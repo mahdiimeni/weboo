@@ -18,7 +18,7 @@
  * Never edit the .js directly; edit here.
  */
 import { COLORS } from "./constants.js";
-import { getLanguage } from "./i18n.js";
+import { getLanguage, LOCALES } from "./i18n.js";
 /* ---------- Numbers and sizes ---------- */
 /** Forced Persian digits — the ONE home of Persian digit rendering. */
 function faNum(n) {
@@ -29,11 +29,13 @@ function faNum(n) {
         return String(n || 0);
     }
 }
-/** Language-aware digits: Persian in fa, Latin in en (decimal «٫» vs «.»). */
+/** Language-aware digits: Persian in fa; Latin with each language's own
+ *  separators in en/de (decimal «٫» vs «.» vs «,»). */
 function num(n) {
-    if (getLanguage() === 'en') {
+    var lang = getLanguage();
+    if (lang !== 'fa') {
         try {
-            return Number(n || 0).toLocaleString('en-US');
+            return Number(n || 0).toLocaleString(LOCALES[lang]);
         }
         catch (e) {
             return String(n || 0);
@@ -43,13 +45,16 @@ function num(n) {
 }
 function fmtBytes(b) {
     b = Number(b) || 0;
-    var en = getLanguage() === 'en';
+    /* fa keeps the Persian units; en/de share the short Latin ones
+       (de renders «2,5 MB» via its own locale separators) */
+    var fa = getLanguage() === 'fa';
+    var loc = LOCALES[getLanguage()];
     try {
         if (b < 1024)
-            return b.toLocaleString(en ? 'en-US' : 'fa-IR') + (en ? ' B' : ' بایت');
+            return b.toLocaleString(loc) + (fa ? ' بایت' : ' B');
         if (b < 1048576)
-            return (b / 1024).toLocaleString(en ? 'en-US' : 'fa-IR', { maximumFractionDigits: 1 }) + (en ? ' KB' : ' کیلوبایت');
-        return (b / 1048576).toLocaleString(en ? 'en-US' : 'fa-IR', { maximumFractionDigits: 2 }) + (en ? ' MB' : ' مگابایت');
+            return (b / 1024).toLocaleString(loc, { maximumFractionDigits: 1 }) + (fa ? ' کیلوبایت' : ' KB');
+        return (b / 1048576).toLocaleString(loc, { maximumFractionDigits: 2 }) + (fa ? ' مگابایت' : ' MB');
     }
     catch (e) {
         return String(b);
@@ -58,8 +63,7 @@ function fmtBytes(b) {
 /* ---------- Dates and text ---------- */
 function fmtDateTime(ts) {
     try {
-        const en = getLanguage() === 'en';
-        return new Date(ts).toLocaleString(en ? 'en-US' : 'fa-IR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        return new Date(ts).toLocaleString(LOCALES[getLanguage()], { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     }
     catch (e) {
         return '';
@@ -75,7 +79,7 @@ function fmtDate(ts) {
         const d = new Date(ts);
         if (isNaN(d.getTime()))
             return '';
-        return d.toLocaleDateString(getLanguage() === 'en' ? 'en-US' : 'fa-IR', { year: 'numeric', month: 'short', day: 'numeric' });
+        return d.toLocaleDateString(LOCALES[getLanguage()], { year: 'numeric', month: 'short', day: 'numeric' });
     }
     catch (e) {
         return '';
@@ -118,7 +122,10 @@ function dotColorOf(key) {
 function faviconLetter(host) {
     const h = String(host || '').replace(/^www\./, '');
     const ch = (h.charAt(0) || '').toUpperCase();
-    return ch || (getLanguage() === 'en' ? 'W' : 'و');
+    if (ch)
+        return ch;
+    const FALLBACK = { fa: 'و', en: 'W', de: 'W' };
+    return FALLBACK[getLanguage()] || 'W';
 }
 /** URL without scheme for compact display */
 function displayUrl(url) {

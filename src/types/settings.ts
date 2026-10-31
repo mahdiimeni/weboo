@@ -12,9 +12,10 @@ import type { HighlightColor } from './highlight';
 export type ThemeKey = 'auto' | 'light' | 'dark';
 
 /** UI language — drives the interface language, direction and the calendar
- *  of the displayed dates (fa → rtl + Jalali, en → ltr + Gregorian). Mirrors
- *  LANG_KEYS in shared/i18n (src/shared/i18n.ts — the runtime registry). */
-export type Language = 'fa' | 'en';
+ *  of the displayed dates (fa → rtl + Jalali; en/de → ltr + Gregorian, with
+ *  de rendering German number/date formats). Mirrors LANG_KEYS in
+ *  shared/i18n (src/shared/i18n.ts — the runtime registry). */
+export type Language = 'fa' | 'en' | 'de';
 
 export interface Settings {
   defaultColor: HighlightColor;

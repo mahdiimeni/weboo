@@ -131,6 +131,42 @@ describe("format in en mode", () => {
   });
 });
 
+/* ---------- German formatting (v0.15.0 — the third language) ---------- */
+
+describe("format in de mode", () => {
+  test("num → Latin digits with German separators (1.250); faNum stays forced-Persian", () => {
+    HL.setLanguage("de");
+    expect(HL.format.num(125)).toBe("125");
+    expect(HL.format.num(1250)).toBe("1.250");
+    expect(HL.format.faNum(125)).toBe("۱۲۵");
+    HL.setLanguage("fa");
+  });
+
+  test("fmtBytes → short Latin units with German decimal comma (2,5 MB)", () => {
+    HL.setLanguage("de");
+    expect(HL.format.fmtBytes(500)).toBe("500 B");
+    expect(HL.format.fmtBytes(2621440)).toBe("2,5 MB");
+    HL.setLanguage("fa");
+  });
+
+  test("fmtDate → Gregorian in German (Okt); fmtDateTime follows; isoDate invariant", () => {
+    HL.setLanguage("de");
+    const de = HL.format.fmtDate(NOON);
+    expect(de).toContain("2024");
+    expect(de).toContain("Okt");
+    expect(/[۰-۹]/.test(de)).toBe(false);
+    expect(HL.format.fmtDateTime(NOON)).toContain("2024");
+    expect(HL.format.isoDate(NOON)).toBe("2024-10-27"); /* machine-readable stays Gregorian ISO */
+    HL.setLanguage("fa");
+  });
+
+  test("faviconLetter hostless fallback → W in de", () => {
+    HL.setLanguage("de");
+    expect(HL.format.faviconLetter("")).toBe("W");
+    HL.setLanguage("fa");
+  });
+});
+
 /* ---------- popup data + view ---------- */
 
 describe("popup surfaces in en mode", () => {
@@ -337,7 +373,7 @@ describe("exports in en mode", () => {
 /* ---------- React pieces ---------- */
 
 describe("React components in en mode", () => {
-  test("LanguageRadios renders both languages, checked follows the prop", async () => {
+  test("LanguageRadios renders every registered language, checked follows the prop", async () => {
     const { setupDom: sd } = await import("./helpers/engine");
     void sd;
     const React = await import("react");
@@ -350,10 +386,10 @@ describe("React components in en mode", () => {
     root.render(React.createElement(LanguageRadios, { lang: "fa", onSelect: () => {} }));
     await new Promise((r) => setTimeout(r, 20));
     const radios = [...host.querySelectorAll('input[type="radio"][name="hlx-language"]')] as HTMLInputElement[];
-    expect(radios.map((r) => r.value)).toEqual(["fa", "en"]);
+    expect(radios.map((r) => r.value)).toEqual(["fa", "en", "de"]);
     expect(radios[0].checked).toBe(true);
     const labels = [...host.querySelectorAll("label.radio strong")].map((s) => s.textContent);
-    expect(labels).toEqual(["Persian", "English"]);
+    expect(labels).toEqual(["Persian", "English", "German"]);
     root.unmount();
     setBunLanguage("fa");
     const host2 = document.createElement("div");
@@ -362,7 +398,7 @@ describe("React components in en mode", () => {
     root2.render(React.createElement(LanguageRadios, { lang: "fa", onSelect: () => {} }));
     await new Promise((r) => setTimeout(r, 20));
     const labels2 = [...host2.querySelectorAll("label.radio strong")].map((s) => s.textContent);
-    expect(labels2).toEqual(["فارسی", "English"]); /* en's own name never translates */
+    expect(labels2).toEqual(["فارسی", "English", "Deutsch"]); /* the names keep their endonym/exonym pattern */
     root2.unmount();
     setBunLanguage("fa");
   });

@@ -17,27 +17,28 @@ beforeEach(async () => {
 /* ---------- dictionary integrity ---------- */
 
 describe("dictionaries", () => {
-  test("fa and en carry exactly the same key set (no missing, no extra)", () => {
+  test("every language resolves every canonical key (no missing, no extra)", () => {
     /* the emitted module does not export the raw dicts — the compile-time
        Record<TranslationKey, …> typing owns the parity; here we verify the
-       RUNTIME side through t(): every en key resolves in fa (the default)
-       and every fa key resolves in en — a missing entry would return the
-       key itself. The en key list comes from the source (the canonical set). */
+       RUNTIME side through t(): every canonical (en) key resolves in EVERY
+       registered language — a missing entry would return the key itself.
+       The en key list comes from the source (the canonical set). */
     const src = readFile(ext("..", "src", "shared", "i18n.ts"));
     const enBlock = src.slice(src.indexOf("const en = {"), src.indexOf("} as const;"));
     const keys = [...enBlock.matchAll(/'([a-z]+\.[A-Za-z0-9]+)':/g)].map((m) => m[1]);
     expect(keys.length).toBeGreaterThan(150);
-    for (const k of keys) {
-      expect({ key: k, fa: HL.setLanguage("fa"), en: HL.setLanguage("en") });
-      HL.setLanguage("fa");
-      expect(HL.t(k)).not.toBe(k); /* resolves in fa */
-      HL.setLanguage("en");
-      expect(HL.t(k)).not.toBe(k); /* resolves in en */
+    const langs = HL.LANG_KEYS;
+    expect(langs).toEqual(["fa", "en", "de"]);
+    for (const lang of langs) {
+      for (const k of keys) {
+        HL.setLanguage(lang);
+        expect(HL.t(k)).not.toBe(k); /* resolves in this language */
+      }
     }
     HL.setLanguage("fa");
   });
 
-  test("no translation value is empty (both languages)", () => {
+  test("no translation value is empty (all languages)", () => {
     const src = readFile(ext("..", "src", "shared", "i18n.ts"));
     const faBlock = src.slice(src.indexOf("const fa: Record<TranslationKey, DictValue> = {"), src.indexOf("export type TranslationKey"));
     /* every quoted value is non-empty */
@@ -234,6 +235,52 @@ describe("call-site key coverage", () => {
   });
 });
 
+/* ---------- German (v0.15.0 — the third language) ---------- */
+
+describe("German dictionary", () => {
+  test("de is a registered language: dirOf ltr, locale de-DE, selectable", () => {
+    expect(HL.setLanguage("de")).toBe("de");
+    expect(HL.getLanguage()).toBe("de");
+    expect(HL.dirOf("de")).toBe("ltr");
+    expect(HL.LOCALES.de).toBe("de-DE");
+    HL.setLanguage("fa");
+  });
+
+  test("German plural morphology: Notiz/Notizen, Highlight/Highlights — Artikel is invariable", () => {
+    HL.setLanguage("de");
+    expect(HL.count("common.nNotes", 1)).toBe("1 Notiz");
+    expect(HL.count("common.nNotes", 3)).toBe("3 Notizen");
+    expect(HL.count("common.nHighlights", 1)).toBe("1 Highlight");
+    expect(HL.count("common.nHighlights", 12)).toBe("12 Highlights");
+    expect(HL.count("common.nArticles", 1)).toBe("1 Artikel");
+    expect(HL.count("common.nArticles", 7)).toBe("7 Artikel"); /* same form — a plain string entry */
+    HL.setLanguage("fa");
+  });
+
+  test("German interpolation carries umlauts and quotes", () => {
+    HL.setLanguage("de");
+    expect(HL.t("hosts.disabledOk", { host: "a.com" })).toBe("a.com ist jetzt deaktiviert");
+    expect(HL.t("toast.tagAdded", { tag: "Arbeit" })).toBe("Tag „Arbeit“ hinzugefügt");
+    expect(HL.t("popup.countOf", { a: "8", b: "12" })).toBe("8 von 12");
+    HL.setLanguage("fa");
+  });
+
+  test("applyDom renders German statics", () => {
+    document.body.innerHTML = '<p id="a" data-i18n="popup.listTitle">x</p>';
+    HL.setLanguage("de");
+    HL.applyDom(document);
+    expect(document.getElementById("a")!.textContent).toBe("Highlights dieser Seite");
+    HL.setLanguage("fa");
+  });
+
+  test("a valid German language persists through the store (merge boundary)", async () => {
+    const store = HL.createStore(HL.backends.memoryArea());
+    await store.setSettings({ language: "de" });
+    const s = await store.getSettings();
+    expect(s.language).toBe("de");
+  });
+});
+
 /* ---------- settings integration (merge boundary) ---------- */
 
 describe("settings ↔ language", () => {
@@ -292,6 +339,17 @@ describe("theme-boot lang mirror", () => {
     const root = win.document.documentElement;
     expect(root.getAttribute("lang")).toBe("en");
     expect(root.getAttribute("dir")).toBe("ltr");
+  });
+
+  test("mirror=de → html lang=de dir=ltr (the third language boots anti-flash too)", async () => {
+    const win = (globalThis as any).window;
+    win.localStorage.setItem("hlx:lang", "de");
+    const { evalClassic } = await import("./helpers/engine");
+    evalClassic(ext("shared", "theme-boot.js"));
+    const root = win.document.documentElement;
+    expect(root.getAttribute("lang")).toBe("de");
+    expect(root.getAttribute("dir")).toBe("ltr");
+    win.localStorage.removeItem("hlx:lang");
   });
 
   test("mirror=fa → rtl; invalid mirror → the static markup stands", async () => {
