@@ -254,14 +254,32 @@ describe("format in zh/ja/ko modes", () => {
 /* ---------- Arabic (v0.18.0 — the second RTL language) ---------- */
 
 describe("format in ar mode", () => {
-  test("Western digits, Arabic month name, point-free short date; isoDate invariant", () => {
+  test("HIJRI dates via islamic-umalqura (v0.19.0) — Arabic month, Hijri year, Western digits", () => {
     HL.setLanguage("ar");
-    expect(HL.format.num(1250)).toBe("1,250"); /* plain 'ar' locale → Western digits */
     const d = HL.format.fmtDate(NOON);
-    expect(d).toContain("2024");
-    expect(d).toContain("أكتوبر");
+    /* 2024-10-27 = 24 Rabiʿ al-Thani 1446 AH (Umm al-Qura) */
+    expect(d).toBe("24 ربيع الآخر 1446 هـ");
+    expect(d).not.toContain("2024"); /* the Gregorian year must not leak */
+    expect(d).not.toContain("أكتوبر");
+    /* the datetime variant rides the same calendar */
+    expect(HL.format.fmtDateTime(NOON)).toContain("1446 هـ");
+    /* numbers stay on the NUMBER locale: Western digits, calendar-independent */
+    expect(HL.format.num(1250)).toBe("1,250");
     expect(HL.format.fmtBytes(2621440)).toBe("2.5 MB");
+    /* machine-readable metadata stays Gregorian ISO */
     expect(HL.format.isoDate(NOON)).toBe("2024-10-27");
+    HL.setLanguage("fa");
+  });
+
+  test("Gregorian month names never leak into the Arabic date path (boundary smoke)", () => {
+    HL.setLanguage("ar");
+    /* around the Gregorian/Hijri year ends — both must render valid Hijri */
+    for (const ts of [NOON, Date.UTC(2025, 0, 1, 12), Date.UTC(2025, 5, 15, 12), Date.UTC(2024, 1, 29, 12)]) {
+      const d = HL.format.fmtDate(ts);
+      expect(d).not.toBe("");
+      expect(d).toContain("هـ"); /* the Hijri era marker */
+      expect(HL.format.isoDate(ts)).not.toBe(""); /* ISO stays Gregorian-valid */
+    }
     HL.setLanguage("fa");
   });
 

@@ -3720,6 +3720,31 @@ export const LOCALES = {
        Arabic-Indic digits; the technical UI reads better with Latin digits) */
     ar: 'ar'
 };
+/**
+ * The DATE locale per language — the calendar policy lives here as a BCP-47
+ * -u-ca- extension, separate from LOCALES (digits/separators are calendar-
+ * independent, so number formatting stays on LOCALES):
+ *   fa → Persian (Jalali) calendar — now EXPLICIT instead of relying on
+ *        ICU's fa-IR default (output-identical, environment-robust),
+ *   ar → Islamic (Umm al-Qura) calendar — the Hijri dates, Western digits
+ *        preserved by the region-neutral base,
+ *   everything else → Gregorian (the plain locale).
+ * Consumers: format.js fmtDate/fmtDateTime ONLY.
+ */
+export const DATE_LOCALES = {
+    fa: 'fa-IR-u-ca-persian',
+    en: 'en-US',
+    de: 'de-DE',
+    es: 'es-ES',
+    ru: 'ru-RU',
+    it: 'it-IT',
+    fr: 'fr-FR',
+    tr: 'tr-TR',
+    zh: 'zh-CN',
+    ja: 'ja-JP',
+    ko: 'ko-KR',
+    ar: 'ar-u-ca-islamic-umalqura'
+};
 const DICTS = { fa: fa, en: en, de: de, es: es, ru: ru, it: it, fr: fr, tr: tr, zh: zh, ja: ja, ko: ko, ar: ar };
 const DEFAULT_LANG = 'fa';
 /* Module-scoped state with explicit ownership: composition roots set it

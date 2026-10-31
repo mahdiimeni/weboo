@@ -6,7 +6,10 @@
  *
  * Language-awareness (v0.14.0): user-visible rendering follows the ACTIVE
  * UI language (shared/i18n.js): fa → Persian digits + Jalali calendar +
- * Persian units; en → Latin digits + Gregorian calendar + Latin units.
+ * Persian units; en → Latin digits + Gregorian calendar + Latin units;
+ * ar (v0.18.0) → Western digits + Hijri (Umm al-Qura) calendar via the
+ * DATE_LOCALES registry — the calendar is a date-locale property, numbers
+ * stay on LOCALES.
  * Internal values stay language-independent (timestamps are UTC epochs,
  * isoDate stays Gregorian for machine-readable metadata). faNum remains the
  * ONE home of forced Persian digits (Persian-chrome islands and legacy
@@ -18,7 +21,7 @@
  * Never edit the .js directly; edit here.
  */
 import { COLORS } from "./constants.js";
-import { getLanguage, LOCALES } from "./i18n.js";
+import { getLanguage, LOCALES, DATE_LOCALES } from "./i18n.js";
 
 
 
@@ -59,7 +62,9 @@ import { getLanguage, LOCALES } from "./i18n.js";
 
   function fmtDateTime(ts: number) {
     try {
-      return new Date(ts).toLocaleString(LOCALES[getLanguage()], { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      /* DATE_LOCALES carries the calendar policy (fa → Jalali, ar → Hijri
+         Umm al-Qura, others Gregorian) — LOCALES stays number-only */
+      return new Date(ts).toLocaleString(DATE_LOCALES[getLanguage()], { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
     } catch (e) { return ''; }
   }
 
@@ -72,7 +77,7 @@ import { getLanguage, LOCALES } from "./i18n.js";
     try {
       const d = new Date(ts);
       if (isNaN(d.getTime())) return '';
-      return d.toLocaleDateString(LOCALES[getLanguage()], { year: 'numeric', month: 'short', day: 'numeric' });
+      return d.toLocaleDateString(DATE_LOCALES[getLanguage()], { year: 'numeric', month: 'short', day: 'numeric' });
     } catch (e) { return ''; }
   }
 

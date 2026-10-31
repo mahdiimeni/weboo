@@ -11,7 +11,7 @@ let HL: any;
 
 beforeEach(async () => {
   setupDom();
-  HL = await loadEngine({ files: ["shared/constants.js", "shared/i18n.js", "shared/backends/chrome-storage.js", "shared/tags.js", "shared/store.js"] });
+  HL = await loadEngine({ files: ["shared/constants.js", "shared/i18n.js", "shared/format.js", "shared/backends/chrome-storage.js", "shared/tags.js", "shared/store.js"] });
 });
 
 /* ---------- dictionary integrity ---------- */
@@ -306,6 +306,23 @@ describe("German dictionary", () => {
 });
 
 /* ---------- Arabic (v0.18.0 — the second RTL language, six plural forms) ---------- */
+
+describe("DATE_LOCALES — the calendar policy registry (v0.19.0)", () => {
+  test("fa is EXPLICITLY Jalali (persian), ar is Hijri (islamic-umalqura), the rest Gregorian", () => {
+    expect(HL.DATE_LOCALES.fa).toBe("fa-IR-u-ca-persian");
+    expect(HL.DATE_LOCALES.ar).toBe("ar-u-ca-islamic-umalqura");
+    for (const lang of ["en", "de", "es", "ru", "it", "fr", "tr", "zh", "ja", "ko"]) {
+      expect(HL.DATE_LOCALES[lang]).toBe(HL.LOCALES[lang]); /* plain Gregorian */
+    }
+  });
+
+  test("fa's Jalali output is unchanged by the explicit tag (regression)", () => {
+    HL.setLanguage("fa");
+    const d = HL.format.fmtDate(Date.UTC(2024, 9, 27, 12));
+    expect(d).toContain("۱۴۰۳"); /* Jalali year */
+    expect(d).toContain("آبان"); /* the Jalali month — 6 آبان ۱۴۰۳ */
+  });
+});
 
 describe("Arabic dictionary", () => {
   test("ar is a registered RTL language: dirOf rtl, locale ar, selectable", () => {
