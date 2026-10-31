@@ -14,7 +14,8 @@ let HL: any;
 
 beforeEach(async () => {
   setupDom();
-  HL = await loadEngine({ files: ["shared/constants.js", "shared/format.js", "shared/detect-dir.js", "popup/popup-data.js"] });
+  HL = await loadEngine({ files: ["shared/constants.js", "shared/i18n.js", "shared/format.js", "shared/detect-dir.js", "popup/popup-data.js"] });
+  HL.setLanguage("fa"); /* Persian-contract suite (default en since v0.20.0) */
 });
 
 describe("پاپ‌آپ — لایه‌ی داده (HL.pop)", () => {

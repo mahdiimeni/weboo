@@ -13,7 +13,7 @@
  * No heavy state is kept (the SW may sleep between events) —
  * just a light settings cache refreshed by storage events.
  */
-import { APP_ID, DEFAULT_SETTINGS, MSG } from '../shared/constants.js';
+import { APP_ID, DEFAULT_SETTINGS, MSG, SETTINGS_HASH } from '../shared/constants.js';
 import { backends } from '../shared/backends/chrome-storage.js';
 import { createStoreReader } from '../shared/store.js';
 import { parseMessage } from '../shared/message-guard.js';
@@ -157,8 +157,23 @@ const reader = createStoreReader(backends.chromeStorage());
   } catch (e) { /* noop */ }
 
   try {
-    chrome.runtime.onInstalled.addListener(function () {
+    chrome.runtime.onInstalled.addListener(function (details) {
       ensureContextMenus();
+      /* v0.20.0 — first-run onboarding: on INSTALL and UPDATE, open the
+         dashboard with the settings drawer open (the exact deep-link the
+         popup's gear button uses — dashboard.html#hlx-settings, handled by
+         the dashboard's chrome.ts). onInstalled dispatches once per event
+         and never re-fires on wake-ups, so "once" needs no extra guard. */
+      try {
+        const reason = details && details.reason;
+        if (reason === 'install' || reason === 'update') {
+          let url = 'dashboard.html#' + SETTINGS_HASH;
+          try { url = chrome.runtime.getURL('dashboard.html#' + SETTINGS_HASH); } catch (e) { /* keep the relative default */ }
+          const cb = function () { void chrome.runtime.lastError; };
+          const p = chrome.tabs.create({ url: url }, cb);
+          settle(p);
+        }
+      } catch (e) { /* noop */ }
     });
   } catch (e) { /* noop */ }
 

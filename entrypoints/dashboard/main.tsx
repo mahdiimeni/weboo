@@ -38,9 +38,9 @@ if (bulkHost) mounts.push([bulkHost, <BulkRegion />]);
 const themeHost = document.getElementById("theme-radios");
 if (themeHost) mounts.push([themeHost, <ThemeRegion />]);
 
-/* v0.14.0 — the «زبان رابط کاربری» radios (the language section's inner
+/* v0.20.0 — the «زبان رابط کاربری» DROPDOWN (the language section's inner
    host — the shell owns the section chrome, the same region-mount contract) */
-const languageHost = document.getElementById("language-radios");
+const languageHost = document.getElementById("language-select");
 if (languageHost) mounts.push([languageHost, <LanguageRegion />]);
 
 const dotsHost = document.getElementById("color-dots");

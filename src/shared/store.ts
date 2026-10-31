@@ -109,8 +109,13 @@ export interface BackupSelection {
   var K_SCHEMA = 'hlx:schemaVersion';
 
   /* The shape this build reads/writes (v1 = the explicit name for the
-     pre-versioning shape — no data rewritten when versioning landed). */
-  var SCHEMA_VERSION = 1;
+     pre-versioning shape — no data rewritten when versioning landed).
+     v2 (v0.20.0): the UI-language default moved fa → en; the 1→2 step
+     stamps 'fa' into EXISTING settings that predate the language field
+     (a settings key present = an installed user) so upgrading users keep
+     their Persian interface. Fresh installs have no settings key at all —
+     the step writes nothing there and the new default ('en') applies. */
+  var SCHEMA_VERSION = 2;
 
   function dataKey(host: string) { return P_DATA + host; }
   function faviconKey(host: string) { return P_FAVICON + host; }
@@ -216,7 +221,25 @@ export interface BackupSelection {
    * real step lands here — target stays at SCHEMA_VERSION and bump it.
    */
   var MIGRATIONS: MigrationStep[] = [
-    { from: 0, to: 1, run: async function () { /* pre-versioning shape IS v1 — nothing to rewrite */ } }
+    { from: 0, to: 1, run: async function () { /* pre-versioning shape IS v1 — nothing to rewrite */ } },
+    {
+      from: 1,
+      to: 2,
+      run: async function (backend) {
+        /* the language default moved fa → en: preserve every INSTALLED
+           user's Persian interface by stamping 'fa' into settings that
+           predate the field. Idempotent (a second run finds language
+           present and writes nothing); a fresh install (no settings key)
+           writes nothing and takes the new default. */
+        var o = await backend.get(K_SETTINGS);
+        var cur = o ? o[K_SETTINGS] : undefined;
+        if (cur && typeof cur === 'object' && (cur as Record<string, unknown>).language === undefined) {
+          var stamped: Record<string, unknown> = {};
+          stamped[K_SETTINGS] = Object.assign({}, cur, { language: 'fa' });
+          await backend.set(stamped);
+        }
+      }
+    }
   ];
 
   async function migrateSchema(backend: StorageBackend, opts?: StoreOpts): Promise<number> {
@@ -676,10 +699,18 @@ export interface BackupSelection {
       }
       var current = await getAllRecordsRaw();
       if (mode === 'replace') {
+        /* the user's language choice survives a restore of an OLDER backup
+           whose settings predate the language field (v0.20.0) — a replace
+           rewrites settings, but not the preference the 1→2 migration
+           promised to preserve */
+        var prevSettings = await getSettingsRaw();
+        var hadLanguage = !!(backup.settings && typeof backup.settings === 'object' && (backup.settings as Record<string, unknown>).language !== undefined);
         await clearAllRaw();
         report.removed = current.size;
         if (backup.settings) {
-          await setRaw(makeObj(K_SETTINGS, mergeSettings(backup.settings)));
+          var merged = mergeSettings(backup.settings);
+          if (!hadLanguage) merged.language = prevSettings.language;
+          await setRaw(makeObj(K_SETTINGS, merged));
         }
       }
       var incoming: Record<string, any>[] = [];

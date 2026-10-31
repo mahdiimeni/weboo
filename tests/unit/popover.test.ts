@@ -13,6 +13,7 @@ let win: any;
 beforeEach(async () => {
   win = setupDom();
   HL = await loadEngine({});
+  HL.ui.setLang("fa"); /* Persian-chrome suite (default en since v0.20.0) */
 });
 
 function makePopover(events: any = {}) {

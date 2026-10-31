@@ -159,6 +159,7 @@ describe("HL.format (فرمت‌های نمایشی)", () => {
   test("fmtBytes: بایت/کیلوبایت با ارقام فارسی", async () => {
     setupDom();
     const HL = await loadEngine({});
+    HL.setLanguage("fa"); /* the Persian-units contract (default en since v0.20.0) */
     expect(HL.format.fmtBytes(500)).toContain("بایت");
     expect(HL.format.fmtBytes(2048)).toContain("کیلوبایت");
     expect(HL.format.fmtBytes(3 * 1048576)).toContain("مگابایت");
@@ -174,6 +175,7 @@ describe("HL.format (فرمت‌های نمایشی)", () => {
   test("faviconLetter: حرف اول هاست بدون www", async () => {
     setupDom();
     const HL = await loadEngine({});
+    HL.setLanguage("fa"); /* the Persian fallback-letter contract */
     expect(HL.format.faviconLetter("www.wikipedia.org")).toBe("W");
     expect(HL.format.faviconLetter("")).toBe("و");
   });

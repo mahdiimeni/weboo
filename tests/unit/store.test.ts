@@ -603,7 +603,10 @@ describe("hlx:schemaVersion — قرارداد نسخه‌ی اسکیما (forwa
     expect(recs.get("a1")).toEqual(rec); /* byte-identical record */
     expect((await store.getSettings()).defaultColor).toBe("teal"); /* merged, not reset */
     expect(await store.getTags()).toEqual({ "https://site1.com/p": ["تگ‌ها"] });
-    expect(await rawVersion(HL)).toBe(1); /* stamped after success */
+    expect(await rawVersion(HL)).toBe(2); /* stamped after success (0→1 noop, 1→2 language stamp) */
+    const stamped = await HL.backends.chromeStorage().get("hlx:settings");
+    expect(stamped["hlx:settings"].language).toBe("fa"); /* the 1→2 migration: an existing record keeps Persian */
+    expect(stamped["hlx:settings"].defaultColor).toBe("teal"); /* and nothing else was touched */
   });
 
   test("نسخه‌ی جدیدتر (کاربر downgrade کرده) هرگز دست نمی‌خورد", async () => {
@@ -650,7 +653,7 @@ describe("hlx:schemaVersion — قرارداد نسخه‌ی اسکیما (forwa
     const store = HL.createStore(HL.backends.chromeStorage());
     const p = store.save(await makeRecord("a1", "site1.com", "https://site1.com/p")); /* issued immediately */
     await p;
-    expect(await rawVersion(HL)).toBe(1); /* stamp completed before the queued write landed */
+    expect(await rawVersion(HL)).toBe(2); /* stamp completed before the queued write landed */
     expect((await store.getAllRecords()).size).toBe(1);
   });
 
@@ -662,7 +665,7 @@ describe("hlx:schemaVersion — قرارداد نسخه‌ی اسکیما (forwa
     await store.save(await makeRecord("a1", "site1.com", "https://site1.com/p"));
     await store.clearAll();
     expect((await store.getAllRecords()).size).toBe(0);
-    expect(await rawVersion(HL)).toBe(1); /* schema metadata survives a user wipe */
+    expect(await rawVersion(HL)).toBe(2); /* schema metadata survives a user wipe */
   });
 });
 

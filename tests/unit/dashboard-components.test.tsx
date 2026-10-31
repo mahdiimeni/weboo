@@ -29,7 +29,10 @@ import { setLanguage as setBundleLanguage } from "../../extension/shared/i18n.js
 import { GroupCard } from "../../src/dashboard/components/GroupCard";
 import { dash } from "../../extension/dashboard/dashboard-data.js";
 
-beforeEach(() => { setupDom(); });
+beforeEach(() => {
+  setupDom();
+  setBundleLanguage("fa"); /* the Persian-copy contract (the product default is en since v0.20.0) */
+});
 
 const tick = () => new Promise((r) => setTimeout(r, 20));
 

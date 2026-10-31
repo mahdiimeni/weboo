@@ -4070,7 +4070,7 @@ export const DATE_LOCALES: Record<Language, string> = {
 
 const DICTS: Record<Language, Record<TranslationKey, DictValue>> = { fa: fa, en: en, de: de, es: es, ru: ru, it: it, fr: fr, tr: tr, zh: zh, ja: ja, ko: ko, ar: ar };
 
-const DEFAULT_LANG: Language = 'fa';
+const DEFAULT_LANG: Language = 'en';
 
 /* Module-scoped state with explicit ownership: composition roots set it
    (content.js / popup.js / data.ts / the SW); everything else reads. */

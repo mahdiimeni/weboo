@@ -277,11 +277,14 @@ describe("پاپ‌آپ — زبان رابط کاربری (v0.14.0)", () => {
     expect(win.document.querySelector("#hl-list .date").textContent).not.toContain("۱۴");
   });
 
-  test("زبان پیش‌فرض (بدون فیلد) → فارسی و RTL — قرارداد کاربران فعلی", async () => {
-    const seed: Record<string, any> = { ...SETTINGS };
-    delete seed.language; /* a pre-i18n record */
-    await boot({ "hlx:settings": seed }, FA_TAB);
-    expect(win.document.documentElement.getAttribute("dir")).toBe("rtl");
-    expect(win.document.querySelector('[data-i18n="popup.listTitle"]').textContent).toContain("هایلایت‌های این صفحه");
+  test("نصب تازه (بدون کلید تنظیمات) → انگلیسی و LTR — قرارداد پیش‌فرض (v0.20.0)", async () => {
+    /* a FRESH install has no settings key at all — the 1→2 migration writes
+       nothing there and the new default (en) applies; a seeded settings
+       object without the field would be an UPGRADING user and correctly
+       keeps fa via the migration */
+    await boot({}, FA_TAB);
+    expect(win.document.documentElement.getAttribute("dir")).toBe("ltr");
+    expect(win.document.documentElement.getAttribute("lang")).toBe("en");
+    expect(win.document.querySelector('[data-i18n="popup.listTitle"]').textContent).toContain("This page’s highlights");
   });
 });

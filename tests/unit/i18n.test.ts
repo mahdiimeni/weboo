@@ -99,16 +99,16 @@ describe("t() and count()", () => {
 /* ---------- language state ---------- */
 
 describe("language state", () => {
-  test("default language is fa (backward compatibility)", () => {
-    expect(HL.getLanguage()).toBe("fa");
+  test("default language is en (v0.20.0 — new installs; existing users keep fa via the schema 1→2 migration)", () => {
+    expect(HL.getLanguage()).toBe("en");
   });
 
-  test("invalid values degrade to fa (boundary validation)", () => {
-    expect(HL.setLanguage("xx")).toBe("fa");
-    expect(HL.setLanguage("pt")).toBe("fa"); /* not registered */
-    expect(HL.setLanguage(undefined)).toBe("fa");
-    expect(HL.setLanguage("EN" as any)).toBe("fa"); /* exact match only */
-    expect(HL.setLanguage("en")).toBe("en");
+  test("invalid values degrade to en (boundary validation — the v0.20.0 default)", () => {
+    expect(HL.setLanguage("xx")).toBe("en");
+    expect(HL.setLanguage("pt")).toBe("en"); /* not registered */
+    expect(HL.setLanguage(undefined)).toBe("en");
+    expect(HL.setLanguage("EN" as any)).toBe("en"); /* exact match only */
+    expect(HL.setLanguage("fa")).toBe("fa");
     HL.setLanguage("fa");
   });
 
@@ -373,25 +373,51 @@ describe("Arabic dictionary", () => {
 /* ---------- settings integration (merge boundary) ---------- */
 
 describe("settings ↔ language", () => {
-  test("DEFAULT_SETTINGS carries language 'fa'", () => {
-    expect(HL.DEFAULT_SETTINGS.language).toBe("fa");
+  test("DEFAULT_SETTINGS carries language 'en' (v0.20.0)", () => {
+    expect(HL.DEFAULT_SETTINGS.language).toBe("en");
   });
 
-  test("missing language on a stored record → fa; other preferences preserved", async () => {
+  test("a FRESH store (no settings key) → the new default en; other preferences preserved", async () => {
     const store = HL.createStore(HL.backends.memoryArea());
     await store.setSettings({ theme: "dark", defaultColor: "teal" });
     const s = await store.getSettings();
-    expect(s.language).toBe("fa");
+    expect(s.language).toBe("en"); /* the v0.20.0 default for fresh installs */
     expect(s.theme).toBe("dark");
     expect(s.defaultColor).toBe("teal");
   });
 
-  test("invalid stored language → fa (never crashes, never spreads)", async () => {
+  test("the 1→2 migration: EXISTING settings without the language field are stamped 'fa' (upgrading users keep Persian)", async () => {
+    const backend = HL.backends.memoryArea();
+    await backend.set({ "hlx:settings": { theme: "dark", defaultColor: "teal" } }); /* a pre-v0.14 record — no language, no stamp */
+    const store = HL.createStore(HL.backends.memoryArea());
+    /* wait — the store must read THIS backend; rebuild over the seeded one */
+    void store;
+    const store2 = HL.createStore(backend);
+    const s = await store2.getSettings(); /* first op → the migration rides the queue */
+    expect(s.language).toBe("fa"); /* the migration's stamp */
+    expect(s.theme).toBe("dark");
+    expect(s.defaultColor).toBe("teal");
+    /* and it is stamped durable in storage truth */
+    const raw = await backend.get("hlx:settings");
+    expect((raw["hlx:settings"] as any).language).toBe("fa");
+  });
+
+  test("the 1→2 migration never touches settings that already carry a language", async () => {
+    const backend = HL.backends.memoryArea();
+    await backend.set({ "hlx:settings": { theme: "dark", language: "de" } });
+    const store = HL.createStore(backend);
+    const s = await store.getSettings();
+    expect(s.language).toBe("de"); /* the user's explicit choice wins */
+    const raw = await backend.get("hlx:settings");
+    expect((raw["hlx:settings"] as any).language).toBe("de");
+  });
+
+  test("invalid stored language → en (never crashes, never spreads — the v0.20.0 default)", async () => {
     const backend = HL.backends.memoryArea();
     await backend.set({ "hlx:settings": { theme: "light", language: "xx" } });
     const store = HL.createStore(backend);
     const s = await store.getSettings();
-    expect(s.language).toBe("fa");
+    expect(s.language).toBe("en");
     expect(s.theme).toBe("light");
   });
 

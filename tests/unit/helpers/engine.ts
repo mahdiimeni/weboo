@@ -272,6 +272,7 @@ export function makeChromeMock(initial: Record<string, any> = {}, tabs: any[] = 
 
 const DEFAULT_FILES = [
   "shared/constants.js",
+  "shared/i18n.js", /* v0.14.0 — the translation core (format.js consumes it) */
   "shared/backends/chrome-storage.js",
   "shared/url.js",
   "shared/utils.js",

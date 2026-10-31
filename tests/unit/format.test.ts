@@ -8,7 +8,8 @@ let HL: any;
 
 beforeEach(async () => {
   setupDom();
-  HL = await loadEngine({ files: ["shared/constants.js", "shared/format.js"] });
+  HL = await loadEngine({ files: ["shared/constants.js", "shared/i18n.js", "shared/format.js"] });
+  HL.setLanguage("fa"); /* these specs pin the PERSIAN rendering — the product default is en since v0.20.0 */
 });
 
 /* 2024-10-27 12:00 UTC — noon UTC keeps the calendar day stable across every

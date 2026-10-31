@@ -26,7 +26,8 @@ function rec(id: string, over: any = {}) {
 
 beforeAll(async () => {
   setupDom();
-  HL = await loadEngine({ files: ["shared/constants.js", "shared/format.js", "shared/detect-dir.js", "shared/tags.js", "dashboard/dashboard-data.js"] });
+  HL = await loadEngine({ files: ["shared/constants.js", "shared/i18n.js", "shared/format.js", "shared/detect-dir.js", "shared/tags.js", "dashboard/dashboard-data.js"] });
+  HL.setLanguage("fa"); /* the Persian-format contract (default en since v0.20.0) */
   /* dashboard-data depends only on HL.COLORS/HL.tags and HL (no DOM) */
 });
 

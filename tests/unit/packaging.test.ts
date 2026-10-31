@@ -223,7 +223,7 @@ describe("قرارداد میزبان‌های داشبورد (region mounts)", 
     expect(shell).toContain('<h3 data-i18n="dash.sectionColor">رنگ پیش‌فرض هایلایت</h3>');
     expect(shell).toContain('<h3 data-i18n="dash.sectionBehavior">رفتار</h3>');
     expect(shell).toContain('<h3 data-i18n="lang.label">زبان رابط کاربری</h3>');
-    expect(shell).toContain('id="language-radios"');
+    expect(shell).toContain('id="language-select"'); /* v0.20.0 — the dropdown host */
     expect(shell).toContain('<div class="color-dots" id="color-dots" role="radiogroup" aria-label="رنگ پیش‌فرض هایلایت" data-i18n-aria="dash.sectionColor">');
     expect(shell).toContain('id="theme-radios"');
     expect(shell).toContain('id="behavior-host"');

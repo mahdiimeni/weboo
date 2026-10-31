@@ -423,6 +423,16 @@ html[dir="ltr"] body { font-family: 'Segoe UI', Vazirmatn, Tahoma, sans-serif; }
   font: inherit; font-size: 13px;
   padding: 6px 10px; cursor: pointer;
 }
+/* the drawer's language dropdown (v0.20.0) — the same palette on the
+   40px control height */
+.lang-select {
+  width: 100%; height: 40px;
+  border: 1px solid var(--line); border-radius: var(--r-ctl);
+  background: var(--card); color: var(--text);
+  font: inherit; font-size: 13px; line-height: 1.5;
+  padding: 0 12px; cursor: pointer;
+}
+.lang-select:focus { outline: none; border-color: var(--accent); }
 
 /* ---------- Main list ---------- */
 .list-wrap { min-height: 200px; }

@@ -159,7 +159,7 @@ describe("i18n gaps — popup (brand + the two dashboard buttons, v0.14.1)", () 
   });
 
   test("fa control: the same nodes keep their Persian copy (no regression)", async () => {
-    const { win } = await bootPopup({ "hlx:settings": { ...BASE_SETTINGS } });
+    const { win } = await bootPopup({ "hlx:settings": { ...BASE_SETTINGS, language: "fa" } });
     const $ = (id: string) => win.document.getElementById(id)!;
     expect(win.document.querySelector(".brand-name")?.textContent).toBe("وبو");
     expect($("btn-dash-unsupp").textContent?.trim()).toBe("باز کردن داشبورد");

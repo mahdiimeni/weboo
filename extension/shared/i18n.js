@@ -3746,7 +3746,7 @@ export const DATE_LOCALES = {
     ar: 'ar-u-ca-islamic-umalqura'
 };
 const DICTS = { fa: fa, en: en, de: de, es: es, ru: ru, it: it, fr: fr, tr: tr, zh: zh, ja: ja, ko: ko, ar: ar };
-const DEFAULT_LANG = 'fa';
+const DEFAULT_LANG = 'en';
 /* Module-scoped state with explicit ownership: composition roots set it
    (content.js / popup.js / data.ts / the SW); everything else reads. */
 let current = DEFAULT_LANG;

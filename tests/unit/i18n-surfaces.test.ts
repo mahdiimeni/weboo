@@ -496,35 +496,34 @@ describe("exports in en mode", () => {
 /* ---------- React pieces ---------- */
 
 describe("React components in en mode", () => {
-  test("LanguageRadios renders every registered language, checked follows the prop", async () => {
-    const { setupDom: sd } = await import("./helpers/engine");
-    void sd;
+  test("LanguageSelect renders every registered language, value follows the prop", async () => {
     const React = await import("react");
     const { createRoot } = await import("react-dom/client");
-    const { LanguageRadios } = await import("../../src/dashboard/components/LanguageRadios");
+    const { LanguageSelect } = await import("../../src/dashboard/components/LanguageSelect");
     setBunLanguage("en");
     const host = document.createElement("div");
     document.body.appendChild(host);
     const root = createRoot(host);
-    root.render(React.createElement(LanguageRadios, { lang: "fa", onSelect: () => {} }));
+    root.render(React.createElement(LanguageSelect, { lang: "fa", onSelect: () => {} }));
     await new Promise((r) => setTimeout(r, 20));
-    const radios = [...host.querySelectorAll('input[type="radio"][name="hlx-language"]')] as HTMLInputElement[];
-    expect(radios.map((r) => r.value)).toEqual(["fa", "en", "de", "es", "ru", "it", "fr", "tr", "zh", "ja", "ko", "ar"]);
-    expect(radios[0].checked).toBe(true);
-    const labels = [...host.querySelectorAll("label.radio strong")].map((s) => s.textContent);
+    const sel = host.querySelector("select#language-select") as HTMLSelectElement;
+    expect([...sel.options].map((o) => o.value)).toEqual(["fa", "en", "de", "es", "ru", "it", "fr", "tr", "zh", "ja", "ko", "ar"]);
+    expect(sel.value).toBe("fa");
+    const labels = [...sel.options].map((o) => o.textContent);
     expect(labels).toEqual(["Persian", "English", "German", "Spanish", "Russian", "Italian", "French", "Turkish", "Chinese", "Japanese", "Korean", "Arabic"]);
     root.unmount();
     setBunLanguage("fa");
     const host2 = document.createElement("div");
     document.body.appendChild(host2);
     const root2 = createRoot(host2);
-    root2.render(React.createElement(LanguageRadios, { lang: "fa", onSelect: () => {} }));
+    root2.render(React.createElement(LanguageSelect, { lang: "fa", onSelect: () => {} }));
     await new Promise((r) => setTimeout(r, 20));
-    const labels2 = [...host2.querySelectorAll("label.radio strong")].map((s) => s.textContent);
+    const labels2 = [...(host2.querySelector("select#language-select") as HTMLSelectElement).options].map((o) => o.textContent);
     expect(labels2).toEqual(["فارسی", "English", "Deutsch", "Español", "Русский", "Italiano", "Français", "Türkçe", "中文", "日本語", "한국어", "العربية"]); /* endonyms outside en */
     root2.unmount();
     setBunLanguage("fa");
   });
+
 });
 
 /* ---------- the canonical manifest list (load contract) ---------- */

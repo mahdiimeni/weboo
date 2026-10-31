@@ -37,6 +37,7 @@ function makeController(hooks: any = {}) {
 beforeEach(async () => {
   win = setupDom({ html: HTML });
   HL = await loadEngine({});
+  HL.ui.setLang("fa"); /* Persian-contract suite (default en since v0.20.0) */
   art = win.document.getElementById("art");
   store = HL.createStore(HL.backends.memoryArea());
   events = [];

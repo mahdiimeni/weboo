@@ -11,7 +11,8 @@ let HL: any;
 
 beforeEach(async () => {
   setupDom();
-  HL = await loadEngine({ files: ["shared/constants.js", "shared/format.js", "shared/booklet-export.js"] });
+  HL = await loadEngine({ files: ["shared/constants.js", "shared/i18n.js", "shared/format.js", "shared/booklet-export.js"] });
+  HL.setLanguage("fa"); /* Persian-contract suite (default en since v0.20.0) */
 });
 
 const T0 = Date.UTC(2024, 9, 27, 12); /* 2024-10-27 (calendar-stable) */

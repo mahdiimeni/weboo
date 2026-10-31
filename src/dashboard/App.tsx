@@ -73,7 +73,7 @@ import { BehaviorSwitches } from "./components/BehaviorSwitches";
 import { ui } from "../../extension/shared/ui/base.js";
 import { Toolbar } from "./components/Toolbar";
 import { DirSection } from "./components/DirSection";
-import { LanguageRadios } from "./components/LanguageRadios";
+import { LanguageSelect } from "./components/LanguageSelect";
 import { PreviewModal, RestoreModal, BookletModal, BackupModal } from "./components/Modals";
 import { TopbarActionsRegion, RestoreSectionRegion, DangerSectionRegion } from "./components/PageChrome";
 export { TopbarActionsRegion, RestoreSectionRegion, DangerSectionRegion };
@@ -149,7 +149,7 @@ export function SwitchesRegion() {
 export function LanguageRegion() {
   const { lang } = useSyncExternalStore(subscribeData, getData);
   return (
-    <LanguageRadios
+    <LanguageSelect
       lang={lang}
       onSelect={(k: Language) => { setSettings({ language: k }).catch(() => toast(t("common.saveFail"), "error")); }}
     />
