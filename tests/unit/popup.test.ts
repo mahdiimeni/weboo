@@ -206,6 +206,30 @@ describe("پاپ‌آپ — کارت صفحه‌ی هوشمند جهت (v1.2.7 +
 });
 
 
+/* ---------- v0.18.0 — Arabic: the second RTL interface language ---------- */
+describe("بوب-أب — العربية (v0.18.0)", () => {
+  test("language=ar → الواجهة كلها RTL والنصوص عربية؛ اتجاه المحتوى مستقل", async () => {
+    await boot({
+      "hlx:settings": { ...SETTINGS, language: "ar" },
+      "hlx:d:developer.mozilla.org": {
+        m1: rec("m1", "developer.mozilla.org", MDN_URL, MDN_TITLE, "Logical properties, like inline-start and block-end, flow relative to the writing mode."),
+      },
+    }, MDN_TAB);
+
+    /* the document root flips to RTL — the second language after fa */
+    expect(win.document.documentElement.getAttribute("lang")).toBe("ar");
+    expect(win.document.documentElement.getAttribute("dir")).toBe("rtl");
+    expect(win.localStorage.getItem("hlx:lang")).toBe("ar");
+    /* static shell texts translated to Arabic */
+    expect(win.document.querySelector('[data-i18n="popup.listTitle"]').textContent).toBe("تمييزات هذه الصفحة");
+    /* content direction stays INDEPENDENT: the English page card takes explicit ltr */
+    expect($("sec-page").getAttribute("dir")).toBe("ltr");
+    /* the item date is UI chrome with an explicit dirOf() island (v0.14.2) —
+       in Arabic mode it reads rtl, same as the document */
+    expect(win.document.querySelector("#hl-list .date").getAttribute("dir")).toBe("rtl");
+  });
+});
+
 /* ---------- v0.14.2 — content direction survives an LTR UI ---------- */
 describe("پاپ‌آپ — جهت محتوا در رابط انگلیسی (v0.14.2)", () => {
   test("رابط انگلیسی + صفحه‌ی فارسی → کارت و لیست dir=rtl صریح؛ تاریخِ آیتم جزیره‌ی LTR می‌ماند", async () => {

@@ -29,14 +29,15 @@
 
   try {
     /* the mirror accepts every registered language (the classic script
-       cannot import i18n.js — this list is its one hand-mirror; the unit
-       suite walks it against LANG_KEYS via the mirror tests) */
-    var LANGS = ['fa', 'en', 'de', 'es', 'ru', 'it', 'fr', 'tr', 'zh', 'ja', 'ko'];
+       cannot import i18n.js — this list and the RTL set are its one
+       hand-mirror; the unit suite walks both against LANG_KEYS/dirOf) */
+    var LANGS = ['fa', 'en', 'de', 'es', 'ru', 'it', 'fr', 'tr', 'zh', 'ja', 'ko', 'ar'];
+    var RTL = { fa: 1, ar: 1 };
     var l = localStorage.getItem('hlx:lang');
     if (LANGS.indexOf(l) !== -1) {
       var r = document.documentElement;
       r.setAttribute('lang', l);
-      r.setAttribute('dir', l === 'fa' ? 'rtl' : 'ltr');
+      r.setAttribute('dir', RTL[l] ? 'rtl' : 'ltr');
     }
   } catch (e) { /* localStorage unavailable — the static fa/rtl markup stands */ }
 })();

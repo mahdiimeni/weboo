@@ -32,16 +32,20 @@
  * number/date rendering.
  */
 
-export type Language = 'fa' | 'en' | 'de' | 'es' | 'ru' | 'it' | 'fr' | 'tr' | 'zh' | 'ja' | 'ko';
+export type Language = 'fa' | 'en' | 'de' | 'es' | 'ru' | 'it' | 'fr' | 'tr' | 'zh' | 'ja' | 'ko' | 'ar';
 
 /** A plural-capable value — CLDR plural categories (Intl.PluralRules).
- *  `other` is required (every locale resolves to it); `one`/`few`/`many`
- *  are provided only where the language's morphology needs them:
- *  en/de/es/it/tr use one+other, fr one+other (+many beyond a million,
- *  covered by other's fallback), ru one+few+many (1 заметка / 2 заметки /
- *  5 заметок — and 21 correctly re-selects `one`). */
+ *  `other` is required (every locale resolves to it); the rest are provided
+ *  only where the language's morphology needs them:
+ *  en/de/es/it/tr/zh/ja/ko use one+other, fr one+other (+many beyond a
+ *  million, covered by other's fallback), ru one+few+many (1 заметка /
+ *  2 заметки / 5 заметок — and 21 correctly re-selects `one`),
+ *  ar zero+one+two+few+many+other (لا تمييزات / تمييز واحد / تميزان /
+ *  3 تمييزات / 11 تمييز / 100 تمييز). */
 export interface Plural {
+  zero?: string;
   one?: string;
+  two?: string;
   few?: string;
   many?: string;
   other: string;
@@ -110,6 +114,7 @@ const en = {
   'lang.zh': 'Chinese',
   'lang.ja': 'Japanese',
   'lang.ko': 'Korean',
+  'lang.ar': 'Arabic',
 
   /* ---------- dashboard shell (static markup via data-i18n) ---------- */
   'dash.title': 'Dashboard — Weboo',
@@ -439,6 +444,7 @@ const fa: Record<TranslationKey, DictValue> = {
   'lang.zh': '中文',
   'lang.ja': '日本語',
   'lang.ko': '한국어',
+  'lang.ar': 'العربية',
   'lang.desc': 'روی پنجره، داشبورد و ابزارهای شناور فوراً اعمال می‌شود.',
 
   /* ---------- dashboard shell ---------- */
@@ -769,6 +775,7 @@ const de: Record<TranslationKey, DictValue> = {
   'lang.zh': '中文',
   'lang.ja': '日本語',
   'lang.ko': '한국어',
+  'lang.ar': 'العربية',
   'lang.desc': 'Gilt sofort für Popup, Dashboard und schwebende Werkzeuge.',
   'lang.groupAria': 'Sprache der Benutzeroberfläche',
 
@@ -1097,6 +1104,7 @@ const es: Record<TranslationKey, DictValue> = {
   'lang.zh': '中文',
   'lang.ja': '日本語',
   'lang.ko': '한국어',
+  'lang.ar': 'العربية',
   'lang.desc': 'Se aplica al instante al popup, al panel y a las herramientas flotantes.',
   'lang.groupAria': 'Idioma de la interfaz',
 
@@ -1424,6 +1432,7 @@ const ru: Record<TranslationKey, DictValue> = {
   'lang.zh': '中文',
   'lang.ja': '日本語',
   'lang.ko': '한국어',
+  'lang.ar': 'العربية',
   'lang.desc': 'Мгновенно применяется к всплывающему окну, панели и плавающим инструментам.',
   'lang.groupAria': 'Язык интерфейса',
 
@@ -1749,6 +1758,7 @@ const it: Record<TranslationKey, DictValue> = {
   'lang.zh': '中文',
   'lang.ja': '日本語',
   'lang.ko': '한국어',
+  'lang.ar': 'العربية',
   'lang.desc': 'Si applica subito al popup, al pannello e agli strumenti flottanti.',
   'lang.groupAria': 'Lingua dell’interfaccia',
 
@@ -2076,6 +2086,7 @@ const fr: Record<TranslationKey, DictValue> = {
   'lang.zh': '中文',
   'lang.ja': '日本語',
   'lang.ko': '한국어',
+  'lang.ar': 'العربية',
   'lang.desc': 'S’applique aussitôt au popup, au tableau de bord et aux outils flottants.',
   'lang.groupAria': 'Langue de l’interface',
 
@@ -2402,6 +2413,7 @@ const tr: Record<TranslationKey, DictValue> = {
   'lang.zh': '中文',
   'lang.ja': '日本語',
   'lang.ko': '한국어',
+  'lang.ar': 'العربية',
   'lang.desc': 'Açılır pencereye, panele ve yüzen araçlara anında uygulanır.',
   'lang.groupAria': 'Arayüz dili',
 
@@ -2730,6 +2742,7 @@ const zh: Record<TranslationKey, DictValue> = {
   'lang.zh': '中文',
   'lang.ja': '日本語',
   'lang.ko': '한국어',
+  'lang.ar': 'العربية',
   'lang.desc': '立即应用于弹出窗口、面板和浮动工具。',
   'lang.groupAria': '界面语言',
 
@@ -3056,6 +3069,7 @@ const ja: Record<TranslationKey, DictValue> = {
   'lang.zh': '中文',
   'lang.ja': '日本語',
   'lang.ko': '한국어',
+  'lang.ar': 'العربية',
   'lang.desc': 'ポップアップ、ダッシュボード、フローティングツールに即時反映されます。',
   'lang.groupAria': '表示言語',
 
@@ -3383,6 +3397,7 @@ const ko: Record<TranslationKey, DictValue> = {
   'lang.zh': '中文',
   'lang.ja': '日本語',
   'lang.ko': '한국어',
+  'lang.ar': 'العربية',
   'lang.desc': '팝업·패널·떠 있는 도구에 즉시 적용됩니다.',
   'lang.groupAria': '인터페이스 언어',
 
@@ -3649,6 +3664,336 @@ const ko: Record<TranslationKey, DictValue> = {
   'ex.foot': '"{app}"로 만듦 — 모든 데이터는 기기에만 저장됩니다.',
   'ex.coverAria': '소책자 표지'
 };
+
+/* ------------------------------------------------------------------ */
+/* Arabic — typed against the canonical key set; MSA register, RTL like */
+/* Persian (LANGUAGES.ar.dir). CLDR six-form plurals for the bare count */
+/* keys (zero/one/two/few/many/other); composed strings use invariable  */
+/* quantifier constructions ({n} من …، المزيد، سيتم) so no agreement     */
+/* can break. Western digits via the plain 'ar' locale.                  */
+/* ------------------------------------------------------------------ */
+
+const ar: Record<TranslationKey, DictValue> = {
+  /* ---------- app identity ---------- */
+  'app.name': 'Weboo',
+
+  /* ---------- common ---------- */
+  'common.cancel': 'إلغاء',
+  'common.close': 'إغلاق',
+  'common.delete': 'حذف',
+  'common.add': 'إضافة',
+  'common.confirm': 'هل أنت متأكد؟',
+  'common.version': 'الإصدار',
+  'common.untitled': 'بدون عنوان',
+  'common.localFile': 'ملف محلي',
+  'common.from': ' من ',
+  'common.copy': 'نسخ النص',
+  'common.copyShort': 'نسخ',
+  'common.copyOk': 'تم النسخ ✓',
+  'common.copyFail': 'فشل النسخ',
+  'common.saveFail': 'فشل حفظ الإعدادات',
+  'common.deleteFail': 'فشل الحذف',
+  'common.nHighlights': { zero: 'لا تمييزات', one: 'تمييز واحد', two: 'تميزان', few: '{n} تمييزات', many: '{n} تمييز', other: '{n} تمييز' },
+  'common.nNotes': { zero: 'لا ملاحظات', one: 'ملاحظة واحدة', two: 'ملاحظتان', few: '{n} ملاحظات', many: '{n} ملاحظة', other: '{n} ملاحظة' },
+  'common.nArticles': { zero: 'لا مقالات', one: 'مقال واحد', two: 'مقالان', few: '{n} مقالات', many: '{n} مقال', other: '{n} مقال' },
+  'common.nItems': { zero: 'لا عناصر', one: 'عنصر واحد', two: 'عنصران', few: '{n} عناصر', many: '{n} عنصر', other: '{n} عنصر' },
+
+  /* ---------- colors ---------- */
+  'color.yellow': 'أصفر',
+  'color.orange': 'برتقالي',
+  'color.green': 'أخضر',
+  'color.teal': 'فيروزي',
+  'color.pink': 'وردي',
+  'color.purple': 'بنفسجي',
+
+  /* ---------- themes ---------- */
+  'theme.auto': 'اتباع النظام',
+  'theme.light': 'فاتح',
+  'theme.dark': 'داكن',
+  'theme.autoHint': 'يتبع الوضع الفاتح/الداكن للنظام',
+  'theme.lightHint': 'خلفية فاتحة دائمًا',
+  'theme.darkHint': 'خلفية داكنة دائمًا',
+
+  /* ---------- interface language ---------- */
+  'lang.label': 'لغة الواجهة',
+  'lang.fa': 'فارسی',
+  'lang.en': 'English',
+  'lang.de': 'Deutsch',
+  'lang.es': 'Español',
+  'lang.ru': 'Русский',
+  'lang.it': 'Italiano',
+  'lang.fr': 'Français',
+  'lang.tr': 'Türkçe',
+  'lang.zh': '中文',
+  'lang.ja': '日本語',
+  'lang.ko': '한국어',
+  'lang.ar': 'العربية',
+  'lang.desc': 'يُطبَّق فورًا على النافذة المنبثقة ولوحة التحكم والأدوات العائمة.',
+  'lang.groupAria': 'لغة الواجهة',
+
+  /* ---------- dashboard shell ---------- */
+  'dash.title': 'لوحة التحكم — Weboo',
+  'dash.brandSub': 'لوحة الإدارة',
+  'dash.statsAria': 'إحصاءات عامة',
+  'dash.toolbarAria': 'تصفية وبحث',
+  'dash.listAria': 'التمييزات',
+  'dash.footer': 'Weboo — جميع البيانات تُحفَظ على هذا الجهاز فقط؛ لا يُرسَل أي شيء إلى أي خادم.',
+  'dash.settings': 'الإعدادات',
+  'dash.settingsAria': 'الإعدادات',
+  'dash.drawerCloseAria': 'إغلاق الإعدادات',
+  'dash.sectionAppearance': 'المظهر',
+  'dash.sectionColor': 'لون التمييز الافتراضي',
+  'dash.sectionBehavior': 'السلوك',
+  'dash.themeGroupAria': 'سمة الواجهة',
+  'dots.title': 'اللون الافتراضي: {name}',
+  'behavior.toolbar': 'إظهار شريط الأدوات العائم عند تحديد النص',
+  'behavior.badge': 'إظهار العدّاد على الأيقونة',
+
+  /* ---------- dashboard topbar ---------- */
+  'tb.booklet': 'الكتيّب',
+  'tb.selectiveBackup': 'تصدير انتقائي',
+  'tb.selectiveBackupTitle': 'نسخة احتياطية انتقائية — حسب المواقع والمقالات والوسوم',
+  'tb.backup': 'تصدير النسخة الاحتياطية',
+  'tb.backupTitle': 'تصدير النسخة الاحتياطية (المكتبة كاملة)',
+  'tb.sizeBadgeTitle': 'حجم البيانات المحفوظة على هذا الجهاز',
+
+  /* ---------- dashboard stats ---------- */
+  'stats.total': 'إجمالي التمييزات',
+  'stats.notes': 'الملاحظات',
+  'stats.pages': 'الصفحات',
+  'stats.sites': 'المواقع',
+
+  /* ---------- dashboard filter toolbar ---------- */
+  'search.placeholder': 'ابحث في النصوص أو الملاحظات أو عناوين الصفحات…',
+  'search.aria': 'بحث',
+  'filter.colorAria': 'تصفية حسب اللون',
+  'filter.notesOnly': 'ذات ملاحظات فقط',
+  'filter.sortLabel': 'الترتيب:',
+  'sort.newest': 'الأحدث',
+  'sort.oldest': 'الأقدم',
+  'sort.page': 'حسب الصفحة',
+  'filter.tagsLabel': 'وسوم المقالات:',
+  'filter.tagsAria': 'تصفية حسب وسوم المقالات',
+
+  /* ---------- list chrome ---------- */
+  'bulk.expand': 'فتح جميع المقالات',
+  'bulk.expandTitle': 'ستُفتَح جميع بطاقات المقالات وتُحمَّل التمييزات غير المحمَّلة أيضًا',
+  'bulk.collapse': 'إغلاق جميع المقالات',
+  'bulk.collapseTitle': 'ستُغلَق جميع بطاقات المقالات وتُحمَّل التمييزات غير المحمَّلة أيضًا؛ وعند فتح أي مقالة تُعرَض تمييزاته كاملة',
+  'list.loadMore': 'تحميل المزيد ({n} المتبقي)',
+  'empty.noResults': 'لا توجد نتائج.',
+  'empty.noResultsSub': 'جرّب كلمات بحث أخرى أو غيّر مرشحات الألوان والوسوم.',
+  'empty.first': 'لا توجد تمييزات بعد. حدّد نصّك الأول!',
+  'empty.firstSub': 'في أي صفحة ويب، حدّد نصًا ثم استخدم شريط الأدوات العائم للإضافة.',
+  'dirsec.rtl': 'مقالات من اليمين إلى اليسار',
+  'dirsec.ltr': 'مقالات من اليسار إلى اليمين',
+  'dirsec.lead': 'أحدث تمييز هنا',
+  'dirsec.leadTitle': 'المقالة المميَّزة آخرًا تقع في هذا القسم؛ لذلك يُعرَض أولًا',
+
+  /* ---------- article card ---------- */
+  'card.order.newest': 'الأحدث',
+  'card.order.oldest': 'الأقدم',
+  'card.order.page': 'الصفحة',
+  'card.order.pageRev': 'عكس الصفحة',
+  'card.order.newestTitle': 'الترتيب الحالي للتمييزات: من الأحدث إلى الأقدم؛ اضغط لعكسه',
+  'card.order.oldestTitle': 'الترتيب الحالي للتمييزات: من الأقدم إلى الأحدث؛ اضغط لعكسه',
+  'card.order.pageTitle': 'الترتيب الحالي للتمييزات: بحسب موضعها في الصفحة؛ اضغط لعكسه',
+  'card.order.pageRevTitle': 'الترتيب الحالي للتمييزات: عكس موضعها في الصفحة؛ اضغط لاستعادة ترتيب القراءة',
+  'card.orderAria': 'ترتيب تمييزات هذه المقالة: {label}',
+  'card.viewPageTitle': 'فتح هذه الصفحة في تبويب جديد',
+  'card.deleteGroupTitle': 'حذف كل ما في هذه الصفحة',
+  'card.remaining': '…{n} المزيد من هذه الصفحة (اضغط «تحميل المزيد» لعرضها)',
+
+  /* ---------- highlight item ---------- */
+  'item.previewTitle': 'عرض النص الكامل لهذا التمييز',
+  'item.notePreviewTitle': 'عرض النص الكامل والملاحظة لهذا التمييز',
+  'item.viewTitle': 'عرض في الصفحة',
+  'item.deleteTitle': 'حذف هذا التمييز',
+
+  /* ---------- tags row ---------- */
+  'tags.add': 'وسم',
+  'tags.addTitle': 'إضافة وسم إلى هذه المقالة',
+  'tags.placeholder': 'اسم الوسم…',
+  'tags.inputAria': 'اسم وسم جديد',
+  'tags.removeTitle': 'إزالة الوسم {tag}',
+
+  /* ---------- disabled hosts ---------- */
+  'hosts.title': 'المواقع المعطَّلة',
+  'hosts.desc': 'لا تُنشَأ أو تُعرَض تمييزات على هذه المواقع (تُترَك البيانات كما هي).',
+  'hosts.empty': 'لا موقع معطَّل بعد.',
+  'hosts.addPlaceholder': 'إضافة نطاق (مثل example.com)',
+  'hosts.inputAria': 'نطاق جديد',
+  'hosts.invalid': 'أدخل نطاقًا صالحًا (مثل example.com)',
+  'hosts.duplicate': 'هذا النطاق موجود في القائمة بالفعل',
+  'hosts.disabledOk': 'تم تعطيل الموقع {host}',
+  'hosts.removeTitle': 'إزالة {host}',
+
+  /* ---------- restore section + modal ---------- */
+  'restore.title': 'استعادة النسخة الاحتياطية',
+  'restore.desc': 'اختر ملف نسخة احتياطية JSON؛ وقبل التنفيذ يُسأَل عن الدمج أو الاستبدال الكامل.',
+  'restore.fileFail': 'فشل فتح الملف',
+  'modal.name': 'اسم المجموعة',
+  'modal.highlights': 'التمييزات',
+  'modal.exportDate': 'تاريخ التصدير',
+  'modal.type': 'النوع',
+  'modal.partialValue': 'نسخة احتياطية انتقائية (جزء من المكتبة)',
+  'modal.merge': 'دمج',
+  'modal.mergeDesc': 'السجلات الأحدث تنتصر؛ وتنحفَظ البيانات الحالية.',
+  'modal.replace': 'استبدال كامل',
+  'modal.replaceDesc': 'ستُحذَف جميع البيانات الحالية!',
+  'modal.start': 'بدء الاستعادة',
+
+  /* ---------- danger zone ---------- */
+  'danger.title': 'منطقة الخطر',
+  'danger.desc': 'لا يمكن التراجع عن هذا الإجراء — صدِّر نسخة احتياطية أولًا.',
+  'danger.arm': 'حذف جميع التمييزات والملاحظات',
+  'danger.placeholder': 'للتأكيد، اكتب “delete”',
+  'danger.inputAria': 'تأكيد الحذف',
+  'danger.go': 'تأكيد وحذف',
+  'danger.done': 'حُذِفت جميع التمييزات والملاحظات',
+
+  /* ---------- modals ---------- */
+  'bk.title': 'الكتيّب و Markdown',
+  'bk.mdDesc': 'لبرنامج Obsidian وأي محرر Markdown — المكتبة كلها في ملف واحد، وقسم لكل مقالة.',
+  'bk.mdBtn': 'تنزيل ملف Markdown',
+  'bk.pickerTitle': 'مقالات الكتيّب',
+  'bk.pickerHint': 'دون تحديد تدخل جميع المقالات في الكتيّب؛ ومع التحديد تدخل هذه فقط.',
+  'bk.pickerAria': 'اختيار مقالات الكتيّب',
+  'bk.allArticles': 'ستدخل جميع المقالات في الكتيّب.',
+  'bk.pickedStatus': 'سيُدرَج {n} من التمييزات في {m} من المقالات داخل الكتيّب.',
+  'bk.printTitle': 'كتيّب قابل للطباعة',
+  'bk.printDesc': 'مصمَّم للطباعة على A4 — غلاف وفهرس ومقالة في كل صفحة.',
+  'bk.formatAria': 'صيغة الكتيّب',
+  'bk.html': 'ملف HTML',
+  'bk.htmlDesc': 'ملف جاهز للطباعة — افتحه في المتصفح واضغط Ctrl+P.',
+  'bk.pdf': 'PDF',
+  'bk.pdfDesc': 'سيُفتَح مربع حوار الطباعة في المتصفح — اختر “Save as PDF”.',
+  'bk.colorAria': 'نمط ألوان الكتيّب',
+  'bk.color': 'ملوَّن',
+  'bk.colorDesc': 'بالألوان الأصلية للتمييزات',
+  'bk.bw': 'أبيض وأسود',
+  'bk.bwDesc': 'حبر أقل — مناسب للطابعات العادية',
+  'bk.fontAria': 'خط الكتيّب',
+  'bk.fontDefault': '{name} — الافتراضي',
+  'bk.fontDesc': 'إن لم يكن مثبَّتًا، سيعرض المتصفح خطًا مشابهًا',
+  'bk.fontCustom': 'خط مخصَّص',
+  'bk.fontCustomDesc': 'أي خط مثبَّت على جهازك — اكتب اسمه الدقيق',
+  'bk.fontCustomPlaceholder': 'مثل: B Nazanin',
+  'bk.build': 'إنشاء الكتيّب',
+  'sel.title': 'نسخة احتياطية انتقائية',
+  'sel.desc': 'صدِّر جزءًا من المكتبة — كل موقع أو مقالة أو وسم تختاره تأخذ تمييزاته داخل الملف.',
+  'sel.sites': 'المواقع',
+  'sel.sitesHint': 'جميع تمييزات هذه المواقع',
+  'sel.sitesAria': 'اختيار المواقع',
+  'sel.articles': 'المقالات',
+  'sel.articlesHint': 'تمييزات هذه المقالات',
+  'sel.articlesAria': 'اختيار المقالات',
+  'sel.tags': 'الوسوم',
+  'sel.tagsHint': 'جميع تمييزات المقالات الحاملة لهذا الوسم',
+  'sel.tagsAria': 'اختيار الوسوم',
+  'sel.emptySites': 'لا مواقع بعد',
+  'sel.emptyArticles': 'لا مقالات بعد',
+  'sel.emptyTags': 'لا وسوم بعد',
+  'sel.pickOne': 'اختر عنصرًا واحدًا على الأقل.',
+  'sel.noMatch': 'لا يطابق هذا التحديد أي تمييز.',
+  'sel.status': 'سيُدرَج {n} من التمييزات في الملف.',
+  'sel.download': 'تنزيل ملف النسخة الاحتياطية',
+
+  /* ---------- dashboard toasts ---------- */
+  'toast.openPageNoUrl': 'لا توجد عناوين محفوظة لهذه الصفحة',
+  'toast.openPageFail': 'فشل فتح الصفحة',
+  'toast.openHlNoUrl': 'لا يوجد عنوان محفوظ لهذا التمييز',
+  'toast.nothingToCopy': 'لا شيء للنسخ',
+  'toast.deleted': 'حُذِف التمييز',
+  'toast.groupDeleted': 'حُذِفت تمييزات هذه الصفحة',
+  'toast.readFail': 'فشلت قراءة البيانات',
+  'toast.backupOk': 'تم تنزيل ملف نسخة احتياطية يحتوي على {n} من التمييزات',
+  'toast.partialBackupOk': 'تم تنزيل نسخة احتياطية انتقائية تحتوي على {n} من التمييزات',
+  'toast.exportFail': 'فشل التصدير',
+  'toast.fileReadFail': 'فشلت قراءة الملف',
+  'toast.invalidBackup': 'ليست ملف نسخة احتياطية صالحًا لـ Weboo',
+  'toast.importDone': 'تمت إضافة {a}، وتحديث {u}، وتجاهل {s}',
+  'toast.restoreFail': 'فشلت الاستعادة',
+  'toast.mdOk': 'تم تنزيل ملف Markdown يحتوي على {n} من التمييزات',
+  'toast.mdFail': 'فشل تصدير Markdown',
+  'toast.nothingToExport': 'لا توجد تمييزات للتصدير',
+  'toast.noArticlesForBooklet': 'لم تُختَر مقالات للكتيّب',
+  'toast.printOpened': 'فُتِح مربع حوار الطباعة — لملف PDF اختر “Save as PDF”',
+  'toast.bookletOk': 'تم تنزيل كتيّب HTML يحتوي على {n} من التمييزات',
+  'toast.bookletFail': 'فشل إنشاء الكتيّب',
+  'toast.tagInvalid': 'اسم الوسم غير صالح ({n} من الأحرف كحد أقصى)',
+  'toast.tagExists': 'هذا الوسم موجود على هذه المقالة بالفعل',
+  'toast.tagCap': 'الحد الأقصى {n} من الوسوم لكل مقالة',
+  'toast.tagAdded': 'أُضيف الوسم «{tag}»',
+  'toast.tagSaveFail': 'فشل حفظ الوسم',
+  'toast.tagRemoved': 'أُزيل الوسم',
+  'toast.tagRemoveFail': 'فشلت إزالة الوسم',
+
+  /* ---------- popup ---------- */
+  'popup.brandSub': 'تمييز وملاحظات — محلي 100٪',
+  'popup.settingsBtnTitle': 'لوحة التحكم والإعدادات',
+  'popup.unsupportedT': 'هذه الصفحة غير مدعومة',
+  'popup.unsupportedDesc': 'تعمل الإضافة على صفحات http وhttps وfile فقط.',
+  'popup.openDash': 'فتح لوحة التحكم',
+  'popup.genericLbl': 'إجمالي التمييزات المحفوظة',
+  'popup.genericHint': 'انقر فوق أيقونة الإضافة داخل صفحة ويب لرؤية تمييزاتها.',
+  'popup.enabledHere': 'مفعَّلة على هذا الموقع',
+  'popup.toggleAria': 'الإضافة مفعَّلة على هذا الموقع',
+  'popup.applied': 'تم التطبيق ✓',
+  'popup.refreshHint': 'إن لم تظهر التمييزات فورًا فأعد تحميل الصفحة.',
+  'popup.listTitle': 'تمييزات هذه الصفحة',
+  'popup.emptyT': 'لا توجد تمييزات على هذه الصفحة بعد.',
+  'popup.emptyHint': 'حدّد نصًا واستخدم شريط الأدوات العائم!',
+  'popup.dashboardBtn': 'لوحة التحكم الكاملة',
+  'popup.jumpTitle': 'الانتقال إلى هذا التمييز',
+  'popup.hasNote': 'لها ملاحظة',
+  'popup.themeTitle': 'السمة: {name}',
+  'popup.themeChangeAria': 'تغيير السمة ({name})',
+  'popup.countOf': '{a} / {b}',
+  'popup.backupOk': 'تم تنزيل ملف النسخة الاحتياطية',
+
+  /* ---------- floating widgets ---------- */
+  'fw.toolbarAria': 'شريط التمييز',
+  'fw.highlightColor': 'تمييز بـ{name}',
+  'fw.noteTitle': 'تمييز + ملاحظة',
+  'fw.noteAria': 'تمييز مع ملاحظة',
+  'fw.copyAria': 'نسخ النص المحدَّد',
+  'fw.gripTitle': 'نقل النافذة؛ اسحب وأفلت',
+  'fw.colorAria': 'اللون {name}',
+  'fw.noNote': 'لا ملاحظة على هذا التمييز بعد.',
+  'fw.addNote': 'إضافة ملاحظة',
+  'fw.editNote': 'تحرير الملاحظة',
+  'fw.notePlaceholder': 'ملاحظتك على هذا التمييز…',
+  'fw.saved': 'تم الحفظ ✓',
+  'fw.saveNote': 'حفظ الملاحظة',
+  'fw.copyAllTitle': 'نسخ النص والملاحظة',
+  'fw.deleteTitle': 'حذف التمييز',
+  'fw.deleteConfirm': 'حذف؟',
+
+  /* ---------- highlighter toasts ---------- */
+  'hl.copied': 'تم النسخ ✓',
+  'hl.saveError': 'فشل الحفظ.',
+  'hl.notHighlightable': 'لا يمكن تمييز هذا الجزء من الصفحة.',
+  'hl.deleted': 'حُذِف التمييز.',
+  'hl.notePrefix': '📝 ملاحظة: ',
+
+  /* ---------- service worker context menu ---------- */
+  'menu.highlight': '✨ تمييز «%s»',
+
+  /* ---------- export documents ---------- */
+  'ex.mdTitle': 'كتيّب تمييزاتي',
+  'ex.exportedFrom': 'مصدَّر من «{app}»',
+  'ex.mdEmpty': 'لا توجد تمييزات بعد.',
+  'ex.note': 'الملاحظة:',
+  'ex.tags': 'الوسوم:',
+  'ex.source': 'المصدر',
+  'ex.bookletTitle': 'كتيّب التمييزات',
+  'ex.coverSub': 'المجموعة الكاملة من التمييزات والملاحظات',
+  'ex.toc': 'الفهرس',
+  'ex.madeWith': 'أُنشئ بـ«{app}» · الإصدار {v}',
+  'ex.foot': 'أُنشئ بـ«{app}» — جميع البيانات تُحفَظ على جهازك فقط.',
+  'ex.coverAria': 'غلاف الكتيّب'
+};
 /* ------------------------------------------------------------------ */
 /* Language registry + state                                           */
 /* ------------------------------------------------------------------ */
@@ -3670,10 +4015,11 @@ export const LANGUAGES: Record<Language, { label: TranslationKey; dir: 'rtl' | '
   tr: { label: 'lang.tr', dir: 'ltr' },
   zh: { label: 'lang.zh', dir: 'ltr' },
   ja: { label: 'lang.ja', dir: 'ltr' },
-  ko: { label: 'lang.ko', dir: 'ltr' }
+  ko: { label: 'lang.ko', dir: 'ltr' },
+  ar: { label: 'lang.ar', dir: 'rtl' }
 };
 
-export const LANG_KEYS: Language[] = ['fa', 'en', 'de', 'es', 'ru', 'it', 'fr', 'tr', 'zh', 'ja', 'ko'];
+export const LANG_KEYS: Language[] = ['fa', 'en', 'de', 'es', 'ru', 'it', 'fr', 'tr', 'zh', 'ja', 'ko', 'ar'];
 
 /**
  * The BCP-47 locale each language renders numbers and dates with — the ONE
@@ -3690,10 +4036,13 @@ export const LOCALES: Record<Language, string> = {
   tr: 'tr-TR',
   zh: 'zh-CN',
   ja: 'ja-JP',
-  ko: 'ko-KR'
+  ko: 'ko-KR',
+  /* plain 'ar' — Western digits + Arabic month names (ar-EG would render
+     Arabic-Indic digits; the technical UI reads better with Latin digits) */
+  ar: 'ar'
 };
 
-const DICTS: Record<Language, Record<TranslationKey, DictValue>> = { fa: fa, en: en, de: de, es: es, ru: ru, it: it, fr: fr, tr: tr, zh: zh, ja: ja, ko: ko };
+const DICTS: Record<Language, Record<TranslationKey, DictValue>> = { fa: fa, en: en, de: de, es: es, ru: ru, it: it, fr: fr, tr: tr, zh: zh, ja: ja, ko: ko, ar: ar };
 
 const DEFAULT_LANG: Language = 'fa';
 
@@ -3748,12 +4097,12 @@ const INTERP_RE = /\{(\w+)\}/g;
    that format the digits; one home). 'zero'/'two' never occur for our eight
    locales and fall through to `other` at the lookup. */
 const pluralRulesCache: Partial<Record<Language, Intl.PluralRules>> = {};
-function pluralForm(lang: Language, n: number): 'one' | 'few' | 'many' | 'other' {
+function pluralForm(lang: Language, n: number): 'zero' | 'one' | 'two' | 'few' | 'many' | 'other' {
   try {
     if (typeof Intl !== 'undefined' && Intl.PluralRules) {
       if (!pluralRulesCache[lang]) pluralRulesCache[lang] = new Intl.PluralRules(LOCALES[lang]);
       const f = pluralRulesCache[lang]!.select(n);
-      if (f === 'one' || f === 'few' || f === 'many') return f;
+      if (f === 'zero' || f === 'one' || f === 'two' || f === 'few' || f === 'many') return f;
     }
   } catch (e) { /* no ICU — the one/other fallback below */ }
   return n === 1 ? 'one' : 'other';

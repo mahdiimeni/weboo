@@ -28,7 +28,7 @@ describe("dictionaries", () => {
     const keys = [...enBlock.matchAll(/'([a-z]+\.[A-Za-z0-9]+)':/g)].map((m) => m[1]);
     expect(keys.length).toBeGreaterThan(150);
     const langs = HL.LANG_KEYS;
-    expect(langs).toEqual(["fa", "en", "de", "es", "ru", "it", "fr", "tr", "zh", "ja", "ko"]);
+    expect(langs).toEqual(["fa", "en", "de", "es", "ru", "it", "fr", "tr", "zh", "ja", "ko", "ar"]);
     for (const lang of langs) {
       for (const k of keys) {
         HL.setLanguage(lang);
@@ -305,6 +305,54 @@ describe("German dictionary", () => {
   });
 });
 
+/* ---------- Arabic (v0.18.0 — the second RTL language, six plural forms) ---------- */
+
+describe("Arabic dictionary", () => {
+  test("ar is a registered RTL language: dirOf rtl, locale ar, selectable", () => {
+    expect(HL.setLanguage("ar")).toBe("ar");
+    expect(HL.getLanguage()).toBe("ar");
+    expect(HL.dirOf("ar")).toBe("rtl");
+    expect(HL.LOCALES.ar).toBe("ar");
+    HL.setLanguage("fa");
+  });
+
+  test("all six CLDR plural forms fire in Arabic (zero/one/two/few/many/other)", () => {
+    HL.setLanguage("ar");
+    expect(HL.count("common.nHighlights", 0)).toBe("لا تمييزات");
+    expect(HL.count("common.nHighlights", 1)).toBe("تمييز واحد");
+    expect(HL.count("common.nHighlights", 2)).toBe("تميزان");
+    expect(HL.count("common.nHighlights", 3)).toBe("3 تمييزات");
+    expect(HL.count("common.nHighlights", 11)).toBe("11 تمييز");
+    expect(HL.count("common.nHighlights", 100)).toBe("100 تمييز");
+    expect(HL.count("common.nNotes", 2)).toBe("ملاحظتان");
+    expect(HL.count("common.nArticles", 7)).toBe("7 مقالات");
+    HL.setLanguage("fa");
+  });
+
+  test("Arabic interpolation renders RTL strings with «» quotes and Western digits", () => {
+    HL.setLanguage("ar");
+    expect(HL.t("hosts.disabledOk", { host: "a.com" })).toBe("تم تعطيل الموقع a.com");
+    expect(HL.t("toast.tagAdded", { tag: "عمل" })).toBe("أُضيف الوسم «عمل»");
+    expect(HL.count("common.nItems", 5)).toBe("5 عناصر"); /* plain 'ar' locale → Western digits */
+    HL.setLanguage("fa");
+  });
+
+  test("applyDom renders Arabic statics", () => {
+    document.body.innerHTML = '<p id="a" data-i18n="popup.listTitle">x</p>';
+    HL.setLanguage("ar");
+    HL.applyDom(document);
+    expect(document.getElementById("a")!.textContent).toBe("تمييزات هذه الصفحة");
+    HL.setLanguage("fa");
+  });
+
+  test("Arabic persists through the store and the settings type accepts it", async () => {
+    const store = HL.createStore(HL.backends.memoryArea());
+    await store.setSettings({ language: "ar" });
+    const s = await store.getSettings();
+    expect(s.language).toBe("ar");
+  });
+});
+
 /* ---------- settings integration (merge boundary) ---------- */
 
 describe("settings ↔ language", () => {
@@ -365,7 +413,7 @@ describe("theme-boot lang mirror", () => {
     expect(root.getAttribute("dir")).toBe("ltr");
   });
 
-  test("mirror=every language → html lang/dir anti-flash (fa rtl, all others ltr)", async () => {
+  test("mirror=every language → html lang/dir anti-flash (fa/ar rtl, all others ltr)", async () => {
     const win = (globalThis as any).window;
     const { evalClassic } = await import("./helpers/engine");
     for (const lang of HL.LANG_KEYS) {
@@ -373,7 +421,7 @@ describe("theme-boot lang mirror", () => {
       evalClassic(ext("shared", "theme-boot.js"));
       const root = win.document.documentElement;
       expect(root.getAttribute("lang")).toBe(lang);
-      expect(root.getAttribute("dir")).toBe(lang === "fa" ? "rtl" : "ltr");
+      expect(root.getAttribute("dir")).toBe(HL.dirOf(lang)); /* the mirror agrees with the registry's direction policy */
     }
     win.localStorage.removeItem("hlx:lang");
   });

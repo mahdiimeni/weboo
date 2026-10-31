@@ -251,6 +251,27 @@ describe("format in zh/ja/ko modes", () => {
   }
 });
 
+/* ---------- Arabic (v0.18.0 — the second RTL language) ---------- */
+
+describe("format in ar mode", () => {
+  test("Western digits, Arabic month name, point-free short date; isoDate invariant", () => {
+    HL.setLanguage("ar");
+    expect(HL.format.num(1250)).toBe("1,250"); /* plain 'ar' locale → Western digits */
+    const d = HL.format.fmtDate(NOON);
+    expect(d).toContain("2024");
+    expect(d).toContain("أكتوبر");
+    expect(HL.format.fmtBytes(2621440)).toBe("2.5 MB");
+    expect(HL.format.isoDate(NOON)).toBe("2024-10-27");
+    HL.setLanguage("fa");
+  });
+
+  test("faviconLetter hostless fallback → و in ar (the RTL sibling of fa)", () => {
+    HL.setLanguage("ar");
+    expect(HL.format.faviconLetter("")).toBe("W"); /* the brand initial — Arabic UIs read Latin brand marks */
+    HL.setLanguage("fa");
+  });
+});
+
 /* ---------- popup data + view ---------- */
 
 describe("popup surfaces in en mode", () => {
@@ -470,10 +491,10 @@ describe("React components in en mode", () => {
     root.render(React.createElement(LanguageRadios, { lang: "fa", onSelect: () => {} }));
     await new Promise((r) => setTimeout(r, 20));
     const radios = [...host.querySelectorAll('input[type="radio"][name="hlx-language"]')] as HTMLInputElement[];
-    expect(radios.map((r) => r.value)).toEqual(["fa", "en", "de", "es", "ru", "it", "fr", "tr", "zh", "ja", "ko"]);
+    expect(radios.map((r) => r.value)).toEqual(["fa", "en", "de", "es", "ru", "it", "fr", "tr", "zh", "ja", "ko", "ar"]);
     expect(radios[0].checked).toBe(true);
     const labels = [...host.querySelectorAll("label.radio strong")].map((s) => s.textContent);
-    expect(labels).toEqual(["Persian", "English", "German", "Spanish", "Russian", "Italian", "French", "Turkish", "Chinese", "Japanese", "Korean"]);
+    expect(labels).toEqual(["Persian", "English", "German", "Spanish", "Russian", "Italian", "French", "Turkish", "Chinese", "Japanese", "Korean", "Arabic"]);
     root.unmount();
     setBunLanguage("fa");
     const host2 = document.createElement("div");
@@ -482,7 +503,7 @@ describe("React components in en mode", () => {
     root2.render(React.createElement(LanguageRadios, { lang: "fa", onSelect: () => {} }));
     await new Promise((r) => setTimeout(r, 20));
     const labels2 = [...host2.querySelectorAll("label.radio strong")].map((s) => s.textContent);
-    expect(labels2).toEqual(["فارسی", "English", "Deutsch", "Español", "Русский", "Italiano", "Français", "Türkçe", "中文", "日本語", "한국어"]); /* endonyms outside en */
+    expect(labels2).toEqual(["فارسی", "English", "Deutsch", "Español", "Русский", "Italiano", "Français", "Türkçe", "中文", "日本語", "한국어", "العربية"]); /* endonyms outside en */
     root2.unmount();
     setBunLanguage("fa");
   });
