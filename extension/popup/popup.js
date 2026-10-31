@@ -257,6 +257,7 @@ import { t, applyDom } from "../shared/i18n.js"; /* v0.14.0 */
     ui.applyThemeNow(state.settings.theme);
     ui.applyLangNow(state.settings.language);
     applyDom(document);
+    try { document.title = t('app.name'); } catch (e) { /* noop */ }
     view.renderThemeBtn(els, pop.validTheme(state.settings));
 
     /* Live sync: settings changes (e.g. theme/language) from another tab's
@@ -266,7 +267,7 @@ import { t, applyDom } from "../shared/i18n.js"; /* v0.14.0 */
       ui.applyThemeNow(state.settings.theme);
       var langChanged = state.settings.language !== ui.getLang();
       ui.applyLangNow(state.settings.language);
-      if (langChanged) applyDom(document);
+      if (langChanged) { applyDom(document); try { document.title = t('app.name'); } catch (e) { /* noop */ } }
       view.renderThemeBtn(els, pop.validTheme(state.settings));
       if (state.nu && state.nu.host) {
         var hosts = (state.settings && state.settings.disabledHosts) || [];

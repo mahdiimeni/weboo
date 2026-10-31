@@ -73,6 +73,10 @@ export function TopbarActionsRegion() {
 /** Region root — mounted into the drawer's .set-sec.restore-sec. */
 export function RestoreSectionRegion() {
   const inputRef = useRef<HTMLInputElement>(null);
+  /* the region contract (v0.14.1): subscribe to the shared snapshot like every
+     sibling region — this section renders t() strings, so without the
+     subscription it kept its first-paint (fa) text when the language changed */
+  useSyncExternalStore(subscribeData, getData);
   return (
     <section className="set-sec restore-sec">
       <h3>{t("restore.title")}</h3>

@@ -49,6 +49,10 @@ type Params = Record<string, string | number>;
 /* ------------------------------------------------------------------ */
 
 const en = {
+  /* ---------- app identity (display only — the APP_NAME registry, manifest,
+     storage and backups stay single-source; see constants.js) ---------- */
+  'app.name': 'Weboo',
+
   /* ---------- common ---------- */
   'common.cancel': 'Cancel',
   'common.close': 'Close',
@@ -366,6 +370,9 @@ export type TranslationKey = keyof typeof en;
 /* ------------------------------------------------------------------ */
 
 const fa: Record<TranslationKey, DictValue> = {
+  /* ---------- app identity ---------- */
+  'app.name': 'وبو',
+
   /* ---------- common ---------- */
   'common.cancel': 'انصراف',
   'common.close': 'بستن',
