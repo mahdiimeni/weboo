@@ -31,7 +31,7 @@
     /* the mirror accepts every registered language (the classic script
        cannot import i18n.js — this list is its one hand-mirror; the unit
        suite walks it against LANG_KEYS via the mirror tests) */
-    var LANGS = ['fa', 'en', 'de', 'es', 'ru', 'it', 'fr', 'tr'];
+    var LANGS = ['fa', 'en', 'de', 'es', 'ru', 'it', 'fr', 'tr', 'zh', 'ja', 'ko'];
     var l = localStorage.getItem('hlx:lang');
     if (LANGS.indexOf(l) !== -1) {
       var r = document.documentElement;

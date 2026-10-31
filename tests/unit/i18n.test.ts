@@ -28,7 +28,7 @@ describe("dictionaries", () => {
     const keys = [...enBlock.matchAll(/'([a-z]+\.[A-Za-z0-9]+)':/g)].map((m) => m[1]);
     expect(keys.length).toBeGreaterThan(150);
     const langs = HL.LANG_KEYS;
-    expect(langs).toEqual(["fa", "en", "de", "es", "ru", "it", "fr", "tr"]);
+    expect(langs).toEqual(["fa", "en", "de", "es", "ru", "it", "fr", "tr", "zh", "ja", "ko"]);
     for (const lang of langs) {
       for (const k of keys) {
         HL.setLanguage(lang);

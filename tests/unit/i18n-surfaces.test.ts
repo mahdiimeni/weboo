@@ -215,6 +215,42 @@ describe("format in es/ru/it/fr/tr modes", () => {
   });
 });
 
+/* ---------- the three v0.17.0 CJK languages — surface samples ---------- */
+
+describe("format in zh/ja/ko modes", () => {
+  const CASES: Array<[string, { date: string; tagAdded: string }]> = [
+    ["zh", { date: "2024年10月27日", tagAdded: "已添加标签「工作」" }],
+    ["ja", { date: "2024年10月27日", tagAdded: "タグ「仕事」を追加しました" }],
+    ["ko", { date: "2024년 10월 27일", tagAdded: '"일" 태그가 추가되었습니다' }],
+  ];
+  for (const [lang, want] of CASES) {
+    test(lang + ": fullwidth date, comma-grouped numbers, point-decimal bytes — no plural morphology", () => {
+      HL.setLanguage(lang);
+      expect(HL.format.fmtDate(NOON)).toBe(want.date);
+      expect(HL.format.num(1250)).toBe("1,250");
+      expect(HL.format.fmtBytes(2621440)).toBe("2.5 MB"); /* point decimal — unlike de/fr/ru */
+      expect(HL.format.isoDate(NOON)).toBe("2024-10-27"); /* machine-readable invariant */
+      /* CLDR: CJK locales resolve EVERY count to `other` — one plain-string
+         entry serves every n (compare the Russian suite's three forms) */
+      const SAMPLES: Record<string, [string, string]> = {
+        zh: ["1 个高亮", "21 个高亮"],
+        ja: ["1 件のハイライト", "21 件のハイライト"],
+        ko: ["하이라이트 1개", "하이라이트 21개"],
+      };
+      expect(HL.count("common.nHighlights", 1)).toBe(SAMPLES[lang][0]);
+      expect(HL.count("common.nHighlights", 21)).toBe(SAMPLES[lang][1]);
+      expect(HL.count("common.nNotes", 5)).not.toContain("{n}"); /* fully interpolated */
+      expect(HL.dirOf(lang)).toBe("ltr");
+      HL.setLanguage("fa");
+    });
+    test(lang + ": interpolation carries the language's quote convention", () => {
+      HL.setLanguage(lang);
+      expect(HL.t("toast.tagAdded", { tag: lang === "zh" ? "工作" : lang === "ja" ? "仕事" : "일" })).toBe(want.tagAdded);
+      HL.setLanguage("fa");
+    });
+  }
+});
+
 /* ---------- popup data + view ---------- */
 
 describe("popup surfaces in en mode", () => {
@@ -434,10 +470,10 @@ describe("React components in en mode", () => {
     root.render(React.createElement(LanguageRadios, { lang: "fa", onSelect: () => {} }));
     await new Promise((r) => setTimeout(r, 20));
     const radios = [...host.querySelectorAll('input[type="radio"][name="hlx-language"]')] as HTMLInputElement[];
-    expect(radios.map((r) => r.value)).toEqual(["fa", "en", "de", "es", "ru", "it", "fr", "tr"]);
+    expect(radios.map((r) => r.value)).toEqual(["fa", "en", "de", "es", "ru", "it", "fr", "tr", "zh", "ja", "ko"]);
     expect(radios[0].checked).toBe(true);
     const labels = [...host.querySelectorAll("label.radio strong")].map((s) => s.textContent);
-    expect(labels).toEqual(["Persian", "English", "German", "Spanish", "Russian", "Italian", "French", "Turkish"]);
+    expect(labels).toEqual(["Persian", "English", "German", "Spanish", "Russian", "Italian", "French", "Turkish", "Chinese", "Japanese", "Korean"]);
     root.unmount();
     setBunLanguage("fa");
     const host2 = document.createElement("div");
@@ -446,7 +482,7 @@ describe("React components in en mode", () => {
     root2.render(React.createElement(LanguageRadios, { lang: "fa", onSelect: () => {} }));
     await new Promise((r) => setTimeout(r, 20));
     const labels2 = [...host2.querySelectorAll("label.radio strong")].map((s) => s.textContent);
-    expect(labels2).toEqual(["فارسی", "English", "Deutsch", "Español", "Русский", "Italiano", "Français", "Türkçe"]); /* endonyms outside en */
+    expect(labels2).toEqual(["فارسی", "English", "Deutsch", "Español", "Русский", "Italiano", "Français", "Türkçe", "中文", "日本語", "한국어"]); /* endonyms outside en */
     root2.unmount();
     setBunLanguage("fa");
   });
