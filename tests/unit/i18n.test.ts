@@ -310,7 +310,7 @@ describe("German dictionary", () => {
 describe("DATE_LOCALES — the calendar policy registry (v0.19.0)", () => {
   test("fa is EXPLICITLY Jalali (persian), ar is Hijri (islamic-umalqura), the rest Gregorian", () => {
     expect(HL.DATE_LOCALES.fa).toBe("fa-IR-u-ca-persian");
-    expect(HL.DATE_LOCALES.ar).toBe("ar-u-ca-islamic-umalqura");
+    expect(HL.DATE_LOCALES.ar).toBe("ar-u-ca-islamic-umalqura-nu-arab"); /* Hijri + Arabic-Indic numerals */
     for (const lang of ["en", "de", "es", "ru", "it", "fr", "tr", "zh", "ja", "ko"]) {
       expect(HL.DATE_LOCALES[lang]).toBe(HL.LOCALES[lang]); /* plain Gregorian */
     }
@@ -329,7 +329,7 @@ describe("Arabic dictionary", () => {
     expect(HL.setLanguage("ar")).toBe("ar");
     expect(HL.getLanguage()).toBe("ar");
     expect(HL.dirOf("ar")).toBe("rtl");
-    expect(HL.LOCALES.ar).toBe("ar");
+    expect(HL.LOCALES.ar).toBe("ar-u-nu-arab"); /* Arabic-Indic numerals (v0.21.0) */
     HL.setLanguage("fa");
   });
 
@@ -338,19 +338,19 @@ describe("Arabic dictionary", () => {
     expect(HL.count("common.nHighlights", 0)).toBe("لا تمييزات");
     expect(HL.count("common.nHighlights", 1)).toBe("تمييز واحد");
     expect(HL.count("common.nHighlights", 2)).toBe("تميزان");
-    expect(HL.count("common.nHighlights", 3)).toBe("3 تمييزات");
-    expect(HL.count("common.nHighlights", 11)).toBe("11 تمييز");
-    expect(HL.count("common.nHighlights", 100)).toBe("100 تمييز");
+    expect(HL.count("common.nHighlights", 3)).toBe("٣ تمييزات"); /* Arabic-Indic digits (v0.21.0) */
+    expect(HL.count("common.nHighlights", 11)).toBe("١١ تمييز");
+    expect(HL.count("common.nHighlights", 100)).toBe("١٠٠ تمييز");
     expect(HL.count("common.nNotes", 2)).toBe("ملاحظتان");
-    expect(HL.count("common.nArticles", 7)).toBe("7 مقالات");
+    expect(HL.count("common.nArticles", 7)).toBe("٧ مقالات");
     HL.setLanguage("fa");
   });
 
-  test("Arabic interpolation renders RTL strings with «» quotes and Western digits", () => {
+  test("Arabic interpolation renders RTL strings with «» quotes and Arabic-Indic digits", () => {
     HL.setLanguage("ar");
     expect(HL.t("hosts.disabledOk", { host: "a.com" })).toBe("تم تعطيل الموقع a.com");
     expect(HL.t("toast.tagAdded", { tag: "عمل" })).toBe("أُضيف الوسم «عمل»");
-    expect(HL.count("common.nItems", 5)).toBe("5 عناصر"); /* plain 'ar' locale → Western digits */
+    expect(HL.count("common.nItems", 5)).toBe("٥ عناصر"); /* -nu-arab → Arabic-Indic digits */
     HL.setLanguage("fa");
   });
 

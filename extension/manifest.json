@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "وبو — هایلایت و یادداشت محلی",
-  "short_name": "وبو",
-  "version": "0.20.1",
+  "name": "Weboo — Local highlights & notes",
+  "short_name": "Weboo",
+  "version": "0.21.0",
     "description": "Highlight any web text in 6 colors, attach notes, 100% local storage with JSON backup — no server, no account, no subscription.",
   "permissions": ["storage", "unlimitedStorage", "contextMenus", "activeTab"],
   "background": {
@@ -43,7 +43,7 @@
   ],
   "action": {
     "default_popup": "popup/popup.html",
-    "default_title": "وبو",
+    "default_title": "Weboo",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",

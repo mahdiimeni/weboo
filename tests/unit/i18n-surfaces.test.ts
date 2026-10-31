@@ -254,19 +254,20 @@ describe("format in zh/ja/ko modes", () => {
 /* ---------- Arabic (v0.18.0 — the second RTL language) ---------- */
 
 describe("format in ar mode", () => {
-  test("HIJRI dates via islamic-umalqura (v0.19.0) — Arabic month, Hijri year, Western digits", () => {
+  test("HIJRI dates via islamic-umalqura — Arabic-Indic numerals throughout (v0.21.0)", () => {
     HL.setLanguage("ar");
     const d = HL.format.fmtDate(NOON);
-    /* 2024-10-27 = 24 Rabiʿ al-Thani 1446 AH (Umm al-Qura) */
-    expect(d).toBe("24 ربيع الآخر 1446 هـ");
+    /* 2024-10-27 = 24 Rabiʿ al-Thani 1446 AH (Umm al-Qura), Arabic-Indic digits */
+    expect(d).toBe("٢٤ ربيع الآخر ١٤٤٦ هـ");
     expect(d).not.toContain("2024"); /* the Gregorian year must not leak */
     expect(d).not.toContain("أكتوبر");
-    /* the datetime variant rides the same calendar */
-    expect(HL.format.fmtDateTime(NOON)).toContain("1446 هـ");
-    /* numbers stay on the NUMBER locale: Western digits, calendar-independent */
-    expect(HL.format.num(1250)).toBe("1,250");
-    expect(HL.format.fmtBytes(2621440)).toBe("2.5 MB");
-    /* machine-readable metadata stays Gregorian ISO */
+    expect(/[0-9]/.test(d)).toBe(false); /* no Latin digit leaks into the Arabic UI */
+    /* the datetime variant rides the same calendar + numerals */
+    expect(HL.format.fmtDateTime(NOON)).toContain("١٤٤٦ هـ");
+    /* numbers ride the -nu-arab NUMBER locale */
+    expect(HL.format.num(1250)).toBe("١٬٢٥٠");
+    expect(HL.format.fmtBytes(2621440)).toBe("٢٫٥ MB");
+    /* machine-readable metadata stays Gregorian ISO with Latin digits */
     expect(HL.format.isoDate(NOON)).toBe("2024-10-27");
     HL.setLanguage("fa");
   });
@@ -446,7 +447,7 @@ describe("exports in en mode", () => {
       exportedAt: NOON,
     });
     expect(md).toContain("# My Highlight Booklet");
-    expect(md).toContain("Exported from “وبو” — 1 highlight from 1 article");
+    expect(md).toContain("Exported from “Weboo” — 1 highlight from 1 article"); /* the display name follows the language */
     expect(md).toContain("**Note:** a note");
     expect(md).toContain("[Source](https://h.test/a)");
     /* machine-readable metadata stays language-independent */

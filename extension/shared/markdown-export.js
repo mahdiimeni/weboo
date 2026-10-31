@@ -134,7 +134,7 @@ import { t, count } from "./i18n.js"; /* v0.14.0 — generated labels follow the
 
     var out = [];
     out.push('---');
-    out.push('app: "' + APP_NAME + '"');
+    out.push('app: "' + APP_NAME + '"'); /* machine-readable metadata — the canonical Latin brand */
     out.push('version: "' + VERSION + '"');
     if (exportedAt) out.push('exported_at: "' + fmt.isoDate(exportedAt) + '"');
     out.push('highlights: ' + total);
@@ -144,7 +144,7 @@ import { t, count } from "./i18n.js"; /* v0.14.0 — generated labels follow the
     out.push('# ' + t('ex.mdTitle'));
     out.push('');
     /* the summary composes localized fragments (plural-capable counts) */
-    var summary = t('ex.exportedFrom', { app: APP_NAME }) + ' — ' +
+    var summary = t('ex.exportedFrom', { app: t('app.name') }) + ' — ' +
       count('common.nHighlights', total) + t('common.from') +
       count('common.nArticles', groups.length);
     if (exportedAt) summary += ' · ' + fmt.fmtDate(exportedAt);

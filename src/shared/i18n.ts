@@ -4037,9 +4037,9 @@ export const LOCALES: Record<Language, string> = {
   zh: 'zh-CN',
   ja: 'ja-JP',
   ko: 'ko-KR',
-  /* plain 'ar' — Western digits + Arabic month names (ar-EG would render
-     Arabic-Indic digits; the technical UI reads better with Latin digits) */
-  ar: 'ar'
+  /* 'ar' + -nu-arab — Arabic-Indic numerals (٠١٢٣) for the Arabic UI,
+     with the proper Arabic grouping/decimal separators (١٬٢٥٠ / ٢٫٥) */
+  ar: 'ar-u-nu-arab'
 };
 
 /**
@@ -4065,7 +4065,7 @@ export const DATE_LOCALES: Record<Language, string> = {
   zh: 'zh-CN',
   ja: 'ja-JP',
   ko: 'ko-KR',
-  ar: 'ar-u-ca-islamic-umalqura'
+  ar: 'ar-u-ca-islamic-umalqura-nu-arab'
 };
 
 const DICTS: Record<Language, Record<TranslationKey, DictValue>> = { fa: fa, en: en, de: de, es: es, ru: ru, it: it, fr: fr, tr: tr, zh: zh, ja: ja, ko: ko, ar: ar };

@@ -215,16 +215,20 @@ describe("توضیحات کروم-کروم (browser-chrome strings — v0.20.1)"
 });
 
 describe("برند یک‌جا در کل افزونه (APP_NAME)", () => {
-  test("manifest + popup + dashboard هم‌ارز APP_NAME هستند", () => {
+  test("manifest هم‌ارز APP_NAME است؛ قالب‌های استاتیک نام نمایشیِ دیکشنری را دارند (data-i18n)", () => {
     const manifest = JSON.parse(readFile(ext("manifest.json")));
     expect(manifest.short_name).toBe(HL.APP_NAME);
     expect(manifest.action.default_title).toBe(HL.APP_NAME);
-    expect(manifest.name).toBe(HL.APP_NAME + " — هایلایت و یادداشت محلی");
+    expect(manifest.name).toBe(HL.APP_NAME + " — Local highlights & notes"); /* v0.21.0 — the name row is English */
+    /* the STATIC templates keep their Persian pre-boot copy — the runtime
+       display name is the dictionary's app.name (fa «وبو», others 'Weboo'),
+       applied via data-i18n (the same contract as every translated static) */
     const popup = readFile(ext("popup", "popup.html"));
-    expect(popup).toContain("<title>" + HL.APP_NAME + "</title>");
-    expect(popup).toContain('<strong class="brand-name" data-i18n="app.name">' + HL.APP_NAME + "</strong>");
+    expect(popup).toContain("<title>وبو</title>");
+    expect(popup).toContain('<strong class="brand-name" data-i18n="app.name">وبو</strong>');
     const dash = readFile(ext("..", "entrypoints", "dashboard", "index.html"));
-    expect(dash).toContain("<title>داشبورد — " + HL.APP_NAME + "</title>");
+    expect(dash).toContain("<title>داشبورد — وبو</title>");
+    expect(dash).toContain('<strong data-i18n="app.name">وبو</strong>');
   });
 });
 

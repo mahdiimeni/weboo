@@ -66,7 +66,7 @@ describe("HL.markdown — ساختار سند", () => {
     const gs = [group("https://a.example.com/1", [rec("a1"), rec("a2", { note: "n" })]), group("https://b.example.com/2", [rec("b1")])];
     const out = HL.markdown.buildLibraryMarkdown({ groups: gs, exportedAt: T0 });
     expect(out.startsWith("---\n")).toBe(true);
-    expect(out).toContain('app: "وبو"');
+    expect(out).toContain('app: "' + HL.APP_NAME + '"'); /* the canonical Latin brand in machine metadata */
     expect(out).toContain('version: "' + HL.VERSION + '"');
     expect(out).toContain('exported_at: "2024-10-27"');
     expect(out).toContain("highlights: 3");

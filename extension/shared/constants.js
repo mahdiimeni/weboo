@@ -4,9 +4,14 @@
  * these bindings as an ES module.
  */
 
-  export const APP_NAME = 'وبو';
+  /* v0.21.0 — the brand's canonical (Latin) form. The per-language DISPLAY
+     name is the i18n dictionary's app.name (fa «وبو», others 'Weboo') —
+     export documents interpolate that, this constant feeds the manifest
+     composition and the machine-readable metadata (backup `name`,
+     Markdown frontmatter). */
+  export const APP_NAME = 'Weboo';
   export const APP_ID = 'weboo';
-  export const VERSION = '0.20.1';
+  export const VERSION = '0.21.0';
   export const BACKUP_FORMAT = 1;
   /**
    * Every app id the backup import gate accepts (v0.8.0 rebrand: exports

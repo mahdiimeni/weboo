@@ -287,7 +287,7 @@ import { t, count, getLanguage, dirOf } from "./i18n.js"; /* v0.14.0 — generat
     var chromeDir = dirOf();
     var lines = [];
     lines.push('<section class="cover" dir="' + chromeDir + '" aria-label="' + esc(t('ex.coverAria')) + '">');
-    lines.push('  <div class="cover-brand"><span class="mark" aria-hidden="true"></span><span class="cover-brand-txt">' + esc(APP_NAME) + '</span></div>');
+    lines.push('  <div class="cover-brand"><span class="mark" aria-hidden="true"></span><span class="cover-brand-txt">' + esc(t('app.name')) + '</span></div>');
     lines.push('  <div class="cover-main">');
     lines.push('    <h1 class="cover-title">' + esc(t('ex.bookletTitle')) + '</h1>');
     lines.push('    <p class="cover-sub">' + esc(t('ex.coverSub')) + '</p>');
@@ -304,7 +304,7 @@ import { t, count, getLanguage, dirOf } from "./i18n.js"; /* v0.14.0 — generat
       });
       lines.push('  </div>');
     }
-    lines.push('  <p class="cover-foot">' + esc(t('ex.madeWith', { app: APP_NAME, v: VERSION })) + '</p>');
+    lines.push('  <p class="cover-foot">' + esc(t('ex.madeWith', { app: t('app.name'), v: VERSION })) + '</p>');
     lines.push('</section>');
     return lines.join('\n');
   }
@@ -400,7 +400,7 @@ import { t, count, getLanguage, dirOf } from "./i18n.js"; /* v0.14.0 — generat
     } else {
       groups.forEach(function (g, i) { body.push(articleSection(g, mode, i + 1)); });
     }
-    body.push('<footer class="foot" dir="' + dirOf() + '">' + esc(t('ex.foot', { app: APP_NAME })) + '</footer>');
+    body.push('<footer class="foot" dir="' + dirOf() + '">' + esc(t('ex.foot', { app: t('app.name') })) + '</footer>');
 
     return [
       '<!DOCTYPE html>',
@@ -409,7 +409,7 @@ import { t, count, getLanguage, dirOf } from "./i18n.js"; /* v0.14.0 — generat
       '<meta charset="utf-8">',
       '<meta name="viewport" content="width=device-width, initial-scale=1">',
       '<meta name="color-scheme" content="light">', /* the booklet is a paper document — always light, print-first */
-      '<title>' + esc(t('ex.bookletTitle')) + ' — ' + esc(APP_NAME) + '</title>',
+      '<title>' + esc(t('ex.bookletTitle')) + ' — ' + esc(t('app.name')) + '</title>',
       '<style>',
       font && font.rule ? CSS + '\n' + font.rule : CSS,
       '</style>',
