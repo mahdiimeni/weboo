@@ -124,8 +124,9 @@ function faviconLetter(host) {
     const ch = (h.charAt(0) || '').toUpperCase();
     if (ch)
         return ch;
-    const FALLBACK = { fa: 'و', en: 'W', de: 'W' };
-    return FALLBACK[getLanguage()] || 'W';
+    /* the brand's initial — Persian script for the Persian UI, "W" for every
+       Latin-script language (new languages need nothing here) */
+    return getLanguage() === 'fa' ? 'و' : 'W';
 }
 /** URL without scheme for compact display */
 function displayUrl(url) {

@@ -167,6 +167,54 @@ describe("format in de mode", () => {
   });
 });
 
+/* ---------- the five v0.16.0 languages — surface samples ---------- */
+
+describe("format in es/ru/it/fr/tr modes", () => {
+  /* expectations verified against this environment's ICU (Bun full-ICU):
+     4-digit grouping differs per locale (es/it none, fr/ru NBSP, tr dot);
+     the byte units are the shared short Latin set for all non-fa languages */
+  const NBSP = /[\u00A0\u202F]/g;
+  const CASES: Array<[string, { digits: string; month: string }]> = [
+    ["es", { digits: "1250", month: "oct" }],
+    ["ru", { digits: "1 250", month: "окт" }],
+    ["it", { digits: "1250", month: "ott" }],
+    ["fr", { digits: "1 250", month: "oct." }],
+    ["tr", { digits: "1.250", month: "eki" }],
+  ];
+  for (const [lang, want] of CASES) {
+    test(lang + ": number grouping, short month, byte units — all Gregorian, Latin digits", () => {
+      HL.setLanguage(lang);
+      expect(HL.format.num(1250).replace(NBSP, " ")).toBe(want.digits);
+      const d = HL.format.fmtDate(NOON);
+      expect(d).toContain("2024");
+      expect(d.toLowerCase()).toContain(want.month);
+      expect(/[\u06F0-\u06F9]/.test(d)).toBe(false);
+      expect(HL.format.fmtBytes(2621440)).toBe("2,5 MB");
+      expect(HL.format.isoDate(NOON)).toBe("2024-10-27"); /* machine-readable invariant */
+      expect(HL.dirOf(lang)).toBe("ltr"); /* every new language is LTR */
+      HL.setLanguage("fa");
+    });
+  }
+
+  test("quotes follow each language's convention in interpolated strings", () => {
+    HL.setLanguage("es");
+    expect(HL.t("toast.tagAdded", { tag: "trabajo" })).toBe("Etiqueta «trabajo» añadida");
+    HL.setLanguage("ru");
+    expect(HL.t("toast.tagAdded", { tag: "работа" })).toBe("Тег «работа» добавлен");
+    HL.setLanguage("tr");
+    expect(HL.t("toast.tagAdded", { tag: "iş" })).toBe('"iş" etiketi eklendi');
+    HL.setLanguage("fa");
+  });
+
+  test("the hostless favicon fallback stays «و»/W across all languages", () => {
+    for (const lang of HL.LANG_KEYS) {
+      HL.setLanguage(lang);
+      expect(HL.format.faviconLetter("")).toBe(lang === "fa" ? "و" : "W");
+    }
+    HL.setLanguage("fa");
+  });
+});
+
 /* ---------- popup data + view ---------- */
 
 describe("popup surfaces in en mode", () => {
@@ -386,10 +434,10 @@ describe("React components in en mode", () => {
     root.render(React.createElement(LanguageRadios, { lang: "fa", onSelect: () => {} }));
     await new Promise((r) => setTimeout(r, 20));
     const radios = [...host.querySelectorAll('input[type="radio"][name="hlx-language"]')] as HTMLInputElement[];
-    expect(radios.map((r) => r.value)).toEqual(["fa", "en", "de"]);
+    expect(radios.map((r) => r.value)).toEqual(["fa", "en", "de", "es", "ru", "it", "fr", "tr"]);
     expect(radios[0].checked).toBe(true);
     const labels = [...host.querySelectorAll("label.radio strong")].map((s) => s.textContent);
-    expect(labels).toEqual(["Persian", "English", "German"]);
+    expect(labels).toEqual(["Persian", "English", "German", "Spanish", "Russian", "Italian", "French", "Turkish"]);
     root.unmount();
     setBunLanguage("fa");
     const host2 = document.createElement("div");
@@ -398,7 +446,7 @@ describe("React components in en mode", () => {
     root2.render(React.createElement(LanguageRadios, { lang: "fa", onSelect: () => {} }));
     await new Promise((r) => setTimeout(r, 20));
     const labels2 = [...host2.querySelectorAll("label.radio strong")].map((s) => s.textContent);
-    expect(labels2).toEqual(["فارسی", "English", "Deutsch"]); /* the names keep their endonym/exonym pattern */
+    expect(labels2).toEqual(["فارسی", "English", "Deutsch", "Español", "Русский", "Italiano", "Français", "Türkçe"]); /* endonyms outside en */
     root2.unmount();
     setBunLanguage("fa");
   });

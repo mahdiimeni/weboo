@@ -28,7 +28,7 @@ describe("dictionaries", () => {
     const keys = [...enBlock.matchAll(/'([a-z]+\.[A-Za-z0-9]+)':/g)].map((m) => m[1]);
     expect(keys.length).toBeGreaterThan(150);
     const langs = HL.LANG_KEYS;
-    expect(langs).toEqual(["fa", "en", "de"]);
+    expect(langs).toEqual(["fa", "en", "de", "es", "ru", "it", "fr", "tr"]);
     for (const lang of langs) {
       for (const k of keys) {
         HL.setLanguage(lang);
@@ -104,7 +104,8 @@ describe("language state", () => {
   });
 
   test("invalid values degrade to fa (boundary validation)", () => {
-    expect(HL.setLanguage("fr")).toBe("fa");
+    expect(HL.setLanguage("xx")).toBe("fa");
+    expect(HL.setLanguage("pt")).toBe("fa"); /* not registered */
     expect(HL.setLanguage(undefined)).toBe("fa");
     expect(HL.setLanguage("EN" as any)).toBe("fa"); /* exact match only */
     expect(HL.setLanguage("en")).toBe("en");
@@ -279,6 +280,29 @@ describe("German dictionary", () => {
     const s = await store.getSettings();
     expect(s.language).toBe("de");
   });
+
+  test("Russian plural forms are CLDR-exact (one/few/many; 21 → one, 11 → many)", () => {
+    HL.setLanguage("ru");
+    expect(HL.count("common.nNotes", 1)).toBe("1 заметка");
+    expect(HL.count("common.nNotes", 2)).toBe("2 заметки");
+    expect(HL.count("common.nNotes", 5)).toBe("5 заметок");
+    expect(HL.count("common.nNotes", 21)).toBe("21 заметка");
+    expect(HL.count("common.nNotes", 22)).toBe("22 заметки");
+    expect(HL.count("common.nNotes", 11)).toBe("11 заметок");
+    expect(HL.count("common.nArticles", 1)).toBe("1 статья");
+    expect(HL.count("common.nArticles", 3)).toBe("3 статьи");
+    expect(HL.count("common.nArticles", 12)).toBe("12 статей");
+    HL.setLanguage("fa");
+  });
+
+  test("every registered language persists through the store", async () => {
+    for (const lang of HL.LANG_KEYS) {
+      const store = HL.createStore(HL.backends.memoryArea());
+      await store.setSettings({ language: lang });
+      const s = await store.getSettings();
+      expect(s.language).toBe(lang);
+    }
+  });
 });
 
 /* ---------- settings integration (merge boundary) ---------- */
@@ -299,7 +323,7 @@ describe("settings ↔ language", () => {
 
   test("invalid stored language → fa (never crashes, never spreads)", async () => {
     const backend = HL.backends.memoryArea();
-    await backend.set({ "hlx:settings": { theme: "light", language: "fr" } });
+    await backend.set({ "hlx:settings": { theme: "light", language: "xx" } });
     const store = HL.createStore(backend);
     const s = await store.getSettings();
     expect(s.language).toBe("fa");
@@ -341,14 +365,16 @@ describe("theme-boot lang mirror", () => {
     expect(root.getAttribute("dir")).toBe("ltr");
   });
 
-  test("mirror=de → html lang=de dir=ltr (the third language boots anti-flash too)", async () => {
+  test("mirror=every language → html lang/dir anti-flash (fa rtl, all others ltr)", async () => {
     const win = (globalThis as any).window;
-    win.localStorage.setItem("hlx:lang", "de");
     const { evalClassic } = await import("./helpers/engine");
-    evalClassic(ext("shared", "theme-boot.js"));
-    const root = win.document.documentElement;
-    expect(root.getAttribute("lang")).toBe("de");
-    expect(root.getAttribute("dir")).toBe("ltr");
+    for (const lang of HL.LANG_KEYS) {
+      win.localStorage.setItem("hlx:lang", lang);
+      evalClassic(ext("shared", "theme-boot.js"));
+      const root = win.document.documentElement;
+      expect(root.getAttribute("lang")).toBe(lang);
+      expect(root.getAttribute("dir")).toBe(lang === "fa" ? "rtl" : "ltr");
+    }
     win.localStorage.removeItem("hlx:lang");
   });
 

@@ -115,8 +115,9 @@ import { getLanguage, LOCALES } from "./i18n.js";
     const h = String(host || '').replace(/^www\./, '');
     const ch = (h.charAt(0) || '').toUpperCase();
     if (ch) return ch;
-    const FALLBACK: Record<string, string> = { fa: 'و', en: 'W', de: 'W' };
-    return FALLBACK[getLanguage()] || 'W';
+    /* the brand's initial — Persian script for the Persian UI, "W" for every
+       Latin-script language (new languages need nothing here) */
+    return getLanguage() === 'fa' ? 'و' : 'W';
   }
 
   /** URL without scheme for compact display */

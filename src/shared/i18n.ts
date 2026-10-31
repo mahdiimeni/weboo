@@ -32,11 +32,18 @@
  * number/date rendering.
  */
 
-export type Language = 'fa' | 'en' | 'de';
+export type Language = 'fa' | 'en' | 'de' | 'es' | 'ru' | 'it' | 'fr' | 'tr';
 
-/** A plural-capable value: English picks `one` for exactly n === 1. */
+/** A plural-capable value — CLDR plural categories (Intl.PluralRules).
+ *  `other` is required (every locale resolves to it); `one`/`few`/`many`
+ *  are provided only where the language's morphology needs them:
+ *  en/de/es/it/tr use one+other, fr one+other (+many beyond a million,
+ *  covered by other's fallback), ru one+few+many (1 заметка / 2 заметки /
+ *  5 заметок — and 21 correctly re-selects `one`). */
 export interface Plural {
-  one: string;
+  one?: string;
+  few?: string;
+  many?: string;
   other: string;
 }
 
@@ -95,6 +102,11 @@ const en = {
   'lang.fa': 'Persian',
   'lang.en': 'English',
   'lang.de': 'German',
+  'lang.es': 'Spanish',
+  'lang.ru': 'Russian',
+  'lang.it': 'Italian',
+  'lang.fr': 'French',
+  'lang.tr': 'Turkish',
 
   /* ---------- dashboard shell (static markup via data-i18n) ---------- */
   'dash.title': 'Dashboard — Weboo',
@@ -416,6 +428,11 @@ const fa: Record<TranslationKey, DictValue> = {
   'lang.fa': 'فارسی',
   'lang.en': 'English',
   'lang.de': 'Deutsch',
+  'lang.es': 'Español',
+  'lang.ru': 'Русский',
+  'lang.it': 'Italiano',
+  'lang.fr': 'Français',
+  'lang.tr': 'Türkçe',
   'lang.desc': 'روی پنجره، داشبورد و ابزارهای شناور فوراً اعمال می‌شود.',
 
   /* ---------- dashboard shell ---------- */
@@ -738,6 +755,11 @@ const de: Record<TranslationKey, DictValue> = {
   'lang.fa': 'فارسی',
   'lang.en': 'English',
   'lang.de': 'Deutsch',
+  'lang.es': 'Español',
+  'lang.ru': 'Русский',
+  'lang.it': 'Italiano',
+  'lang.fr': 'Français',
+  'lang.tr': 'Türkçe',
   'lang.desc': 'Gilt sofort für Popup, Dashboard und schwebende Werkzeuge.',
   'lang.groupAria': 'Sprache der Benutzeroberfläche',
 
@@ -1007,6 +1029,1621 @@ const de: Record<TranslationKey, DictValue> = {
   'ex.coverAria': 'Booklet-Deckblatt'
 };
 
+
+/* ------------------------------------------------------------------ */
+/* Spanish — typed against the canonical key set; tú register, «» quotes */
+/* ------------------------------------------------------------------ */
+
+const es: Record<TranslationKey, DictValue> = {
+  /* ---------- app identity ---------- */
+  'app.name': 'Weboo',
+
+  /* ---------- common ---------- */
+  'common.cancel': 'Cancelar',
+  'common.close': 'Cerrar',
+  'common.delete': 'Eliminar',
+  'common.add': 'Añadir',
+  'common.confirm': '¿Seguro?',
+  'common.version': 'Versión',
+  'common.untitled': 'Sin título',
+  'common.localFile': 'Archivo local',
+  'common.from': ' de ',
+  'common.copy': 'Copiar texto',
+  'common.copyShort': 'Copiar',
+  'common.copyOk': 'Copiado ✓',
+  'common.copyFail': 'No se pudo copiar',
+  'common.saveFail': 'No se pudo guardar la configuración',
+  'common.deleteFail': 'No se pudo eliminar',
+  'common.nHighlights': { one: '1 resaltado', other: '{n} resaltados' },
+  'common.nNotes': { one: '1 nota', other: '{n} notas' },
+  'common.nArticles': '{n} artículos',
+  'common.nItems': { one: '1 elemento', other: '{n} elementos' },
+
+  /* ---------- colors ---------- */
+  'color.yellow': 'Amarillo',
+  'color.orange': 'Naranja',
+  'color.green': 'Verde',
+  'color.teal': 'Turquesa',
+  'color.pink': 'Rosa',
+  'color.purple': 'Morado',
+
+  /* ---------- themes ---------- */
+  'theme.auto': 'Sistema',
+  'theme.light': 'Claro',
+  'theme.dark': 'Oscuro',
+  'theme.autoHint': 'Sigue el modo claro/oscuro del sistema',
+  'theme.lightHint': 'Siempre con fondo claro',
+  'theme.darkHint': 'Siempre con fondo oscuro',
+
+  /* ---------- interface language ---------- */
+  'lang.label': 'Idioma de la interfaz',
+  'lang.fa': 'فارسی',
+  'lang.en': 'English',
+  'lang.de': 'Deutsch',
+  'lang.es': 'Español',
+  'lang.ru': 'Русский',
+  'lang.it': 'Italiano',
+  'lang.fr': 'Français',
+  'lang.tr': 'Türkçe',
+  'lang.desc': 'Se aplica al instante al popup, al panel y a las herramientas flotantes.',
+  'lang.groupAria': 'Idioma de la interfaz',
+
+  /* ---------- dashboard shell ---------- */
+  'dash.title': 'Panel — Weboo',
+  'dash.brandSub': 'Panel de gestión',
+  'dash.statsAria': 'Estadísticas generales',
+  'dash.toolbarAria': 'Filtro y búsqueda',
+  'dash.listAria': 'Resaltados',
+  'dash.footer': 'Weboo — todos los datos se guardan solo en este dispositivo; nada se envía a ningún servidor.',
+  'dash.settings': 'Ajustes',
+  'dash.settingsAria': 'Ajustes',
+  'dash.drawerCloseAria': 'Cerrar los ajustes',
+  'dash.sectionAppearance': 'Apariencia',
+  'dash.sectionColor': 'Color de resaltado por defecto',
+  'dash.sectionBehavior': 'Comportamiento',
+  'dash.themeGroupAria': 'Tema de la interfaz',
+  'dots.title': 'Color por defecto: {name}',
+  'behavior.toolbar': 'Mostrar la barra flotante al seleccionar texto',
+  'behavior.badge': 'Mostrar el contador en el icono',
+
+  /* ---------- dashboard topbar ---------- */
+  'tb.booklet': 'Cuaderno',
+  'tb.selectiveBackup': 'Exportación selectiva',
+  'tb.selectiveBackupTitle': 'Copia selectiva — por sitios, artículos y etiquetas',
+  'tb.backup': 'Exportar copia',
+  'tb.backupTitle': 'Exportar copia (toda la biblioteca)',
+  'tb.sizeBadgeTitle': 'Tamaño de los datos guardados en este dispositivo',
+
+  /* ---------- dashboard stats ---------- */
+  'stats.total': 'Resaltados totales',
+  'stats.notes': 'Notas',
+  'stats.pages': 'Páginas',
+  'stats.sites': 'Sitios',
+
+  /* ---------- dashboard filter toolbar ---------- */
+  'search.placeholder': 'Buscar en el texto, las notas o los títulos de página…',
+  'search.aria': 'Buscar',
+  'filter.colorAria': 'Filtro de color',
+  'filter.notesOnly': 'Solo con notas',
+  'filter.sortLabel': 'Ordenar:',
+  'sort.newest': 'Más recientes',
+  'sort.oldest': 'Más antiguos',
+  'sort.page': 'Por página',
+  'filter.tagsLabel': 'Etiquetas de artículos:',
+  'filter.tagsAria': 'Filtro de etiquetas de artículos',
+
+  /* ---------- list chrome ---------- */
+  'bulk.expand': 'Desplegar todos los artículos',
+  'bulk.expandTitle': 'Todas las tarjetas de artículo se despliegan y también se cargan los resaltados sin cargar',
+  'bulk.collapse': 'Plegar todos los artículos',
+  'bulk.collapseTitle': 'Todas las tarjetas de artículo se pliegan y también se cargan los resaltados sin cargar; al abrir un artículo se muestran sus resaltados completos',
+  'list.loadMore': 'Cargar más ({n} restantes)',
+  'empty.noResults': 'No se encontraron resultados.',
+  'empty.noResultsSub': 'Prueba con otra búsqueda o cambia los filtros de color y etiquetas.',
+  'empty.first': 'Aún no hay resaltados. ¡Selecciona tu primer texto!',
+  'empty.firstSub': 'En cualquier página web, selecciona texto y usa la barra flotante de la extensión.',
+  'dirsec.rtl': 'Artículos RTL',
+  'dirsec.ltr': 'Artículos LTR',
+  'dirsec.lead': 'El resaltado más reciente está aquí',
+  'dirsec.leadTitle': 'El artículo resaltado más recientemente está en esta sección, por eso se muestra primero',
+
+  /* ---------- article card ---------- */
+  'card.order.newest': 'Más recientes',
+  'card.order.oldest': 'Más antiguos',
+  'card.order.page': 'Página',
+  'card.order.pageRev': 'Página inversa',
+  'card.order.newestTitle': 'Orden actual de los resaltados: del más reciente al más antiguo; pulsa para invertirlo',
+  'card.order.oldestTitle': 'Orden actual de los resaltados: del más antiguo al más reciente; pulsa para invertirlo',
+  'card.order.pageTitle': 'Orden actual de los resaltados: según su posición en la página; pulsa para invertirlo',
+  'card.order.pageRevTitle': 'Orden actual de los resaltados: posición inversa en la página; pulsa para restaurar el orden de lectura',
+  'card.orderAria': 'Orden de los resaltados de este artículo: {label}',
+  'card.viewPageTitle': 'Abrir esta página en una pestaña nueva',
+  'card.deleteGroupTitle': 'Eliminar todo lo de esta página',
+  'card.remaining': '…{n} más de esta página (pulsa «Cargar más» para verlos)',
+
+  /* ---------- highlight item ---------- */
+  'item.previewTitle': 'Ver el texto completo de este resaltado',
+  'item.notePreviewTitle': 'Ver el texto completo y la nota de este resaltado',
+  'item.viewTitle': 'Ver en la página',
+  'item.deleteTitle': 'Eliminar este resaltado',
+
+  /* ---------- tags row ---------- */
+  'tags.add': 'Etiqueta',
+  'tags.addTitle': 'Añadir una etiqueta a este artículo',
+  'tags.placeholder': 'Nombre de la etiqueta…',
+  'tags.inputAria': 'Nombre de la nueva etiqueta',
+  'tags.removeTitle': 'Quitar la etiqueta {tag}',
+
+  /* ---------- disabled hosts ---------- */
+  'hosts.title': 'Sitios desactivados',
+  'hosts.desc': 'En estos sitios no se crean ni se muestran resaltados (los datos se conservan).',
+  'hosts.empty': 'Aún no hay sitios desactivados.',
+  'hosts.addPlaceholder': 'Añadir un dominio (p. ej. example.com)',
+  'hosts.inputAria': 'Dominio nuevo',
+  'hosts.invalid': 'Escribe un dominio válido (p. ej. example.com)',
+  'hosts.duplicate': 'Este dominio ya está en la lista',
+  'hosts.disabledOk': '{host} está ahora desactivado',
+  'hosts.removeTitle': 'Quitar {host}',
+
+  /* ---------- restore section + modal ---------- */
+  'restore.title': 'Restaurar copia',
+  'restore.desc': 'Elige un archivo de copia JSON; antes de ejecutar nada se te preguntará si quieres fusionar o reemplazar todo.',
+  'restore.fileFail': 'No se pudo abrir el archivo',
+  'modal.name': 'Nombre de la colección',
+  'modal.highlights': 'Resaltados',
+  'modal.exportDate': 'Fecha de exportación',
+  'modal.type': 'Tipo',
+  'modal.partialValue': 'Copia selectiva (parte de la biblioteca)',
+  'modal.merge': 'Fusionar',
+  'modal.mergeDesc': 'Ganan los registros más recientes; los datos actuales se conservan.',
+  'modal.replace': 'Reemplazo completo',
+  'modal.replaceDesc': '¡Todos los datos actuales se eliminarán!',
+  'modal.start': 'Iniciar restauración',
+
+  /* ---------- danger zone ---------- */
+  'danger.title': 'Zona de peligro',
+  'danger.desc': 'Esto no se puede deshacer — exporta antes una copia.',
+  'danger.arm': 'Eliminar todos los resaltados y notas',
+  'danger.placeholder': 'Para confirmar, escribe “delete”',
+  'danger.inputAria': 'Confirmar eliminación',
+  'danger.go': 'Confirmar y eliminar',
+  'danger.done': 'Se han eliminado todos los resaltados y notas',
+
+  /* ---------- modals ---------- */
+  'bk.title': 'Cuaderno y Markdown',
+  'bk.mdDesc': 'Para Obsidian y cualquier editor Markdown — toda la biblioteca en un archivo, una sección por artículo.',
+  'bk.mdBtn': 'Descargar archivo Markdown',
+  'bk.pickerTitle': 'Artículos del cuaderno',
+  'bk.pickerHint': 'Sin selección entran todos los artículos en el cuaderno; con selección, solo estos.',
+  'bk.pickerAria': 'Elegir los artículos del cuaderno',
+  'bk.allArticles': 'Todos los artículos estarán en el cuaderno.',
+  'bk.pickedStatus': '{n} resaltados de {m} artículos estarán en el cuaderno.',
+  'bk.printTitle': 'Cuaderno imprimible',
+  'bk.printDesc': 'Diseñado para imprimir en A4 — portada, índice y un artículo por página.',
+  'bk.formatAria': 'Formato del cuaderno',
+  'bk.html': 'Archivo HTML',
+  'bk.htmlDesc': 'Un archivo listo para imprimir — ábrelo en el navegador y pulsa Ctrl+P.',
+  'bk.pdf': 'PDF',
+  'bk.pdfDesc': 'Se abre el diálogo de impresión del navegador — elige “Save as PDF”.',
+  'bk.colorAria': 'Modo de color del cuaderno',
+  'bk.color': 'A color',
+  'bk.colorDesc': 'Con los colores originales de los resaltados',
+  'bk.bw': 'Blanco y negro',
+  'bk.bwDesc': 'Menos tinta — ideal para impresoras normales',
+  'bk.fontAria': 'Tipografía del cuaderno',
+  'bk.fontDefault': '{name} — por defecto',
+  'bk.fontDesc': 'Si no está instalada, el navegador muestra una tipografía similar',
+  'bk.fontCustom': 'Tipografía personalizada',
+  'bk.fontCustomDesc': 'Cualquier tipografía instalada en tu equipo — escribe su nombre exacto',
+  'bk.fontCustomPlaceholder': 'p. ej. B Nazanin',
+  'bk.build': 'Crear cuaderno',
+  'sel.title': 'Copia selectiva',
+  'sel.desc': 'Exporta una parte de la biblioteca — cada sitio, artículo o etiqueta que elijas lleva sus resaltados al archivo.',
+  'sel.sites': 'Sitios',
+  'sel.sitesHint': 'Todos los resaltados de estos sitios',
+  'sel.sitesAria': 'Elegir sitios',
+  'sel.articles': 'Artículos',
+  'sel.articlesHint': 'Resaltados de estos artículos',
+  'sel.articlesAria': 'Elegir artículos',
+  'sel.tags': 'Etiquetas',
+  'sel.tagsHint': 'Todos los resaltados de artículos con esta etiqueta',
+  'sel.tagsAria': 'Elegir etiquetas',
+  'sel.emptySites': 'Aún no hay sitios',
+  'sel.emptyArticles': 'Aún no hay artículos',
+  'sel.emptyTags': 'Aún no hay etiquetas',
+  'sel.pickOne': 'Elige al menos un elemento.',
+  'sel.noMatch': 'Ningún resaltado coincide con esta selección.',
+  'sel.status': { one: '1 resaltado irá al archivo.', other: '{n} resaltados irán al archivo.' },
+  'sel.download': 'Descargar archivo de copia',
+
+  /* ---------- dashboard toasts ---------- */
+  'toast.openPageNoUrl': 'Esta página no tiene dirección guardada',
+  'toast.openPageFail': 'No se pudo abrir la página',
+  'toast.openHlNoUrl': 'Este resaltado no tiene dirección guardada',
+  'toast.nothingToCopy': 'Nada que copiar',
+  'toast.deleted': 'Resaltado eliminado',
+  'toast.groupDeleted': 'Se han eliminado los resaltados de esta página',
+  'toast.readFail': 'No se pudieron leer los datos',
+  'toast.backupOk': { one: 'Archivo de copia con 1 resaltado descargado', other: 'Archivo de copia con {n} resaltados descargado' },
+  'toast.partialBackupOk': { one: 'Copia selectiva con 1 resaltado descargada', other: 'Copia selectiva con {n} resaltados descargada' },
+  'toast.exportFail': 'La exportación falló',
+  'toast.fileReadFail': 'No se pudo leer el archivo',
+  'toast.invalidBackup': 'No es un archivo de copia válido de Weboo',
+  'toast.importDone': '{a} añadidos, {u} actualizados, {s} omitidos',
+  'toast.restoreFail': 'La restauración falló',
+  'toast.mdOk': { one: 'Archivo Markdown con 1 resaltado descargado', other: 'Archivo Markdown con {n} resaltados descargado' },
+  'toast.mdFail': 'La exportación Markdown falló',
+  'toast.nothingToExport': 'No hay resaltados para exportar',
+  'toast.noArticlesForBooklet': 'No se han elegido artículos para el cuaderno',
+  'toast.printOpened': 'Se abrió el diálogo de impresión — elige “Save as PDF” para un PDF',
+  'toast.bookletOk': { one: 'Cuaderno HTML con 1 resaltado descargado', other: 'Cuaderno HTML con {n} resaltados descargado' },
+  'toast.bookletFail': 'No se pudo crear el cuaderno',
+  'toast.tagInvalid': 'Nombre de etiqueta no válido (máx. {n} caracteres)',
+  'toast.tagExists': 'Esta etiqueta ya está en este artículo',
+  'toast.tagCap': 'Máximo {n} etiquetas por artículo',
+  'toast.tagAdded': 'Etiqueta «{tag}» añadida',
+  'toast.tagSaveFail': 'No se pudo guardar la etiqueta',
+  'toast.tagRemoved': 'Etiqueta quitada',
+  'toast.tagRemoveFail': 'No se pudo quitar la etiqueta',
+
+  /* ---------- popup ---------- */
+  'popup.brandSub': 'Resaltados y notas — 100 % local',
+  'popup.settingsBtnTitle': 'Panel y ajustes',
+  'popup.unsupportedT': 'Esta página no es compatible',
+  'popup.unsupportedDesc': 'La extensión solo funciona en páginas http, https y file.',
+  'popup.openDash': 'Abrir el panel',
+  'popup.genericLbl': 'Resaltados guardados en total',
+  'popup.genericHint': 'Haz clic en el icono de la extensión dentro de una página web para ver sus resaltados.',
+  'popup.enabledHere': 'Activada en este sitio',
+  'popup.toggleAria': 'Extensión activada en este sitio',
+  'popup.applied': 'Aplicado ✓',
+  'popup.refreshHint': 'Si los resaltados no aparecen enseguida, recarga la página.',
+  'popup.listTitle': 'Resaltados de esta página',
+  'popup.emptyT': 'Todavía no hay resaltados en esta página.',
+  'popup.emptyHint': '¡Selecciona texto y usa la barra flotante!',
+  'popup.dashboardBtn': 'Panel completo',
+  'popup.jumpTitle': 'Ir a este resaltado',
+  'popup.hasNote': 'Tiene nota',
+  'popup.themeTitle': 'Tema: {name}',
+  'popup.themeChangeAria': 'Cambiar el tema ({name})',
+  'popup.countOf': '{a} de {b}',
+  'popup.backupOk': 'Archivo de copia descargado',
+
+  /* ---------- floating widgets ---------- */
+  'fw.toolbarAria': 'Barra de resaltado',
+  'fw.highlightColor': 'Resaltar en {name}',
+  'fw.noteTitle': 'Resaltado + nota',
+  'fw.noteAria': 'Resaltado con nota',
+  'fw.copyAria': 'Copiar el texto seleccionado',
+  'fw.gripTitle': 'Mover la ventana; arrastra y suelta',
+  'fw.colorAria': 'Color {name}',
+  'fw.noNote': 'Este resaltado todavía no tiene nota.',
+  'fw.addNote': 'Añadir una nota',
+  'fw.editNote': 'Editar la nota',
+  'fw.notePlaceholder': 'Tu nota para este resaltado…',
+  'fw.saved': 'Guardado ✓',
+  'fw.saveNote': 'Guardar nota',
+  'fw.copyAllTitle': 'Copiar texto y nota',
+  'fw.deleteTitle': 'Eliminar el resaltado',
+  'fw.deleteConfirm': '¿Eliminar?',
+
+  /* ---------- highlighter toasts ---------- */
+  'hl.copied': 'Copiado ✓',
+  'hl.saveError': 'El guardado falló.',
+  'hl.notHighlightable': 'Esta parte de la página no se puede resaltar.',
+  'hl.deleted': 'Resaltado eliminado.',
+  'hl.notePrefix': '📝 Nota: ',
+
+  /* ---------- service worker context menu ---------- */
+  'menu.highlight': '✨ Resaltar «%s»',
+
+  /* ---------- export documents ---------- */
+  'ex.mdTitle': 'Mi cuaderno de resaltados',
+  'ex.exportedFrom': 'Exportado desde «{app}»',
+  'ex.mdEmpty': 'Aún no hay resaltados.',
+  'ex.note': 'Nota:',
+  'ex.tags': 'Etiquetas:',
+  'ex.source': 'Fuente',
+  'ex.bookletTitle': 'Cuaderno de resaltados',
+  'ex.coverSub': 'La colección completa de resaltados y notas',
+  'ex.toc': 'Índice',
+  'ex.madeWith': 'Creado con «{app}» · versión {v}',
+  'ex.foot': 'Creado con «{app}» — todos los datos se quedan solo en tu dispositivo.',
+  'ex.coverAria': 'Portada del cuaderno'
+};
+
+/* ------------------------------------------------------------------ */
+/* Russian — typed against the canonical key set; вы register, «»       */
+/* quotes, full CLDR plurals (one/few/many — вы́деление/выделения/      */
+/* выделений)                                                           */
+/* ------------------------------------------------------------------ */
+
+const ru: Record<TranslationKey, DictValue> = {
+  /* ---------- app identity ---------- */
+  'app.name': 'Weboo',
+
+  /* ---------- common ---------- */
+  'common.cancel': 'Отмена',
+  'common.close': 'Закрыть',
+  'common.delete': 'Удалить',
+  'common.add': 'Добавить',
+  'common.confirm': 'Вы уверены?',
+  'common.version': 'Версия',
+  'common.untitled': 'Без названия',
+  'common.localFile': 'Локальный файл',
+  'common.from': ' из ',
+  'common.copy': 'Копировать текст',
+  'common.copyShort': 'Копировать',
+  'common.copyOk': 'Скопировано ✓',
+  'common.copyFail': 'Не удалось скопировать',
+  'common.saveFail': 'Не удалось сохранить настройки',
+  'common.deleteFail': 'Не удалось удалить',
+  'common.nHighlights': { one: '{n} выделение', few: '{n} выделения', many: '{n} выделений', other: '{n} выделений' },
+  'common.nNotes': { one: '{n} заметка', few: '{n} заметки', many: '{n} заметок', other: '{n} заметок' },
+  'common.nArticles': { one: '{n} статья', few: '{n} статьи', many: '{n} статей', other: '{n} статей' },
+  'common.nItems': { one: '{n} элемент', few: '{n} элемента', many: '{n} элементов', other: '{n} элементов' },
+
+  /* ---------- colors ---------- */
+  'color.yellow': 'Жёлтый',
+  'color.orange': 'Оранжевый',
+  'color.green': 'Зелёный',
+  'color.teal': 'Бирюзовый',
+  'color.pink': 'Розовый',
+  'color.purple': 'Фиолетовый',
+
+  /* ---------- themes ---------- */
+  'theme.auto': 'Системная',
+  'theme.light': 'Светлая',
+  'theme.dark': 'Тёмная',
+  'theme.autoHint': 'Следует светлому/тёмному режиму системы',
+  'theme.lightHint': 'Всегда светлый фон',
+  'theme.darkHint': 'Всегда тёмный фон',
+
+  /* ---------- interface language ---------- */
+  'lang.label': 'Язык интерфейса',
+  'lang.fa': 'فارسی',
+  'lang.en': 'English',
+  'lang.de': 'Deutsch',
+  'lang.es': 'Español',
+  'lang.ru': 'Русский',
+  'lang.it': 'Italiano',
+  'lang.fr': 'Français',
+  'lang.tr': 'Türkçe',
+  'lang.desc': 'Мгновенно применяется к всплывающему окну, панели и плавающим инструментам.',
+  'lang.groupAria': 'Язык интерфейса',
+
+  /* ---------- dashboard shell ---------- */
+  'dash.title': 'Панель — Weboo',
+  'dash.brandSub': 'Панель управления',
+  'dash.statsAria': 'Общая статистика',
+  'dash.toolbarAria': 'Фильтр и поиск',
+  'dash.listAria': 'Выделения',
+  'dash.footer': 'Weboo — все данные хранятся только на этом устройстве; ничего не отправляется на сервер.',
+  'dash.settings': 'Настройки',
+  'dash.settingsAria': 'Настройки',
+  'dash.drawerCloseAria': 'Закрыть настройки',
+  'dash.sectionAppearance': 'Оформление',
+  'dash.sectionColor': 'Цвет выделения по умолчанию',
+  'dash.sectionBehavior': 'Поведение',
+  'dash.themeGroupAria': 'Тема интерфейса',
+  'dots.title': 'Цвет по умолчанию: {name}',
+  'behavior.toolbar': 'Показывать плавающую панель при выделении текста',
+  'behavior.badge': 'Показывать счётчик на значке',
+
+  /* ---------- dashboard topbar ---------- */
+  'tb.booklet': 'Сборник',
+  'tb.selectiveBackup': 'Выборочный экспорт',
+  'tb.selectiveBackupTitle': 'Выборочная копия — по сайтам, статьям и тегам',
+  'tb.backup': 'Экспорт копии',
+  'tb.backupTitle': 'Экспорт копии (вся библиотека)',
+  'tb.sizeBadgeTitle': 'Объём данных, сохранённых на этом устройстве',
+
+  /* ---------- dashboard stats ---------- */
+  'stats.total': 'Всего выделений',
+  'stats.notes': 'Заметки',
+  'stats.pages': 'Страницы',
+  'stats.sites': 'Сайты',
+
+  /* ---------- dashboard filter toolbar ---------- */
+  'search.placeholder': 'Искать в тексте, заметках или заголовках страниц…',
+  'search.aria': 'Поиск',
+  'filter.colorAria': 'Фильтр по цвету',
+  'filter.notesOnly': 'Только с заметками',
+  'filter.sortLabel': 'Сортировка:',
+  'sort.newest': 'Сначала новые',
+  'sort.oldest': 'Сначала старые',
+  'sort.page': 'По странице',
+  'filter.tagsLabel': 'Теги статей:',
+  'filter.tagsAria': 'Фильтр по тегам статей',
+
+  /* ---------- list chrome ---------- */
+  'bulk.expand': 'Развернуть все статьи',
+  'bulk.expandTitle': 'Все карточки статей развернутся, и все незагруженные выделения тоже загрузятся',
+  'bulk.collapse': 'Свернуть все статьи',
+  'bulk.collapseTitle': 'Все карточки статей свернутся, и все незагруженные выделения тоже загрузятся; при открытии статьи её выделения показываются полностью',
+  'list.loadMore': 'Загрузить ещё (осталось {n})',
+  'empty.noResults': 'Ничего не найдено.',
+  'empty.noResultsSub': 'Измените поисковый запрос или фильтры цвета и тегов.',
+  'empty.first': 'Выделений ещё нет. Выделите свой первый текст!',
+  'empty.firstSub': 'На любой веб-странице выделите текст и воспользуйтесь плавающей панелью расширения.',
+  'dirsec.rtl': 'Статьи справа налево',
+  'dirsec.ltr': 'Статьи слева направо',
+  'dirsec.lead': 'Здесь самое свежее выделение',
+  'dirsec.leadTitle': 'Статья, выделенная последней, находится в этом разделе — поэтому он показан первым',
+
+  /* ---------- article card ---------- */
+  'card.order.newest': 'Сначала новые',
+  'card.order.oldest': 'Сначала старые',
+  'card.order.page': 'Страница',
+  'card.order.pageRev': 'Страница наоборот',
+  'card.order.newestTitle': 'Текущий порядок выделений: от новых к старым; нажмите, чтобы изменить порядок',
+  'card.order.oldestTitle': 'Текущий порядок выделений: от старых к новым; нажмите, чтобы изменить порядок',
+  'card.order.pageTitle': 'Текущий порядок выделений: по расположению в тексте страницы; нажмите, чтобы изменить порядок',
+  'card.order.pageRevTitle': 'Текущий порядок выделений: обратный порядку в тексте страницы; нажмите, чтобы вернуть порядок чтения',
+  'card.orderAria': 'Порядок выделений этой статьи: {label}',
+  'card.viewPageTitle': 'Открыть эту страницу в новой вкладке',
+  'card.deleteGroupTitle': 'Удалить всё с этой страницы',
+  'card.remaining': '…ещё {n} с этой страницы (нажмите «Загрузить ещё», чтобы показать)',
+
+  /* ---------- highlight item ---------- */
+  'item.previewTitle': 'Показать полный текст этого выделения',
+  'item.notePreviewTitle': 'Показать полный текст и заметку этого выделения',
+  'item.viewTitle': 'Открыть на странице',
+  'item.deleteTitle': 'Удалить это выделение',
+
+  /* ---------- tags row ---------- */
+  'tags.add': 'Тег',
+  'tags.addTitle': 'Добавить тег к этой статье',
+  'tags.placeholder': 'Название тега…',
+  'tags.inputAria': 'Название нового тега',
+  'tags.removeTitle': 'Убрать тег {tag}',
+
+  /* ---------- disabled hosts ---------- */
+  'hosts.title': 'Отключённые сайты',
+  'hosts.desc': 'На этих сайтах выделения не создаются и не показываются (данные сохраняются).',
+  'hosts.empty': 'Отключённых сайтов пока нет.',
+  'hosts.addPlaceholder': 'Добавить домен (например, example.com)',
+  'hosts.inputAria': 'Новый домен',
+  'hosts.invalid': 'Введите корректный домен (например, example.com)',
+  'hosts.duplicate': 'Этот домен уже есть в списке',
+  'hosts.disabledOk': 'Сайт {host} отключён',
+  'hosts.removeTitle': 'Убрать {host}',
+
+  /* ---------- restore section + modal ---------- */
+  'restore.title': 'Восстановить копию',
+  'restore.desc': 'Выберите JSON-файл копии; перед выполнением спросим: объединить или полностью заменить.',
+  'restore.fileFail': 'Не удалось открыть файл',
+  'modal.name': 'Название коллекции',
+  'modal.highlights': 'Выделения',
+  'modal.exportDate': 'Дата экспорта',
+  'modal.type': 'Тип',
+  'modal.partialValue': 'Выборочная копия (часть библиотеки)',
+  'modal.merge': 'Объединение',
+  'modal.mergeDesc': 'Побеждают более новые записи; текущие данные сохраняются.',
+  'modal.replace': 'Полная замена',
+  'modal.replaceDesc': 'Все текущие данные будут удалены!',
+  'modal.start': 'Начать восстановление',
+
+  /* ---------- danger zone ---------- */
+  'danger.title': 'Опасная зона',
+  'danger.desc': 'Это действие необратимо — сначала сделайте экспорт копии.',
+  'danger.arm': 'Удалить все выделения и заметки',
+  'danger.placeholder': 'Для подтверждения введите «delete»',
+  'danger.inputAria': 'Подтверждение удаления',
+  'danger.go': 'Подтвердить и удалить',
+  'danger.done': 'Все выделения и заметки удалены',
+
+  /* ---------- modals ---------- */
+  'bk.title': 'Сборник и Markdown',
+  'bk.mdDesc': 'Для Obsidian и любого Markdown-редактора — вся библиотека в одном файле, по разделу на статью.',
+  'bk.mdBtn': 'Скачать Markdown-файл',
+  'bk.pickerTitle': 'Статьи сборника',
+  'bk.pickerHint': 'Без выбора в сборник попадут все статьи; с выбором — только отмеченные.',
+  'bk.pickerAria': 'Выбрать статьи сборника',
+  'bk.allArticles': 'В сборник попадут все статьи.',
+  'bk.pickedStatus': '{n} выделений из {m} статей попадут в сборник.',
+  'bk.printTitle': 'Сборник для печати',
+  'bk.printDesc': 'Свёрстан для печати A4 — обложка, оглавление и по статье на страницу.',
+  'bk.formatAria': 'Формат сборника',
+  'bk.html': 'HTML-файл',
+  'bk.htmlDesc': 'Готовый к печати файл — откройте его в браузере и нажмите Ctrl+P.',
+  'bk.pdf': 'PDF',
+  'bk.pdfDesc': 'Откроется диалог печати браузера — выберите «Save as PDF».',
+  'bk.colorAria': 'Цветовой режим сборника',
+  'bk.color': 'Цветной',
+  'bk.colorDesc': 'С исходными цветами выделений',
+  'bk.bw': 'Чёрно-белый',
+  'bk.bwDesc': 'Меньше краски — для обычного принтера',
+  'bk.fontAria': 'Шрифт сборника',
+  'bk.fontDefault': '{name} — по умолчанию',
+  'bk.fontDesc': 'Если шрифт не установлен, браузер покажет похожий',
+  'bk.fontCustom': 'Свой шрифт',
+  'bk.fontCustomDesc': 'Любой шрифт, установленный на вашем устройстве — введите его точное название',
+  'bk.fontCustomPlaceholder': 'например, B Nazanin',
+  'bk.build': 'Создать сборник',
+  'sel.title': 'Выборочная копия',
+  'sel.desc': 'Экспортируйте часть библиотеки — каждый выбранный сайт, статья или тег возьмёт свои выделения в файл.',
+  'sel.sites': 'Сайты',
+  'sel.sitesHint': 'Все выделения этих сайтов',
+  'sel.sitesAria': 'Выбрать сайты',
+  'sel.articles': 'Статьи',
+  'sel.articlesHint': 'Выделения этих статей',
+  'sel.articlesAria': 'Выбрать статьи',
+  'sel.tags': 'Теги',
+  'sel.tagsHint': 'Все выделения статей с этим тегом',
+  'sel.tagsAria': 'Выбрать теги',
+  'sel.emptySites': 'Сайтов пока нет',
+  'sel.emptyArticles': 'Статей пока нет',
+  'sel.emptyTags': 'Тегов пока нет',
+  'sel.pickOne': 'Выберите хотя бы один пункт.',
+  'sel.noMatch': 'С этим выбором не совпадает ни одно выделение.',
+  'sel.status': { one: 'В файл попадёт {n} выделение.', few: 'В файл попадут {n} выделения.', many: 'В файл попадут {n} выделений.', other: 'В файл попадут {n} выделений.' },
+  'sel.download': 'Скачать файл копии',
+
+  /* ---------- dashboard toasts ---------- */
+  'toast.openPageNoUrl': 'У этой страницы нет сохранённого адреса',
+  'toast.openPageFail': 'Не удалось открыть страницу',
+  'toast.openHlNoUrl': 'У этого выделения нет сохранённого адреса',
+  'toast.nothingToCopy': 'Нечего копировать',
+  'toast.deleted': 'Выделение удалено',
+  'toast.groupDeleted': 'Выделения этой страницы удалены',
+  'toast.readFail': 'Не удалось прочитать данные',
+  'toast.backupOk': { one: 'Скачан файл копии с {n} выделением', few: 'Скачан файл копии с {n} выделениями', many: 'Скачан файл копии с {n} выделениями', other: 'Скачан файл копии с {n} выделениями' },
+  'toast.partialBackupOk': { one: 'Скачана выборочная копия с {n} выделением', few: 'Скачана выборочная копия с {n} выделениями', many: 'Скачана выборочная копия с {n} выделениями', other: 'Скачана выборочная копия с {n} выделениями' },
+  'toast.exportFail': 'Экспорт не удался',
+  'toast.fileReadFail': 'Не удалось прочитать файл',
+  'toast.invalidBackup': 'Это не корректный файл копии Weboo',
+  'toast.importDone': 'Добавлено: {a}, обновлено: {u}, пропущено: {s}',
+  'toast.restoreFail': 'Восстановление не удалось',
+  'toast.mdOk': { one: 'Скачан Markdown-файл с {n} выделением', few: 'Скачан Markdown-файл с {n} выделениями', many: 'Скачан Markdown-файл с {n} выделениями', other: 'Скачан Markdown-файл с {n} выделениями' },
+  'toast.mdFail': 'Экспорт Markdown не удался',
+  'toast.nothingToExport': 'Нет выделений для экспорта',
+  'toast.noArticlesForBooklet': 'Для сборника не выбраны статьи',
+  'toast.printOpened': 'Открылся диалог печати — для PDF выберите «Save as PDF»',
+  'toast.bookletOk': { one: 'Скачан HTML-сборник с {n} выделением', few: 'Скачан HTML-сборник с {n} выделениями', many: 'Скачан HTML-сборник с {n} выделениями', other: 'Скачан HTML-сборник с {n} выделениями' },
+  'toast.bookletFail': 'Не удалось создать сборник',
+  'toast.tagInvalid': 'Некорректное имя тега (максимум {n} символов)',
+  'toast.tagExists': 'Этот тег уже есть у статьи',
+  'toast.tagCap': 'Максимум {n} тегов на статью',
+  'toast.tagAdded': 'Тег «{tag}» добавлен',
+  'toast.tagSaveFail': 'Не удалось сохранить тег',
+  'toast.tagRemoved': 'Тег убран',
+  'toast.tagRemoveFail': 'Не удалось убрать тег',
+
+  /* ---------- popup ---------- */
+  'popup.brandSub': 'Выделения и заметки — 100 % локально',
+  'popup.settingsBtnTitle': 'Панель и настройки',
+  'popup.unsupportedT': 'Эта страница не поддерживается',
+  'popup.unsupportedDesc': 'Расширение работает только на страницах http, https и file.',
+  'popup.openDash': 'Открыть панель',
+  'popup.genericLbl': 'Всего сохранённых выделений',
+  'popup.genericHint': 'Нажмите на значок расширения на веб-странице, чтобы увидеть её выделения.',
+  'popup.enabledHere': 'Включено на этом сайте',
+  'popup.toggleAria': 'Расширение включено на этом сайте',
+  'popup.applied': 'Применено ✓',
+  'popup.refreshHint': 'Если выделения появились не сразу, обновите страницу.',
+  'popup.listTitle': 'Выделения этой страницы',
+  'popup.emptyT': 'На этой странице пока нет выделений.',
+  'popup.emptyHint': 'Выделите текст и воспользуйтесь плавающей панелью!',
+  'popup.dashboardBtn': 'Вся панель',
+  'popup.jumpTitle': 'Перейти к этому выделению',
+  'popup.hasNote': 'Есть заметка',
+  'popup.themeTitle': 'Тема: {name}',
+  'popup.themeChangeAria': 'Сменить тему ({name})',
+  'popup.countOf': '{a} из {b}',
+  'popup.backupOk': 'Файл копии скачан',
+
+  /* ---------- floating widgets ---------- */
+  'fw.toolbarAria': 'Панель выделения',
+  'fw.highlightColor': 'Выделить цветом «{name}»',
+  'fw.noteTitle': 'Выделение + заметка',
+  'fw.noteAria': 'Выделение с заметкой',
+  'fw.copyAria': 'Копировать выделенный текст',
+  'fw.gripTitle': 'Переместить окно; потяните и отпустите',
+  'fw.colorAria': 'Цвет «{name}»',
+  'fw.noNote': 'У этого выделения пока нет заметки.',
+  'fw.addNote': 'Добавить заметку',
+  'fw.editNote': 'Редактировать заметку',
+  'fw.notePlaceholder': 'Ваша заметка к этому выделению…',
+  'fw.saved': 'Сохранено ✓',
+  'fw.saveNote': 'Сохранить заметку',
+  'fw.copyAllTitle': 'Копировать текст и заметку',
+  'fw.deleteTitle': 'Удалить выделение',
+  'fw.deleteConfirm': 'Удалить?',
+
+  /* ---------- highlighter toasts ---------- */
+  'hl.copied': 'Скопировано ✓',
+  'hl.saveError': 'Не удалось сохранить.',
+  'hl.notHighlightable': 'Эта часть страницы не может быть выделена.',
+  'hl.deleted': 'Выделение удалено.',
+  'hl.notePrefix': '📝 Заметка: ',
+
+  /* ---------- service worker context menu ---------- */
+  'menu.highlight': '✨ Выделить «%s»',
+
+  /* ---------- export documents ---------- */
+  'ex.mdTitle': 'Мой сборник выделений',
+  'ex.exportedFrom': 'Экспорт из «{app}»',
+  'ex.mdEmpty': 'Выделений пока нет.',
+  'ex.note': 'Заметка:',
+  'ex.tags': 'Теги:',
+  'ex.source': 'Источник',
+  'ex.bookletTitle': 'Сборник выделений',
+  'ex.coverSub': 'Полная коллекция выделений и заметок',
+  'ex.toc': 'Оглавление',
+  'ex.madeWith': 'Создано в «{app}» · версия {v}',
+  'ex.foot': 'Создано в «{app}» — все данные хранятся только на вашем устройстве.',
+  'ex.coverAria': 'Обложка сборника'
+};
+
+/* ------------------------------------------------------------------ */
+/* Italian — typed against the canonical key set; tu register, «» quotes */
+/* ------------------------------------------------------------------ */
+
+const it: Record<TranslationKey, DictValue> = {
+  /* ---------- app identity ---------- */
+  'app.name': 'Weboo',
+
+  /* ---------- common ---------- */
+  'common.cancel': 'Annulla',
+  'common.close': 'Chiudi',
+  'common.delete': 'Elimina',
+  'common.add': 'Aggiungi',
+  'common.confirm': 'Sicuro?',
+  'common.version': 'Versione',
+  'common.untitled': 'Senza titolo',
+  'common.localFile': 'File locale',
+  'common.from': ' da ',
+  'common.copy': 'Copia testo',
+  'common.copyShort': 'Copia',
+  'common.copyOk': 'Copiato ✓',
+  'common.copyFail': 'Copia non riuscita',
+  'common.saveFail': 'Salvataggio delle impostazioni non riuscito',
+  'common.deleteFail': 'Eliminazione non riuscita',
+  'common.nHighlights': { one: '1 evidenziazione', other: '{n} evidenziazioni' },
+  'common.nNotes': { one: '1 nota', other: '{n} note' },
+  'common.nArticles': '{n} articoli',
+  'common.nItems': { one: '1 elemento', other: '{n} elementi' },
+
+  /* ---------- colors ---------- */
+  'color.yellow': 'Giallo',
+  'color.orange': 'Arancione',
+  'color.green': 'Verde',
+  'color.teal': 'Turchese',
+  'color.pink': 'Rosa',
+  'color.purple': 'Viola',
+
+  /* ---------- themes ---------- */
+  'theme.auto': 'Sistema',
+  'theme.light': 'Chiaro',
+  'theme.dark': 'Scuro',
+  'theme.autoHint': 'Segue il tema chiaro/scuro del sistema',
+  'theme.lightHint': 'Sempre con sfondo chiaro',
+  'theme.darkHint': 'Sempre con sfondo scuro',
+
+  /* ---------- interface language ---------- */
+  'lang.label': 'Lingua dell’interfaccia',
+  'lang.fa': 'فارسی',
+  'lang.en': 'English',
+  'lang.de': 'Deutsch',
+  'lang.es': 'Español',
+  'lang.ru': 'Русский',
+  'lang.it': 'Italiano',
+  'lang.fr': 'Français',
+  'lang.tr': 'Türkçe',
+  'lang.desc': 'Si applica subito al popup, al pannello e agli strumenti flottanti.',
+  'lang.groupAria': 'Lingua dell’interfaccia',
+
+  /* ---------- dashboard shell ---------- */
+  'dash.title': 'Pannello — Weboo',
+  'dash.brandSub': 'Pannello di gestione',
+  'dash.statsAria': 'Statistiche generali',
+  'dash.toolbarAria': 'Filtro e ricerca',
+  'dash.listAria': 'Evidenziazioni',
+  'dash.footer': 'Weboo — tutti i dati restano solo su questo dispositivo; nulla viene inviato a un server.',
+  'dash.settings': 'Impostazioni',
+  'dash.settingsAria': 'Impostazioni',
+  'dash.drawerCloseAria': 'Chiudi le impostazioni',
+  'dash.sectionAppearance': 'Aspetto',
+  'dash.sectionColor': 'Colore di evidenziazione predefinito',
+  'dash.sectionBehavior': 'Comportamento',
+  'dash.themeGroupAria': 'Tema dell’interfaccia',
+  'dots.title': 'Colore predefinito: {name}',
+  'behavior.toolbar': 'Mostra la barra flottante alla selezione del testo',
+  'behavior.badge': 'Mostra il contatore sull’icona',
+
+  /* ---------- dashboard topbar ---------- */
+  'tb.booklet': 'Quaderno',
+  'tb.selectiveBackup': 'Esportazione selettiva',
+  'tb.selectiveBackupTitle': 'Copia selettiva — per siti, articoli e tag',
+  'tb.backup': 'Esporta copia',
+  'tb.backupTitle': 'Esporta copia (interna biblioteca)',
+  'tb.sizeBadgeTitle': 'Dimensione dei dati salvati su questo dispositivo',
+
+  /* ---------- dashboard stats ---------- */
+  'stats.total': 'Evidenziazioni totali',
+  'stats.notes': 'Note',
+  'stats.pages': 'Pagine',
+  'stats.sites': 'Siti',
+
+  /* ---------- dashboard filter toolbar ---------- */
+  'search.placeholder': 'Cerca nel testo, nelle note o nei titoli delle pagine…',
+  'search.aria': 'Cerca',
+  'filter.colorAria': 'Filtro per colore',
+  'filter.notesOnly': 'Solo con note',
+  'filter.sortLabel': 'Ordina:',
+  'sort.newest': 'Più recenti',
+  'sort.oldest': 'Più vecchi',
+  'sort.page': 'Per pagina',
+  'filter.tagsLabel': 'Tag degli articoli:',
+  'filter.tagsAria': 'Filtro per tag degli articoli',
+
+  /* ---------- list chrome ---------- */
+  'bulk.expand': 'Espandi tutti gli articoli',
+  'bulk.expandTitle': 'Tutte le schede articolo si aprono e si caricano anche le evidenziazioni non ancora caricate',
+  'bulk.collapse': 'Comprimi tutti gli articoli',
+  'bulk.collapseTitle': 'Tutte le schede articolo si chiudono e si caricano anche le evidenziazioni non ancora caricate; aprendo un articolo le sue evidenziazioni si mostrano complete',
+  'list.loadMore': 'Carica altri ({n} rimanenti)',
+  'empty.noResults': 'Nessun risultato trovato.',
+  'empty.noResultsSub': 'Prova un’altra ricerca o cambia i filtri colore e tag.',
+  'empty.first': 'Ancora nessuna evidenziazione. Seleziona il tuo primo testo!',
+  'empty.firstSub': 'Su qualsiasi pagina web, seleziona del testo e usa la barra flottante dell’estensione.',
+  'dirsec.rtl': 'Articoli RTL',
+  'dirsec.ltr': 'Articoli LTR',
+  'dirsec.lead': 'Qui c’è l’evidenziazione più recente',
+  'dirsec.leadTitle': 'L’articolo evidenziato più di recente si trova in questa sezione, per questo viene mostrato per primo',
+
+  /* ---------- article card ---------- */
+  'card.order.newest': 'Più recenti',
+  'card.order.oldest': 'Più vecchi',
+  'card.order.page': 'Pagina',
+  'card.order.pageRev': 'Pagina inversa',
+  'card.order.newestTitle': 'Ordine attuale delle evidenziazioni: dal più recente al più vecchio; premi per invertirlo',
+  'card.order.oldestTitle': 'Ordine attuale delle evidenziazioni: dal più vecchio al più recente; premi per invertirlo',
+  'card.order.pageTitle': 'Ordine attuale delle evidenziazioni: secondo la posizione nella pagina; premi per invertirlo',
+  'card.order.pageRevTitle': 'Ordine attuale delle evidenziazioni: posizione inversa nella pagina; premi per ripristinare l’ordine di lettura',
+  'card.orderAria': 'Ordine delle evidenziazioni di questo articolo: {label}',
+  'card.viewPageTitle': 'Apri questa pagina in una nuova scheda',
+  'card.deleteGroupTitle': 'Elimina tutto di questa pagina',
+  'card.remaining': '…altri {n} da questa pagina (premi «Carica altri» per mostrarli)',
+
+  /* ---------- highlight item ---------- */
+  'item.previewTitle': 'Mostra il testo completo di questa evidenziazione',
+  'item.notePreviewTitle': 'Mostra il testo completo e la nota di questa evidenziazione',
+  'item.viewTitle': 'Vedi nella pagina',
+  'item.deleteTitle': 'Elimina questa evidenziazione',
+
+  /* ---------- tags row ---------- */
+  'tags.add': 'Tag',
+  'tags.addTitle': 'Aggiungi un tag a questo articolo',
+  'tags.placeholder': 'Nome del tag…',
+  'tags.inputAria': 'Nome del nuovo tag',
+  'tags.removeTitle': 'Rimuovi il tag {tag}',
+
+  /* ---------- disabled hosts ---------- */
+  'hosts.title': 'Siti disattivati',
+  'hosts.desc': 'Su questi siti non si creano né si mostrano evidenziazioni (i dati restano al loro posto).',
+  'hosts.empty': 'Nessun sito disattivato finora.',
+  'hosts.addPlaceholder': 'Aggiungi un dominio (es. example.com)',
+  'hosts.inputAria': 'Nuovo dominio',
+  'hosts.invalid': 'Inserisci un dominio valido (es. example.com)',
+  'hosts.duplicate': 'Questo dominio è già nell’elenco',
+  'hosts.disabledOk': '{host} ora è disattivato',
+  'hosts.removeTitle': 'Rimuovi {host}',
+
+  /* ---------- restore section + modal ---------- */
+  'restore.title': 'Ripristina copia',
+  'restore.desc': 'Scegli un file di copia JSON; prima di eseguire verrà chiesto se fondere o sostituire tutto.',
+  'restore.fileFail': 'Apertura del file non riuscita',
+  'modal.name': 'Nome della raccolta',
+  'modal.highlights': 'Evidenziazioni',
+  'modal.exportDate': 'Data dell’esportazione',
+  'modal.type': 'Tipo',
+  'modal.partialValue': 'Copia selettiva (parte della biblioteca)',
+  'modal.merge': 'Unisci',
+  'modal.mergeDesc': 'Vincono le voci più recenti; i dati attuali restano al loro posto.',
+  'modal.replace': 'Sostituzione totale',
+  'modal.replaceDesc': 'Tutti i dati attuali verranno eliminati!',
+  'modal.start': 'Avvia il ripristino',
+
+  /* ---------- danger zone ---------- */
+  'danger.title': 'Zona di pericolo',
+  'danger.desc': 'L’operazione è irreversibile — prima esporta una copia.',
+  'danger.arm': 'Elimina tutte le evidenziazioni e le note',
+  'danger.placeholder': 'Per confermare, scrivi “delete”',
+  'danger.inputAria': 'Conferma l’eliminazione',
+  'danger.go': 'Conferma ed elimina',
+  'danger.done': 'Tutte le evidenziazioni e le note sono state eliminate',
+
+  /* ---------- modals ---------- */
+  'bk.title': 'Quaderno e Markdown',
+  'bk.mdDesc': 'Per Obsidian e qualsiasi editor Markdown — tutta la biblioteca in un file, una sezione per articolo.',
+  'bk.mdBtn': 'Scarica il file Markdown',
+  'bk.pickerTitle': 'Articoli del quaderno',
+  'bk.pickerHint': 'Senza selezione nel quaderno entrano tutti gli articoli; con selezione solo questi.',
+  'bk.pickerAria': 'Scegli gli articoli del quaderno',
+  'bk.allArticles': 'Tutti gli articoli saranno nel quaderno.',
+  'bk.pickedStatus': '{n} evidenziazioni da {m} articoli saranno nel quaderno.',
+  'bk.printTitle': 'Quaderno stampabile',
+  'bk.printDesc': 'Progettato per la stampa A4 — copertina, indice e un articolo per pagina.',
+  'bk.formatAria': 'Formato del quaderno',
+  'bk.html': 'File HTML',
+  'bk.htmlDesc': 'Un file pronto per la stampa — aprilo nel browser e premi Ctrl+P.',
+  'bk.pdf': 'PDF',
+  'bk.pdfDesc': 'Si apre la finestra di stampa del browser — scegli “Save as PDF”.',
+  'bk.colorAria': 'Modalità colore del quaderno',
+  'bk.color': 'A colori',
+  'bk.colorDesc': 'Con i colori originali delle evidenziazioni',
+  'bk.bw': 'Bianco e nero',
+  'bk.bwDesc': 'Meno inchiostro — ideale per una stampante normale',
+  'bk.fontAria': 'Carattere del quaderno',
+  'bk.fontDefault': '{name} — predefinito',
+  'bk.fontDesc': 'Se non è installato, il browser ne mostra uno simile',
+  'bk.fontCustom': 'Carattere personalizzato',
+  'bk.fontCustomDesc': 'Qualsiasi carattere installato sul tuo dispositivo — scrivi il nome esatto',
+  'bk.fontCustomPlaceholder': 'es. B Nazanin',
+  'bk.build': 'Crea il quaderno',
+  'sel.title': 'Copia selettiva',
+  'sel.desc': 'Esporta una parte della biblioteca — ogni sito, articolo o tag scelto porta le sue evidenziazioni nel file.',
+  'sel.sites': 'Siti',
+  'sel.sitesHint': 'Tutte le evidenziazioni di questi siti',
+  'sel.sitesAria': 'Scegli i siti',
+  'sel.articles': 'Articoli',
+  'sel.articlesHint': 'Evidenziazioni di questi articoli',
+  'sel.articlesAria': 'Scegli gli articoli',
+  'sel.tags': 'Tag',
+  'sel.tagsHint': 'Tutte le evidenziazioni degli articoli con questo tag',
+  'sel.tagsAria': 'Scegli i tag',
+  'sel.emptySites': 'Ancora nessun sito',
+  'sel.emptyArticles': 'Ancora nessun articolo',
+  'sel.emptyTags': 'Ancora nessun tag',
+  'sel.pickOne': 'Scegli almeno una voce.',
+  'sel.noMatch': 'Nessuna evidenziazione corrisponde a questa selezione.',
+  'sel.status': { one: '1 evidenziazione andrà nel file.', other: '{n} evidenziazioni andranno nel file.' },
+  'sel.download': 'Scarica il file di copia',
+
+  /* ---------- dashboard toasts ---------- */
+  'toast.openPageNoUrl': 'Questa pagina non ha un indirizzo salvato',
+  'toast.openPageFail': 'Apertura della pagina non riuscita',
+  'toast.openHlNoUrl': 'Questa evidenziazione non ha un indirizzo salvato',
+  'toast.nothingToCopy': 'Niente da copiare',
+  'toast.deleted': 'Evidenziazione eliminata',
+  'toast.groupDeleted': 'Le evidenziazioni di questa pagina sono state eliminate',
+  'toast.readFail': 'Lettura dei dati non riuscita',
+  'toast.backupOk': { one: 'File di copia con 1 evidenziazione scaricato', other: 'File di copia con {n} evidenziazioni scaricato' },
+  'toast.partialBackupOk': { one: 'Copia selettiva con 1 evidenziazione scaricata', other: 'Copia selettiva con {n} evidenziazioni scaricata' },
+  'toast.exportFail': 'Esportazione non riuscita',
+  'toast.fileReadFail': 'Lettura del file non riuscita',
+  'toast.invalidBackup': 'Non è un file di copia Weboo valido',
+  'toast.importDone': '{a} aggiunte, {u} aggiornate, {s} saltate',
+  'toast.restoreFail': 'Ripristino non riuscito',
+  'toast.mdOk': { one: 'File Markdown con 1 evidenziazione scaricato', other: 'File Markdown con {n} evidenziazioni scaricato' },
+  'toast.mdFail': 'Esportazione Markdown non riuscita',
+  'toast.nothingToExport': 'Non ci sono evidenziazioni da esportare',
+  'toast.noArticlesForBooklet': 'Nessun articolo scelto per il quaderno',
+  'toast.printOpened': 'Si è aperta la finestra di stampa — per un PDF scegli “Save as PDF”',
+  'toast.bookletOk': { one: 'Quaderno HTML con 1 evidenziazione scaricato', other: 'Quaderno HTML con {n} evidenziazioni scaricato' },
+  'toast.bookletFail': 'Creazione del quaderno non riuscita',
+  'toast.tagInvalid': 'Nome del tag non valido (max {n} caratteri)',
+  'toast.tagExists': 'Questo tag è già su questo articolo',
+  'toast.tagCap': 'Al massimo {n} tag per articolo',
+  'toast.tagAdded': 'Tag «{tag}» aggiunto',
+  'toast.tagSaveFail': 'Salvataggio del tag non riuscito',
+  'toast.tagRemoved': 'Tag rimosso',
+  'toast.tagRemoveFail': 'Rimozione del tag non riuscita',
+
+  /* ---------- popup ---------- */
+  'popup.brandSub': 'Evidenziazioni e note — 100% locale',
+  'popup.settingsBtnTitle': 'Pannello e impostazioni',
+  'popup.unsupportedT': 'Questa pagina non è supportata',
+  'popup.unsupportedDesc': 'L’estensione funziona solo su pagine http, https e file.',
+  'popup.openDash': 'Apri il pannello',
+  'popup.genericLbl': 'Evidenziazioni salvate in totale',
+  'popup.genericHint': 'Fai clic sull’icona dell’estensione dentro una pagina web per vederne le evidenziazioni.',
+  'popup.enabledHere': 'Attiva su questo sito',
+  'popup.toggleAria': 'Estensione attiva su questo sito',
+  'popup.applied': 'Applicato ✓',
+  'popup.refreshHint': 'Se le evidenziazioni non compaiono subito, ricarica la pagina.',
+  'popup.listTitle': 'Evidenziazioni di questa pagina',
+  'popup.emptyT': 'In questa pagina non ci sono ancora evidenziazioni.',
+  'popup.emptyHint': 'Seleziona del testo e usa la barra flottante!',
+  'popup.dashboardBtn': 'Pannello completo',
+  'popup.jumpTitle': 'Vai a questa evidenziazione',
+  'popup.hasNote': 'Ha una nota',
+  'popup.themeTitle': 'Tema: {name}',
+  'popup.themeChangeAria': 'Cambia il tema ({name})',
+  'popup.countOf': '{a} di {b}',
+  'popup.backupOk': 'File di copia scaricato',
+
+  /* ---------- floating widgets ---------- */
+  'fw.toolbarAria': 'Barra di evidenziazione',
+  'fw.highlightColor': 'Evidenzia in {name}',
+  'fw.noteTitle': 'Evidenziazione + nota',
+  'fw.noteAria': 'Evidenziazione con nota',
+  'fw.copyAria': 'Copia il testo selezionato',
+  'fw.gripTitle': 'Sposta la finestra; trascina e rilascia',
+  'fw.colorAria': 'Colore {name}',
+  'fw.noNote': 'Questa evidenziazione non ha ancora una nota.',
+  'fw.addNote': 'Aggiungi una nota',
+  'fw.editNote': 'Modifica la nota',
+  'fw.notePlaceholder': 'La tua nota per questa evidenziazione…',
+  'fw.saved': 'Salvato ✓',
+  'fw.saveNote': 'Salva la nota',
+  'fw.copyAllTitle': 'Copia testo e nota',
+  'fw.deleteTitle': 'Elimina l’evidenziazione',
+  'fw.deleteConfirm': 'Eliminare?',
+
+  /* ---------- highlighter toasts ---------- */
+  'hl.copied': 'Copiato ✓',
+  'hl.saveError': 'Salvataggio non riuscito.',
+  'hl.notHighlightable': 'Questa parte della pagina non può essere evidenziata.',
+  'hl.deleted': 'Evidenziazione eliminata.',
+  'hl.notePrefix': '📝 Nota: ',
+
+  /* ---------- service worker context menu ---------- */
+  'menu.highlight': '✨ Evidenzia «%s»',
+
+  /* ---------- export documents ---------- */
+  'ex.mdTitle': 'Il mio quaderno di evidenziazioni',
+  'ex.exportedFrom': 'Esportato da «{app}»',
+  'ex.mdEmpty': 'Ancora nessuna evidenziazione.',
+  'ex.note': 'Nota:',
+  'ex.tags': 'Tag:',
+  'ex.source': 'Fonte',
+  'ex.bookletTitle': 'Quaderno di evidenziazioni',
+  'ex.coverSub': 'La raccolta completa di evidenziazioni e note',
+  'ex.toc': 'Indice',
+  'ex.madeWith': 'Creato con «{app}» · versione {v}',
+  'ex.foot': 'Creato con «{app}» — tutti i dati restano solo sul tuo dispositivo.',
+  'ex.coverAria': 'Copertina del quaderno'
+};
+
+/* ------------------------------------------------------------------ */
+/* French — typed against the canonical key set; vous register, « »     */
+/* quotes, one+other plurals (fr's «many» beyond a million falls back   */
+/* to other)                                                            */
+/* ------------------------------------------------------------------ */
+
+const fr: Record<TranslationKey, DictValue> = {
+  /* ---------- app identity ---------- */
+  'app.name': 'Weboo',
+
+  /* ---------- common ---------- */
+  'common.cancel': 'Annuler',
+  'common.close': 'Fermer',
+  'common.delete': 'Supprimer',
+  'common.add': 'Ajouter',
+  'common.confirm': 'Êtes-vous sûr ?',
+  'common.version': 'Version',
+  'common.untitled': 'Sans titre',
+  'common.localFile': 'Fichier local',
+  'common.from': ' de ',
+  'common.copy': 'Copier le texte',
+  'common.copyShort': 'Copier',
+  'common.copyOk': 'Copié ✓',
+  'common.copyFail': 'Échec de la copie',
+  'common.saveFail': 'Échec de l’enregistrement des réglages',
+  'common.deleteFail': 'Échec de la suppression',
+  'common.nHighlights': { one: '1 surlignage', other: '{n} surlignages' },
+  'common.nNotes': { one: '1 note', other: '{n} notes' },
+  'common.nArticles': '{n} articles',
+  'common.nItems': { one: '1 élément', other: '{n} éléments' },
+
+  /* ---------- colors ---------- */
+  'color.yellow': 'Jaune',
+  'color.orange': 'Orange',
+  'color.green': 'Vert',
+  'color.teal': 'Turquoise',
+  'color.pink': 'Rose',
+  'color.purple': 'Violet',
+
+  /* ---------- themes ---------- */
+  'theme.auto': 'Système',
+  'theme.light': 'Clair',
+  'theme.dark': 'Sombre',
+  'theme.autoHint': 'Suit le mode clair/sombre du système',
+  'theme.lightHint': 'Toujours un fond clair',
+  'theme.darkHint': 'Toujours un fond sombre',
+
+  /* ---------- interface language ---------- */
+  'lang.label': 'Langue de l’interface',
+  'lang.fa': 'فارسی',
+  'lang.en': 'English',
+  'lang.de': 'Deutsch',
+  'lang.es': 'Español',
+  'lang.ru': 'Русский',
+  'lang.it': 'Italiano',
+  'lang.fr': 'Français',
+  'lang.tr': 'Türkçe',
+  'lang.desc': 'S’applique aussitôt au popup, au tableau de bord et aux outils flottants.',
+  'lang.groupAria': 'Langue de l’interface',
+
+  /* ---------- dashboard shell ---------- */
+  'dash.title': 'Tableau de bord — Weboo',
+  'dash.brandSub': 'Tableau de bord de gestion',
+  'dash.statsAria': 'Statistiques générales',
+  'dash.toolbarAria': 'Filtre et recherche',
+  'dash.listAria': 'Surlignages',
+  'dash.footer': 'Weboo — toutes les données restent sur cet appareil uniquement ; rien n’est envoyé à un serveur.',
+  'dash.settings': 'Réglages',
+  'dash.settingsAria': 'Réglages',
+  'dash.drawerCloseAria': 'Fermer les réglages',
+  'dash.sectionAppearance': 'Apparence',
+  'dash.sectionColor': 'Couleur de surlignage par défaut',
+  'dash.sectionBehavior': 'Comportement',
+  'dash.themeGroupAria': 'Thème de l’interface',
+  'dots.title': 'Couleur par défaut : {name}',
+  'behavior.toolbar': 'Afficher la barre flottante à la sélection de texte',
+  'behavior.badge': 'Afficher le compteur sur l’icône',
+
+  /* ---------- dashboard topbar ---------- */
+  'tb.booklet': 'Recueil',
+  'tb.selectiveBackup': 'Export sélectif',
+  'tb.selectiveBackupTitle': 'Sauvegarde sélective — par sites, articles et tags',
+  'tb.backup': 'Exporter la sauvegarde',
+  'tb.backupTitle': 'Exporter la sauvegarde (toute la bibliothèque)',
+  'tb.sizeBadgeTitle': 'Taille des données enregistrées sur cet appareil',
+
+  /* ---------- dashboard stats ---------- */
+  'stats.total': 'Surlignages au total',
+  'stats.notes': 'Notes',
+  'stats.pages': 'Pages',
+  'stats.sites': 'Sites',
+
+  /* ---------- dashboard filter toolbar ---------- */
+  'search.placeholder': 'Rechercher dans le texte, les notes ou les titres de page…',
+  'search.aria': 'Rechercher',
+  'filter.colorAria': 'Filtre par couleur',
+  'filter.notesOnly': 'Avec notes uniquement',
+  'filter.sortLabel': 'Tri :',
+  'sort.newest': 'Plus récents',
+  'sort.oldest': 'Plus anciens',
+  'sort.page': 'Par page',
+  'filter.tagsLabel': 'Tags des articles :',
+  'filter.tagsAria': 'Filtre par tags d’articles',
+
+  /* ---------- list chrome ---------- */
+  'bulk.expand': 'Déplier tous les articles',
+  'bulk.expandTitle': 'Toutes les cartes d’article se déplient et les surlignages non chargés sont chargés aussi',
+  'bulk.collapse': 'Replier tous les articles',
+  'bulk.collapseTitle': 'Toutes les cartes d’article se replient et les surlignages non chargés sont chargés aussi ; en ouvrant un article, ses surlignages s’affichent en entier',
+  'list.loadMore': 'Charger plus ({n} restants)',
+  'empty.noResults': 'Aucun résultat.',
+  'empty.noResultsSub': 'Essayez une autre recherche ou changez les filtres de couleur et de tags.',
+  'empty.first': 'Aucun surlignage pour l’instant. Sélectionnez votre premier texte !',
+  'empty.firstSub': 'Sur n’importe quelle page web, sélectionnez du texte et utilisez la barre flottante de l’extension.',
+  'dirsec.rtl': 'Articles RTL',
+  'dirsec.ltr': 'Articles LTR',
+  'dirsec.lead': 'Le surlignage le plus récent est ici',
+  'dirsec.leadTitle': 'L’article surligné le plus récemment se trouve dans cette section, c’est pourquoi elle apparaît en premier',
+
+  /* ---------- article card ---------- */
+  'card.order.newest': 'Plus récents',
+  'card.order.oldest': 'Plus anciens',
+  'card.order.page': 'Page',
+  'card.order.pageRev': 'Page inversée',
+  'card.order.newestTitle': 'Ordre actuel des surlignages : du plus récent au plus ancien ; appuyez pour inverser',
+  'card.order.oldestTitle': 'Ordre actuel des surlignages : du plus ancien au plus récent ; appuyez pour inverser',
+  'card.order.pageTitle': 'Ordre actuel des surlignages : selon leur position dans la page ; appuyez pour inverser',
+  'card.order.pageRevTitle': 'Ordre actuel des surlignages : position inverse dans la page ; appuyez pour rétablir l’ordre de lecture',
+  'card.orderAria': 'Ordre des surlignages de cet article : {label}',
+  'card.viewPageTitle': 'Ouvrir cette page dans un nouvel onglet',
+  'card.deleteGroupTitle': 'Supprimer tout le contenu de cette page',
+  'card.remaining': '…{n} autres de cette page (appuyez sur « Charger plus » pour les afficher)',
+
+  /* ---------- highlight item ---------- */
+  'item.previewTitle': 'Afficher le texte complet de ce surlignage',
+  'item.notePreviewTitle': 'Afficher le texte complet et la note de ce surlignage',
+  'item.viewTitle': 'Voir dans la page',
+  'item.deleteTitle': 'Supprimer ce surlignage',
+
+  /* ---------- tags row ---------- */
+  'tags.add': 'Tag',
+  'tags.addTitle': 'Ajouter un tag à cet article',
+  'tags.placeholder': 'Nom du tag…',
+  'tags.inputAria': 'Nom du nouveau tag',
+  'tags.removeTitle': 'Retirer le tag {tag}',
+
+  /* ---------- disabled hosts ---------- */
+  'hosts.title': 'Sites désactivés',
+  'hosts.desc': 'Sur ces sites, aucun surlignage n’est créé ni affiché (les données sont conservées).',
+  'hosts.empty': 'Aucun site n’est désactivé pour l’instant.',
+  'hosts.addPlaceholder': 'Ajouter un domaine (ex. example.com)',
+  'hosts.inputAria': 'Nouveau domaine',
+  'hosts.invalid': 'Saisissez un domaine valide (ex. example.com)',
+  'hosts.duplicate': 'Ce domaine est déjà dans la liste',
+  'hosts.disabledOk': '{host} est maintenant désactivé',
+  'hosts.removeTitle': 'Retirer {host}',
+
+  /* ---------- restore section + modal ---------- */
+  'restore.title': 'Restaurer une sauvegarde',
+  'restore.desc': 'Choisissez un fichier de sauvegarde JSON ; avant l’exécution, fusion ou remplacement complet vous sera demandé.',
+  'restore.fileFail': 'Impossible d’ouvrir le fichier',
+  'modal.name': 'Nom de la collection',
+  'modal.highlights': 'Surlignages',
+  'modal.exportDate': 'Date de l’export',
+  'modal.type': 'Type',
+  'modal.partialValue': 'Sauvegarde sélective (une partie de la bibliothèque)',
+  'modal.merge': 'Fusion',
+  'modal.mergeDesc': 'Les enregistrements plus récents l’emportent ; les données actuelles sont conservées.',
+  'modal.replace': 'Remplacement complet',
+  'modal.replaceDesc': 'Toutes les données actuelles seront supprimées !',
+  'modal.start': 'Lancer la restauration',
+
+  /* ---------- danger zone ---------- */
+  'danger.title': 'Zone de danger',
+  'danger.desc': 'Action irréversible — exportez d’abord une sauvegarde.',
+  'danger.arm': 'Supprimer tous les surlignages et notes',
+  'danger.placeholder': 'Pour confirmer, tapez « delete »',
+  'danger.inputAria': 'Confirmer la suppression',
+  'danger.go': 'Confirmer et supprimer',
+  'danger.done': 'Tous les surlignages et notes ont été supprimés',
+
+  /* ---------- modals ---------- */
+  'bk.title': 'Recueil & Markdown',
+  'bk.mdDesc': 'Pour Obsidian et tout éditeur Markdown — toute la bibliothèque dans un fichier, une section par article.',
+  'bk.mdBtn': 'Télécharger le fichier Markdown',
+  'bk.pickerTitle': 'Articles du recueil',
+  'bk.pickerHint': 'Sans sélection, tous les articles entrent dans le recueil ; avec sélection, seulement ceux-ci.',
+  'bk.pickerAria': 'Choisir les articles du recueil',
+  'bk.allArticles': 'Tous les articles seront dans le recueil.',
+  'bk.pickedStatus': '{n} surlignages de {m} articles seront dans le recueil.',
+  'bk.printTitle': 'Recueil imprimable',
+  'bk.printDesc': 'Conçu pour l’impression A4 — couverture, sommaire et un article par page.',
+  'bk.formatAria': 'Format du recueil',
+  'bk.html': 'Fichier HTML',
+  'bk.htmlDesc': 'Un fichier prêt à imprimer — ouvrez-le dans le navigateur et faites Ctrl+P.',
+  'bk.pdf': 'PDF',
+  'bk.pdfDesc': 'La boîte de dialogue d’impression du navigateur s’ouvre — choisissez « Save as PDF ».',
+  'bk.colorAria': 'Mode couleur du recueil',
+  'bk.color': 'Couleur',
+  'bk.colorDesc': 'Avec les couleurs d’origine des surlignages',
+  'bk.bw': 'Noir et blanc',
+  'bk.bwDesc': 'Moins d’encre — idéal pour une imprimante classique',
+  'bk.fontAria': 'Police du recueil',
+  'bk.fontDefault': '{name} — par défaut',
+  'bk.fontDesc': 'Si elle n’est pas installée, le navigateur en montre une semblable',
+  'bk.fontCustom': 'Police personnalisée',
+  'bk.fontCustomDesc': 'N’importe quelle police installée sur votre appareil — tapez son nom exact',
+  'bk.fontCustomPlaceholder': 'ex. B Nazanin',
+  'bk.build': 'Créer le recueil',
+  'sel.title': 'Sauvegarde sélective',
+  'sel.desc': 'Exportez une partie de la bibliothèque — chaque site, article ou tag choisi emmène ses surlignages dans le fichier.',
+  'sel.sites': 'Sites',
+  'sel.sitesHint': 'Tous les surlignages de ces sites',
+  'sel.sitesAria': 'Choisir les sites',
+  'sel.articles': 'Articles',
+  'sel.articlesHint': 'Surlignages de ces articles',
+  'sel.articlesAria': 'Choisir les articles',
+  'sel.tags': 'Tags',
+  'sel.tagsHint': 'Tous les surlignages des articles portant ce tag',
+  'sel.tagsAria': 'Choisir les tags',
+  'sel.emptySites': 'Aucun site pour l’instant',
+  'sel.emptyArticles': 'Aucun article pour l’instant',
+  'sel.emptyTags': 'Aucun tag pour l’instant',
+  'sel.pickOne': 'Choisissez au moins un élément.',
+  'sel.noMatch': 'Aucun surlignage ne correspond à cette sélection.',
+  'sel.status': { one: '1 surlignage ira dans le fichier.', other: '{n} surlignages iront dans le fichier.' },
+  'sel.download': 'Télécharger le fichier de sauvegarde',
+
+  /* ---------- dashboard toasts ---------- */
+  'toast.openPageNoUrl': 'Cette page n’a pas d’adresse enregistrée',
+  'toast.openPageFail': 'Impossible d’ouvrir la page',
+  'toast.openHlNoUrl': 'Ce surlignage n’a pas d’adresse enregistrée',
+  'toast.nothingToCopy': 'Rien à copier',
+  'toast.deleted': 'Surlignage supprimé',
+  'toast.groupDeleted': 'Les surlignages de cette page ont été supprimés',
+  'toast.readFail': 'Impossible de lire les données',
+  'toast.backupOk': { one: 'Fichier de sauvegarde avec 1 surlignage téléchargé', other: 'Fichier de sauvegarde avec {n} surlignages téléchargé' },
+  'toast.partialBackupOk': { one: 'Sauvegarde sélective avec 1 surlignage téléchargée', other: 'Sauvegarde sélective avec {n} surlignages téléchargée' },
+  'toast.exportFail': 'Échec de l’export',
+  'toast.fileReadFail': 'Impossible de lire le fichier',
+  'toast.invalidBackup': 'Ce n’est pas un fichier de sauvegarde Weboo valide',
+  'toast.importDone': '{a} ajoutés, {u} mis à jour, {s} ignorés',
+  'toast.restoreFail': 'Échec de la restauration',
+  'toast.mdOk': { one: 'Fichier Markdown avec 1 surlignage téléchargé', other: 'Fichier Markdown avec {n} surlignages téléchargé' },
+  'toast.mdFail': 'Échec de l’export Markdown',
+  'toast.nothingToExport': 'Aucun surlignage à exporter',
+  'toast.noArticlesForBooklet': 'Aucun article choisi pour le recueil',
+  'toast.printOpened': 'La boîte de dialogue d’impression s’est ouverte — pour un PDF, choisissez « Save as PDF »',
+  'toast.bookletOk': { one: 'Recueil HTML avec 1 surlignage téléchargé', other: 'Recueil HTML avec {n} surlignages téléchargé' },
+  'toast.bookletFail': 'Échec de la création du recueil',
+  'toast.tagInvalid': 'Nom de tag invalide ({n} caractères maximum)',
+  'toast.tagExists': 'Ce tag est déjà sur cet article',
+  'toast.tagCap': '{n} tags maximum par article',
+  'toast.tagAdded': 'Tag « {tag} » ajouté',
+  'toast.tagSaveFail': 'Échec de l’enregistrement du tag',
+  'toast.tagRemoved': 'Tag retiré',
+  'toast.tagRemoveFail': 'Échec du retrait du tag',
+
+  /* ---------- popup ---------- */
+  'popup.brandSub': 'Surlignages et notes — 100 % local',
+  'popup.settingsBtnTitle': 'Tableau de bord et réglages',
+  'popup.unsupportedT': 'Cette page n’est pas prise en charge',
+  'popup.unsupportedDesc': 'L’extension ne fonctionne que sur les pages http, https et file.',
+  'popup.openDash': 'Ouvrir le tableau de bord',
+  'popup.genericLbl': 'Total des surlignages enregistrés',
+  'popup.genericHint': 'Cliquez sur l’icône de l’extension dans une page web pour voir ses surlignages.',
+  'popup.enabledHere': 'Activé sur ce site',
+  'popup.toggleAria': 'Extension activée sur ce site',
+  'popup.applied': 'Appliqué ✓',
+  'popup.refreshHint': 'Si les surlignages n’apparaissent pas tout de suite, rechargez la page.',
+  'popup.listTitle': 'Surlignages de cette page',
+  'popup.emptyT': 'Aucun surlignage sur cette page pour l’instant.',
+  'popup.emptyHint': 'Sélectionnez du texte et utilisez la barre flottante !',
+  'popup.dashboardBtn': 'Tableau de bord complet',
+  'popup.jumpTitle': 'Aller à ce surlignage',
+  'popup.hasNote': 'A une note',
+  'popup.themeTitle': 'Thème : {name}',
+  'popup.themeChangeAria': 'Changer de thème ({name})',
+  'popup.countOf': '{a} sur {b}',
+  'popup.backupOk': 'Fichier de sauvegarde téléchargé',
+
+  /* ---------- floating widgets ---------- */
+  'fw.toolbarAria': 'Barre de surlignage',
+  'fw.highlightColor': 'Surligner en {name}',
+  'fw.noteTitle': 'Surlignage + note',
+  'fw.noteAria': 'Surlignage avec note',
+  'fw.copyAria': 'Copier le texte sélectionné',
+  'fw.gripTitle': 'Déplacer la fenêtre ; faites glisser puis relâchez',
+  'fw.colorAria': 'Couleur {name}',
+  'fw.noNote': 'Ce surlignage n’a pas encore de note.',
+  'fw.addNote': 'Ajouter une note',
+  'fw.editNote': 'Modifier la note',
+  'fw.notePlaceholder': 'Votre note pour ce surlignage…',
+  'fw.saved': 'Enregistré ✓',
+  'fw.saveNote': 'Enregistrer la note',
+  'fw.copyAllTitle': 'Copier le texte et la note',
+  'fw.deleteTitle': 'Supprimer le surlignage',
+  'fw.deleteConfirm': 'Supprimer ?',
+
+  /* ---------- highlighter toasts ---------- */
+  'hl.copied': 'Copié ✓',
+  'hl.saveError': 'Échec de l’enregistrement.',
+  'hl.notHighlightable': 'Cette partie de la page ne peut pas être surlignée.',
+  'hl.deleted': 'Surlignage supprimé.',
+  'hl.notePrefix': '📝 Note : ',
+
+  /* ---------- service worker context menu ---------- */
+  'menu.highlight': '✨ Surligner « %s »',
+
+  /* ---------- export documents ---------- */
+  'ex.mdTitle': 'Mon recueil de surlignages',
+  'ex.exportedFrom': 'Exporté depuis « {app} »',
+  'ex.mdEmpty': 'Aucun surlignage pour l’instant.',
+  'ex.note': 'Note :',
+  'ex.tags': 'Tags :',
+  'ex.source': 'Source',
+  'ex.bookletTitle': 'Recueil de surlignages',
+  'ex.coverSub': 'La collection complète des surlignages et notes',
+  'ex.toc': 'Sommaire',
+  'ex.madeWith': 'Créé avec « {app} » · version {v}',
+  'ex.foot': 'Créé avec « {app} » — toutes les données restent sur votre appareil uniquement.',
+  'ex.coverAria': 'Couverture du recueil'
+};
+
+/* ------------------------------------------------------------------ */
+/* Turkish — typed against the canonical key set; sen register, " "     */
+/* quotes, one+other plurals                                            */
+/* ------------------------------------------------------------------ */
+
+const tr: Record<TranslationKey, DictValue> = {
+  /* ---------- app identity ---------- */
+  'app.name': 'Weboo',
+
+  /* ---------- common ---------- */
+  'common.cancel': 'İptal',
+  'common.close': 'Kapat',
+  'common.delete': 'Sil',
+  'common.add': 'Ekle',
+  'common.confirm': 'Emin misiniz?',
+  'common.version': 'Sürüm',
+  'common.untitled': 'Başlıksız',
+  'common.localFile': 'Yerel dosya',
+  'common.from': ' / ',
+  'common.copy': 'Metni kopyala',
+  'common.copyShort': 'Kopyala',
+  'common.copyOk': 'Kopyalandı ✓',
+  'common.copyFail': 'Kopyalama başarısız',
+  'common.saveFail': 'Ayarlar kaydedilemedi',
+  'common.deleteFail': 'Silme başarısız',
+  'common.nHighlights': { one: '1 vurgulama', other: '{n} vurgulama' },
+  'common.nNotes': { one: '1 not', other: '{n} not' },
+  'common.nArticles': '{n} makale',
+  'common.nItems': { one: '1 öğe', other: '{n} öğe' },
+
+  /* ---------- colors ---------- */
+  'color.yellow': 'Sarı',
+  'color.orange': 'Turuncu',
+  'color.green': 'Yeşil',
+  'color.teal': 'Turkuaz',
+  'color.pink': 'Pembe',
+  'color.purple': 'Mor',
+
+  /* ---------- themes ---------- */
+  'theme.auto': 'Sistem',
+  'theme.light': 'Açık',
+  'theme.dark': 'Koyu',
+  'theme.autoHint': 'Sistemin açık/koyu modunu izler',
+  'theme.lightHint': 'Her zaman açık zemin',
+  'theme.darkHint': 'Her zaman koyu zemin',
+
+  /* ---------- interface language ---------- */
+  'lang.label': 'Arayüz dili',
+  'lang.fa': 'فارسی',
+  'lang.en': 'English',
+  'lang.de': 'Deutsch',
+  'lang.es': 'Español',
+  'lang.ru': 'Русский',
+  'lang.it': 'Italiano',
+  'lang.fr': 'Français',
+  'lang.tr': 'Türkçe',
+  'lang.desc': 'Açılır pencereye, panele ve yüzen araçlara anında uygulanır.',
+  'lang.groupAria': 'Arayüz dili',
+
+  /* ---------- dashboard shell ---------- */
+  'dash.title': 'Panel — Weboo',
+  'dash.brandSub': 'Yönetim paneli',
+  'dash.statsAria': 'Genel istatistikler',
+  'dash.toolbarAria': 'Filtre ve arama',
+  'dash.listAria': 'Vurgulamalar',
+  'dash.footer': 'Weboo — tüm veriler yalnızca bu cihazda saklanır; hiçbir şey sunucuya gönderilmez.',
+  'dash.settings': 'Ayarlar',
+  'dash.settingsAria': 'Ayarlar',
+  'dash.drawerCloseAria': 'Ayarları kapat',
+  'dash.sectionAppearance': 'Görünüm',
+  'dash.sectionColor': 'Varsayılan vurgulama rengi',
+  'dash.sectionBehavior': 'Davranış',
+  'dash.themeGroupAria': 'Arayüz teması',
+  'dots.title': 'Varsayılan renk: {name}',
+  'behavior.toolbar': 'Metin seçilirken yüzen araç çubuğunu göster',
+  'behavior.badge': 'Simgede sayacı göster',
+
+  /* ---------- dashboard topbar ---------- */
+  'tb.booklet': 'Kitapçık',
+  'tb.selectiveBackup': 'Seçmeli dışa aktarma',
+  'tb.selectiveBackupTitle': 'Seçmeli yedek — site, makale ve etikete göre',
+  'tb.backup': 'Yedek dışa aktar',
+  'tb.backupTitle': 'Yedek dışa aktar (tüm kitaplık)',
+  'tb.sizeBadgeTitle': 'Bu cihazda saklanan verilerin boyutu',
+
+  /* ---------- dashboard stats ---------- */
+  'stats.total': 'Toplam vurgulama',
+  'stats.notes': 'Notlar',
+  'stats.pages': 'Sayfalar',
+  'stats.sites': 'Siteler',
+
+  /* ---------- dashboard filter toolbar ---------- */
+  'search.placeholder': 'Metin, not veya sayfa başlıklarında ara…',
+  'search.aria': 'Ara',
+  'filter.colorAria': 'Renk filtresi',
+  'filter.notesOnly': 'Yalnızca notlu olanlar',
+  'filter.sortLabel': 'Sıralama:',
+  'sort.newest': 'En yeni',
+  'sort.oldest': 'En eski',
+  'sort.page': 'Sayfaya göre',
+  'filter.tagsLabel': 'Makale etiketleri:',
+  'filter.tagsAria': 'Makale etiketi filtresi',
+
+  /* ---------- list chrome ---------- */
+  'bulk.expand': 'Tüm makaleleri aç',
+  'bulk.expandTitle': 'Tüm makale kartları açılır ve yüklenmemiş vurgulamalar da yüklenir',
+  'bulk.collapse': 'Tüm makaleleri kapat',
+  'bulk.collapseTitle': 'Tüm makale kartları kapanır ve yüklenmemiş vurgulamalar da yüklenir; bir makaleyi açtığınızda vurgulamaları tam olarak gösterilir',
+  'list.loadMore': 'Daha fazla yükle ({n} kaldı)',
+  'empty.noResults': 'Sonuç bulunamadı.',
+  'empty.noResultsSub': 'Başka bir arama deneyin veya renk ile etiket filtrelerini değiştirin.',
+  'empty.first': 'Henüz vurgulama yok. İlk metninizi seçin!',
+  'empty.firstSub': 'Herhangi bir web sayfasında metni seçin ve eklentinin yüzen araç çubuğunu kullanın.',
+  'dirsec.rtl': 'Sağdan sola makaleler',
+  'dirsec.ltr': 'Soldan sağa makaleler',
+  'dirsec.lead': 'En yeni vurgulama burada',
+  'dirsec.leadTitle': 'En son vurgulanan makale bu bölümde olduğu için bu bölüm önce gösterilir',
+
+  /* ---------- article card ---------- */
+  'card.order.newest': 'En yeni',
+  'card.order.oldest': 'En eski',
+  'card.order.page': 'Sayfa',
+  'card.order.pageRev': 'Sayfa ters',
+  'card.order.newestTitle': 'Mevcut vurgulama sırası: en yeniden en eskiye; tersine çevirmek için basın',
+  'card.order.oldestTitle': 'Mevcut vurgulama sırası: en eskiden en yeniye; tersine çevirmek için basın',
+  'card.order.pageTitle': 'Mevcut vurgulama sırası: sayfadaki konumuna göre; tersine çevirmek için basın',
+  'card.order.pageRevTitle': 'Mevcut vurgulama sırası: sayfadaki konumunun tersi; okuma sırasını geri almak için basın',
+  'card.orderAria': 'Bu makalenin vurgulama sırası: {label}',
+  'card.viewPageTitle': 'Bu sayfayı yeni sekmede aç',
+  'card.deleteGroupTitle': 'Bu sayfanın her şeyini sil',
+  'card.remaining': '…bu sayfadan {n} tane daha (görmek için "Daha fazla yükle"ye basın)',
+
+  /* ---------- highlight item ---------- */
+  'item.previewTitle': 'Bu vurgulamanın tam metnini göster',
+  'item.notePreviewTitle': 'Bu vurgulamanın tam metnini ve notunu göster',
+  'item.viewTitle': 'Sayfada gör',
+  'item.deleteTitle': 'Bu vurgulamayı sil',
+
+  /* ---------- tags row ---------- */
+  'tags.add': 'Etiket',
+  'tags.addTitle': 'Bu makaleye bir etiket ekle',
+  'tags.placeholder': 'Etiket adı…',
+  'tags.inputAria': 'Yeni etiket adı',
+  'tags.removeTitle': '{tag} etiketini kaldır',
+
+  /* ---------- disabled hosts ---------- */
+  'hosts.title': 'Devre dışı siteler',
+  'hosts.desc': 'Bu sitelerde vurgulama yapılmaz ve gösterilmez (veriler saklanır).',
+  'hosts.empty': 'Henüz devre dışı bırakılmış site yok.',
+  'hosts.addPlaceholder': 'Domain ekle (ör. example.com)',
+  'hosts.inputAria': 'Yeni domain',
+  'hosts.invalid': 'Geçerli bir domain girin (ör. example.com)',
+  'hosts.duplicate': 'Bu domain zaten listede',
+  'hosts.disabledOk': '{host} artık devre dışı',
+  'hosts.removeTitle': '{host} sitesini kaldır',
+
+  /* ---------- restore section + modal ---------- */
+  'restore.title': 'Yedeği geri yükle',
+  'restore.desc': 'Bir JSON yedek dosyası seçin; işlem öncesi birleştirme mi yoksa tamamen değiştirme mi istediğiniz sorulur.',
+  'restore.fileFail': 'Dosya açılamadı',
+  'modal.name': 'Koleksiyon adı',
+  'modal.highlights': 'Vurgulamalar',
+  'modal.exportDate': 'Dışa aktarma tarihi',
+  'modal.type': 'Tür',
+  'modal.partialValue': 'Seçmeli yedek (kitaplığın bir bölümü)',
+  'modal.merge': 'Birleştir',
+  'modal.mergeDesc': 'Daha yeni kayıtlar kazanır; mevcut veriler korunur.',
+  'modal.replace': 'Tamamen değiştir',
+  'modal.replaceDesc': 'Mevcut tüm veriler silinecek!',
+  'modal.start': 'Geri yüklemeyi başlat',
+
+  /* ---------- danger zone ---------- */
+  'danger.title': 'Tehlikeli bölge',
+  'danger.desc': 'Bu işlem geri alınamaz — önce bir yedek dışa aktarın.',
+  'danger.arm': 'Tüm vurgulamaları ve notları sil',
+  'danger.placeholder': 'Onaylamak için "delete" yazın',
+  'danger.inputAria': 'Silmeyi onayla',
+  'danger.go': 'Onayla ve sil',
+  'danger.done': 'Tüm vurgulamalar ve notlar silindi',
+
+  /* ---------- modals ---------- */
+  'bk.title': 'Kitapçık ve Markdown',
+  'bk.mdDesc': 'Obsidian ve herhangi bir Markdown düzenleyicisi için — tüm kitaplık tek dosyada, her makale bir bölüm.',
+  'bk.mdBtn': 'Markdown dosyasını indir',
+  'bk.pickerTitle': 'Kitapçık makaleleri',
+  'bk.pickerHint': 'Seçim yoksa tüm makaleler kitapçığa girer; seçim varsa yalnızca bunlar.',
+  'bk.pickerAria': 'Kitapçık makalelerini seç',
+  'bk.allArticles': 'Tüm makaleler kitapçıkta olacak.',
+  'bk.pickedStatus': '{m} makaleden {n} vurgulama kitapçıkta olacak.',
+  'bk.printTitle': 'Yazdırılabilir kitapçık',
+  'bk.printDesc': 'A4 baskı için tasarlandı — kapak, içindekiler ve sayfa başına bir makale.',
+  'bk.formatAria': 'Kitapçık biçimi',
+  'bk.html': 'HTML dosyası',
+  'bk.htmlDesc': 'Baskıya hazır bir dosya — tarayıcıda açın ve Ctrl+P yapın.',
+  'bk.pdf': 'PDF',
+  'bk.pdfDesc': 'Tarayıcının yazdırma penceresi açılır — "Save as PDF" seçin.',
+  'bk.colorAria': 'Kitapçık renk modu',
+  'bk.color': 'Renkli',
+  'bk.colorDesc': 'Vurgulamaların özgün renkleriyle',
+  'bk.bw': 'Siyah-beyaz',
+  'bk.bwDesc': 'Daha az mürekkep — normal yazıcılar için uygun',
+  'bk.fontAria': 'Kitapçık yazı tipi',
+  'bk.fontDefault': '{name} — varsayılan',
+  'bk.fontDesc': 'Yüklü değilse tarayıcı benzer bir yazı tipi gösterir',
+  'bk.fontCustom': 'Özel yazı tipi',
+  'bk.fontCustomDesc': 'Cihazınızda yüklü herhangi bir yazı tipi — tam adını yazın',
+  'bk.fontCustomPlaceholder': 'ör. B Nazanin',
+  'bk.build': 'Kitapçığı oluştur',
+  'sel.title': 'Seçmeli yedek',
+  'sel.desc': 'Kitaplığın bir bölümünü dışa aktarın — seçtiğiniz her site, makale veya etiket kendi vurgulamalarını dosyaya taşır.',
+  'sel.sites': 'Siteler',
+  'sel.sitesHint': 'Bu sitelerin tüm vurgulamaları',
+  'sel.sitesAria': 'Siteleri seç',
+  'sel.articles': 'Makaleler',
+  'sel.articlesHint': 'Bu makalelerin vurgulamaları',
+  'sel.articlesAria': 'Makaleleri seç',
+  'sel.tags': 'Etiketler',
+  'sel.tagsHint': 'Bu etiketi taşıyan makalelerin tüm vurgulamaları',
+  'sel.tagsAria': 'Etiketleri seç',
+  'sel.emptySites': 'Henüz site yok',
+  'sel.emptyArticles': 'Henüz makale yok',
+  'sel.emptyTags': 'Henüz etiket yok',
+  'sel.pickOne': 'En az bir öğe seçin.',
+  'sel.noMatch': 'Bu seçimle eşleşen vurgulama yok.',
+  'sel.status': { one: '1 vurgulama dosyada olacak.', other: '{n} vurgulama dosyada olacak.' },
+  'sel.download': 'Yedek dosyasını indir',
+
+  /* ---------- dashboard toasts ---------- */
+  'toast.openPageNoUrl': 'Bu sayfanın kayıtlı adresi yok',
+  'toast.openPageFail': 'Sayfa açılamadı',
+  'toast.openHlNoUrl': 'Bu vurgulamanın kayıtlı adresi yok',
+  'toast.nothingToCopy': 'Kopyalanacak bir şey yok',
+  'toast.deleted': 'Vurgulama silindi',
+  'toast.groupDeleted': 'Bu sayfanın vurgulamaları silindi',
+  'toast.readFail': 'Veriler okunamadı',
+  'toast.backupOk': { one: '1 vurgulamalı yedek dosyası indirildi', other: '{n} vurgulamalı yedek dosyası indirildi' },
+  'toast.partialBackupOk': { one: '1 vurgulamalı seçmeli yedek indirildi', other: '{n} vurgulamalı seçmeli yedek indirildi' },
+  'toast.exportFail': 'Dışa aktarma başarısız',
+  'toast.fileReadFail': 'Dosya okunamadı',
+  'toast.invalidBackup': 'Geçerli bir Weboo yedek dosyası değil',
+  'toast.importDone': '{a} eklendi, {u} güncellendi, {s} atlandı',
+  'toast.restoreFail': 'Geri yükleme başarısız',
+  'toast.mdOk': { one: '1 vurgulamalı Markdown dosyası indirildi', other: '{n} vurgulamalı Markdown dosyası indirildi' },
+  'toast.mdFail': 'Markdown dışa aktarma başarısız',
+  'toast.nothingToExport': 'Dışa aktarılacak vurgulama yok',
+  'toast.noArticlesForBooklet': 'Kitapçık için makale seçilmedi',
+  'toast.printOpened': 'Yazdırma penceresi açıldı — PDF için "Save as PDF" seçin',
+  'toast.bookletOk': { one: '1 vurgulamalı HTML kitapçığı indirildi', other: '{n} vurgulamalı HTML kitapçığı indirildi' },
+  'toast.bookletFail': 'Kitapçık oluşturulamadı',
+  'toast.tagInvalid': 'Geçersiz etiket adı (en fazla {n} karakter)',
+  'toast.tagExists': 'Bu etiket bu makalede zaten var',
+  'toast.tagCap': 'Makale başına en fazla {n} etiket',
+  'toast.tagAdded': '"{tag}" etiketi eklendi',
+  'toast.tagSaveFail': 'Etiket kaydedilemedi',
+  'toast.tagRemoved': 'Etiket kaldırıldı',
+  'toast.tagRemoveFail': 'Etiket kaldırılamadı',
+
+  /* ---------- popup ---------- */
+  'popup.brandSub': 'Vurgulamalar ve notlar — %100 yerel',
+  'popup.settingsBtnTitle': 'Panel ve ayarlar',
+  'popup.unsupportedT': 'Bu sayfa desteklenmiyor',
+  'popup.unsupportedDesc': 'Eklenti yalnızca http, https ve file sayfalarında çalışır.',
+  'popup.openDash': 'Paneli aç',
+  'popup.genericLbl': 'Kayıtlı toplam vurgulama',
+  'popup.genericHint': 'Bir web sayfasında eklenti simgesine tıklayın, sayfanın vurgulamalarını görün.',
+  'popup.enabledHere': 'Bu sitede etkin',
+  'popup.toggleAria': 'Eklenti bu sitede etkin',
+  'popup.applied': 'Uygulandı ✓',
+  'popup.refreshHint': 'Vurgulamalar hemen görünmezse sayfayı yenileyin.',
+  'popup.listTitle': 'Bu sayfanın vurgulamaları',
+  'popup.emptyT': 'Bu sayfada henüz vurgulama yok.',
+  'popup.emptyHint': 'Metin seçin ve yüzen araç çubuğunu kullanın!',
+  'popup.dashboardBtn': 'Tam panel',
+  'popup.jumpTitle': 'Bu vurgulamaya git',
+  'popup.hasNote': 'Notu var',
+  'popup.themeTitle': 'Tema: {name}',
+  'popup.themeChangeAria': 'Temayı değiştir ({name})',
+  'popup.countOf': '{a} / {b}',
+  'popup.backupOk': 'Yedek dosyası indirildi',
+
+  /* ---------- floating widgets ---------- */
+  'fw.toolbarAria': 'Vurgulama çubuğu',
+  'fw.highlightColor': '{name} ile vurgula',
+  'fw.noteTitle': 'Vurgulama + not',
+  'fw.noteAria': 'Notlu vurgulama',
+  'fw.copyAria': 'Seçili metni kopyala',
+  'fw.gripTitle': 'Pencereyi taşı; sürükleyip bırakın',
+  'fw.colorAria': '{name} rengi',
+  'fw.noNote': 'Bu vurgulamanın henüz notu yok.',
+  'fw.addNote': 'Not ekle',
+  'fw.editNote': 'Notu düzenle',
+  'fw.notePlaceholder': 'Bu vurgulama için notunuz…',
+  'fw.saved': 'Kaydedildi ✓',
+  'fw.saveNote': 'Notu kaydet',
+  'fw.copyAllTitle': 'Metni ve notu kopyala',
+  'fw.deleteTitle': 'Vurgulamayı sil',
+  'fw.deleteConfirm': 'Silinsin mi?',
+
+  /* ---------- highlighter toasts ---------- */
+  'hl.copied': 'Kopyalandı ✓',
+  'hl.saveError': 'Kaydetme başarısız.',
+  'hl.notHighlightable': 'Sayfanın bu bölümü vurgulanamaz.',
+  'hl.deleted': 'Vurgulama silindi.',
+  'hl.notePrefix': '📝 Not: ',
+
+  /* ---------- service worker context menu ---------- */
+  'menu.highlight': '✨ "%s" vurgula',
+
+  /* ---------- export documents ---------- */
+  'ex.mdTitle': 'Vurgulama kitapçığım',
+  'ex.exportedFrom': '"{app}" ile dışa aktarıldı',
+  'ex.mdEmpty': 'Henüz vurgulama yok.',
+  'ex.note': 'Not:',
+  'ex.tags': 'Etiketler:',
+  'ex.source': 'Kaynak',
+  'ex.bookletTitle': 'Vurgulama kitapçığı',
+  'ex.coverSub': 'Vurgulamaların ve notların tam koleksiyonu',
+  'ex.toc': 'İçindekiler',
+  'ex.madeWith': '"{app}" ile oluşturuldu · sürüm {v}',
+  'ex.foot': '"{app}" ile oluşturuldu — tüm veriler yalnızca cihazınızda saklanır.',
+  'ex.coverAria': 'Kitapçık kapağı'
+};
 /* ------------------------------------------------------------------ */
 /* Language registry + state                                           */
 /* ------------------------------------------------------------------ */
@@ -1020,10 +2657,15 @@ const de: Record<TranslationKey, DictValue> = {
 export const LANGUAGES: Record<Language, { label: TranslationKey; dir: 'rtl' | 'ltr' }> = {
   fa: { label: 'lang.fa', dir: 'rtl' },
   en: { label: 'lang.en', dir: 'ltr' },
-  de: { label: 'lang.de', dir: 'ltr' }
+  de: { label: 'lang.de', dir: 'ltr' },
+  es: { label: 'lang.es', dir: 'ltr' },
+  ru: { label: 'lang.ru', dir: 'ltr' },
+  it: { label: 'lang.it', dir: 'ltr' },
+  fr: { label: 'lang.fr', dir: 'ltr' },
+  tr: { label: 'lang.tr', dir: 'ltr' }
 };
 
-export const LANG_KEYS: Language[] = ['fa', 'en', 'de'];
+export const LANG_KEYS: Language[] = ['fa', 'en', 'de', 'es', 'ru', 'it', 'fr', 'tr'];
 
 /**
  * The BCP-47 locale each language renders numbers and dates with — the ONE
@@ -1032,10 +2674,15 @@ export const LANG_KEYS: Language[] = ['fa', 'en', 'de'];
 export const LOCALES: Record<Language, string> = {
   fa: 'fa-IR',
   en: 'en-US',
-  de: 'de-DE'
+  de: 'de-DE',
+  es: 'es-ES',
+  ru: 'ru-RU',
+  it: 'it-IT',
+  fr: 'fr-FR',
+  tr: 'tr-TR'
 };
 
-const DICTS: Record<Language, Record<TranslationKey, DictValue>> = { fa: fa, en: en, de: de };
+const DICTS: Record<Language, Record<TranslationKey, DictValue>> = { fa: fa, en: en, de: de, es: es, ru: ru, it: it, fr: fr, tr: tr };
 
 const DEFAULT_LANG: Language = 'fa';
 
@@ -1086,6 +2733,21 @@ export function onChange(cb: () => void): () => void {
 
 const INTERP_RE = /\{(\w+)\}/g;
 
+/* CLDR plural form selection — cached rules per language (the same LOCALES
+   that format the digits; one home). 'zero'/'two' never occur for our eight
+   locales and fall through to `other` at the lookup. */
+const pluralRulesCache: Partial<Record<Language, Intl.PluralRules>> = {};
+function pluralForm(lang: Language, n: number): 'one' | 'few' | 'many' | 'other' {
+  try {
+    if (typeof Intl !== 'undefined' && Intl.PluralRules) {
+      if (!pluralRulesCache[lang]) pluralRulesCache[lang] = new Intl.PluralRules(LOCALES[lang]);
+      const f = pluralRulesCache[lang]!.select(n);
+      if (f === 'one' || f === 'few' || f === 'many') return f;
+    }
+  } catch (e) { /* no ICU — the one/other fallback below */ }
+  return n === 1 ? 'one' : 'other';
+}
+
 /**
  * Translates a key in the active language with `{name}` interpolation.
  * Fallback order: active dictionary → the other dictionary → the key itself
@@ -1099,7 +2761,7 @@ export function t(key: TranslationKey, params?: Params): string {
   let s: string;
   if (raw && typeof raw === 'object') {
     const n = Number(params && params.n);
-    s = (n === 1) ? raw.one : raw.other;
+    s = (n === 1 && raw.one) ? raw.one : raw.other;
   } else {
     s = String(raw === undefined ? key : raw);
   }
@@ -1121,7 +2783,7 @@ export function count(key: TranslationKey, n: number): string {
   const raw: DictValue | undefined = own !== undefined ? own : DICTS.en[key];
   let s: string;
   if (raw && typeof raw === 'object') {
-    s = (num === 1) ? raw.one : raw.other;
+    s = raw[pluralForm(current, num)] || raw.other;
   } else {
     s = String(raw === undefined ? key : raw);
   }
