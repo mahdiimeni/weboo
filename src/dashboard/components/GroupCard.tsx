@@ -103,14 +103,13 @@ export interface GroupCardHandlers extends TagHandlers, ItemHandlers {
   onSectionToggle?: (dir: string, willCollapse: boolean) => void;
 }
 
-export function GroupCard({ g, remaining, collapsed, order, handlers }: {
+export function GroupCard({ g, collapsed, order, handlers }: {
   g: Group;
-  remaining: number;
   collapsed: boolean;
   order?: string;
   handlers: GroupCardHandlers;
 }) {
-  const canFlip = g.items.length + remaining > 1;
+  const canFlip = g.items.length > 1;
 
   function headToggle(ev: React.MouseEvent | React.KeyboardEvent) {
     /* a click on ANY header button (open/delete/order) never toggles */
@@ -148,7 +147,7 @@ export function GroupCard({ g, remaining, collapsed, order, handlers }: {
           <span className="group-url" title={g.url || g.host || ""}>{dash.displayHost(g.url || g.host)}</span>
         </span>
         <span className="gchips">
-          <span className="chip" dir={dirOf()}>{count("common.nHighlights", g.items.length + remaining)}</span>
+          <span className="chip" dir={dirOf()}>{count("common.nHighlights", g.items.length)}</span>
           {g.notes > 0 ? <span className="chip" dir={dirOf()}>{count("common.nNotes", g.notes)}</span> : null}
         </span>
         {canFlip ? <OrderBtn order={order || "newest"} onFlip={() => handlers.onItemOrder(g)} /> : null}
@@ -168,11 +167,6 @@ export function GroupCard({ g, remaining, collapsed, order, handlers }: {
 
       <div className="group-items" hidden={collapsed}>
         {g.items.map((rec) => <ItemCard key={rec.id} rec={rec} handlers={handlers} />)}
-        {remaining > 0 ? (
-          <div className="item-more" dir={dirOf()}>
-            {t("card.remaining", { n: dash.num(remaining) })}
-          </div>
-        ) : null}
       </div>
     </div>
   );

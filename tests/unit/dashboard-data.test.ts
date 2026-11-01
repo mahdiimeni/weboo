@@ -397,78 +397,6 @@ describe("computeStats", () => {
   });
 });
 
-describe("paginate (v1.2.9)", () => {
-  const grp = (key: string, n: number) => ({
-    key,
-    host: key + ".com",
-    title: "مقاله " + key,
-    url: "https://" + key + ".com/1",
-    items: Array.from({ length: n }, (_, i) => rec(key + i)),
-    notes: 0,
-    latest: 0,
-    earliest: 0,
-  });
-
-  test("همه‌ی گروه‌ها جا می‌شوند → همه کامل، remaining صفر، overflow صفر", () => {
-    const groups = [grp("a", 2), grp("b", 3)];
-    const p = HL.dash.paginate(groups, 10);
-    expect(p.visible.length).toBe(2);
-    expect(p.visible[0].group).toBe(groups[0]); /* whole groups: same reference, no copy */
-    expect(p.visible[1].group).toBe(groups[1]);
-    expect(p.visible.map((v: any) => v.remaining)).toEqual([0, 0]);
-    expect(p.shown).toBe(5);
-    expect(p.overflow).toBe(0);
-  });
-
-  test("برش داخل گروه: کپی کم‌عمق با slice، remaining درست، overflow شامل باقیمانده + گروه‌های بعد", () => {
-    const groups = [grp("a", 2), grp("b", 5), grp("c", 4)];
-    const p = HL.dash.paginate(groups, 5); /* room 3 left for group b */
-    expect(p.visible.length).toBe(2);
-    const cut = p.visible[1].group;
-    expect(cut).not.toBe(groups[1]); /* shallow copy — not the source object */
-    expect(cut.items.length).toBe(3);
-    expect(cut.key).toBe("b"); /* key survives the copy (collapsedGroups lookup in the controller) */
-    expect(cut.host).toBe("b.com");
-    expect(p.visible[1].remaining).toBe(2);
-    expect(p.shown).toBe(5);
-    expect(p.overflow).toBe(6); /* 2 of b + all 4 of c */
-  });
-
-  test("حد صفر → هیچ گروهی نمایش نمی‌یابد، overflow برابر کل", () => {
-    const groups = [grp("a", 2), grp("b", 3)];
-    const p = HL.dash.paginate(groups, 0);
-    expect(p.visible).toEqual([]);
-    expect(p.shown).toBe(0);
-    expect(p.overflow).toBe(5);
-  });
-
-  test("گروه‌های بعد از نقطه‌ی برش کامل رد می‌شوند (همه‌ی آیتم‌هایشان در overflow)", () => {
-    const groups = [grp("a", 2), grp("b", 5), grp("c", 3), grp("d", 1)];
-    const p = HL.dash.paginate(groups, 5); /* a whole + b cut at 3 → c and d skipped whole */
-    expect(p.visible.length).toBe(2);
-    expect(p.visible[1].group.items.length).toBe(3);
-    expect(p.overflow).toBe(6); /* 2 of b + 3 of c + 1 of d */
-  });
-
-  test("شیء گروه اصلی با برش جهش نمی‌یابد", () => {
-    const g = grp("a", 5);
-    const p = HL.dash.paginate([g], 2);
-    expect(p.visible[0].group).not.toBe(g);
-    expect(g.items.length).toBe(5); /* source untouched */
-    expect(p.visible[0].group.items.length).toBe(2);
-    expect(p.overflow).toBe(3);
-  });
-
-  test("حد دقیقاً برابر مجموع → همه کامل نمایش می‌یابند، overflow صفر", () => {
-    const groups = [grp("a", 2), grp("b", 3)];
-    const p = HL.dash.paginate(groups, 5);
-    expect(p.visible.length).toBe(2);
-    expect(p.visible[1].group).toBe(groups[1]); /* exact fit: no cut, no copy */
-    expect(p.shown).toBe(5);
-    expect(p.overflow).toBe(0);
-  });
-});
-
 /* ================= v0.2.0 — Direction-separated article sections ================= */
 
 describe("leadDir — جهت بخش پیشرو (v0.2.0)", () => {
@@ -539,7 +467,7 @@ describe("leadDir — جهت بخش پیشرو (v0.2.0)", () => {
 });
 
 describe("splitDirSections — افرزش مقاله‌های نمایشی به بخش‌های جهتی (v0.2.0)", () => {
-  const E = (key: string, dir: string, remaining = 0) => ({ group: { key, dir }, remaining });
+  const E = (key: string, dir: string) => ({ key, dir }); /* entries ARE the groups (v0.21.2 — the wrapper layer is gone) */
 
   test("قرارداد فاساد: تابعی خالص روی HL.dash", () => {
     expect(typeof HL.dash.splitDirSections).toBe("function");
@@ -550,18 +478,18 @@ describe("splitDirSections — افرزش مقاله‌های نمایشی به 
     const out = HL.dash.splitDirSections(entries, "rtl");
     expect(out.length).toBe(2);
     expect(out[0].dir).toBe("rtl");
-    expect(out[0].entries.map((e: any) => e.group.key)).toEqual(["fa1", "fa2"]);
+    expect(out[0].entries.map((e: any) => e.key)).toEqual(["fa1", "fa2"]);
     expect(out[1].dir).toBe("ltr");
-    expect(out[1].entries.map((e: any) => e.group.key)).toEqual(["en1", "en2"]);
+    expect(out[1].entries.map((e: any) => e.key)).toEqual(["en1", "en2"]);
   });
 
   test("lead=ltr → بخش ltr اول (همان ورودی، فقط جای بخش‌ها عوض می‌شود)", () => {
     const entries = [E("fa1", "rtl"), E("en1", "ltr"), E("fa2", "rtl")];
     const out = HL.dash.splitDirSections(entries, "ltr");
     expect(out[0].dir).toBe("ltr");
-    expect(out[0].entries.map((e: any) => e.group.key)).toEqual(["en1"]);
+    expect(out[0].entries.map((e: any) => e.key)).toEqual(["en1"]);
     expect(out[1].dir).toBe("rtl");
-    expect(out[1].entries.map((e: any) => e.group.key)).toEqual(["fa1", "fa2"]);
+    expect(out[1].entries.map((e: any) => e.key)).toEqual(["fa1", "fa2"]);
   });
 
   test("یک جهت → فقط یک بخش؛ بخش خالی دیگر حذف می‌شود (مستقل از lead)", () => {
@@ -585,39 +513,22 @@ describe("splitDirSections — افرزش مقاله‌های نمایشی به 
   });
 
   test("گروه بدون dir → بخش rtl (پیش‌فرض محافظه‌کار)", () => {
-    const entries = [{ group: { key: "odd" }, remaining: 0 }, E("en1", "ltr")];
+    const entries = [{ key: "odd" }, E("en1", "ltr")];
     const out = HL.dash.splitDirSections(entries, "rtl");
     expect(out[0].dir).toBe("rtl");
-    expect(out[0].entries.map((e: any) => e.group.key)).toEqual(["odd"]);
+    expect(out[0].entries.map((e: any) => e.key)).toEqual(["odd"]);
   });
 
-  test("ورودی paginate خام: همان مرجع‌های entry — بدون کپی یا بازچینش داده", () => {
+  test("ورودی گروه‌های خام: همان مرجع‌های entry — بدون کپی یا بازچینش داده", () => {
     const groups = HL.dash.groupRecords([
       rec("fa1", { urlNorm: "u-fa", url: "u-fa", title: "آموزش خواندن عمیق", text: "خواندن عمیق", updatedAt: 100 }),
       rec("en1", { urlNorm: "u-en", url: "u-en", title: "Understanding logical properties", text: "Logical properties flow", updatedAt: 500 }),
       rec("fa2", { urlNorm: "u-fa2", url: "u-fa2", title: "یادداشت‌برداری", text: "یادداشت فعال", updatedAt: 300 }),
     ], "newest");
-    const page = HL.dash.paginate(groups, 50);
-    const out = HL.dash.splitDirSections(page.visible, "ltr");
+    const out = HL.dash.splitDirSections(groups, "ltr");
     const all = out.reduce((a: any[], s: any) => a.concat(s.entries), []);
-    expect(all.length).toBe(page.visible.length);
-    page.visible.forEach((v: any) => expect(all.includes(v)).toBe(true)); /* عیناً همان مرجع‌ها */
-  });
-
-  test("remainingِ برش paginate سالم می‌ماند (برای item-more کارت)", () => {
-    /* یک گروه ۳ آیتمی + حد ۲ → برش با remaining=۱؛ بقیه‌ی گروه‌ها کامل در overflow */
-    const list = [
-      rec("fa1", { urlNorm: "u-fa", url: "u-fa", title: "مقاله الف", text: "متن الف", updatedAt: 100 }),
-      rec("fa2", { urlNorm: "u-fa", url: "u-fa", title: "مقاله الف", text: "متن الف۲", updatedAt: 150 }),
-      rec("fa3", { urlNorm: "u-fa", url: "u-fa", title: "مقاله الف", text: "متن الف۳", updatedAt: 200 }),
-      rec("en1", { urlNorm: "u-en", url: "u-en", title: "English article", text: "English text", updatedAt: 500 }),
-    ];
-    const groups = HL.dash.groupRecords(list, "newest");
-    const page = HL.dash.paginate(groups, 3); /* en کامل (۱) + fa برش (۲ از ۳) */
-    expect(page.visible[1].remaining).toBe(1);
-    const out = HL.dash.splitDirSections(page.visible, "ltr");
-    const faSec = out.find((s: any) => s.dir === "rtl")!;
-    expect(faSec.entries[0].remaining).toBe(1); /* remaining از paginate دست‌نخورده عبور می‌کند */
+    expect(all.length).toBe(groups.length);
+    groups.forEach((g: any) => expect(all.includes(g)).toBe(true)); /* عیناً همان مرجع‌ها */
   });
 
   test("خلوص: آرایه‌ی ورودی و گروه‌هایش تغییر نمی‌کنند", () => {
@@ -639,9 +550,8 @@ describe("pipeline بخش‌های جهتی — groupRecords → paginate → le
 
   function sections(list: any[]) {
     const groups = HL.dash.groupRecords(list, "newest");
-    const page = HL.dash.paginate(groups, 50);
     const lead = HL.dash.leadDir(groups);
-    return { groups, page, lead, sections: HL.dash.splitDirSections(page.visible, lead) };
+    return { groups, lead, sections: HL.dash.splitDirSections(groups, lead) };
   }
 
   test("هوشمندی: تازه‌ترین مقاله LTR → بخش LTR بالاتر و کارت تازه‌ترین داخل همان بخش", () => {
@@ -649,16 +559,16 @@ describe("pipeline بخش‌های جهتی — groupRecords → paginate → le
     expect(r.lead).toBe("ltr");
     expect(r.sections.length).toBe(2);
     expect(r.sections[0].dir).toBe("ltr");
-    expect(r.sections[0].entries[0].group.key).toBe("u-en"); /* newest first داخل بخش خودش (sort موجود) */
+    expect(r.sections[0].entries[0].key).toBe("u-en"); /* newest first داخل بخش خودش (sort موجود) */
     expect(r.sections[1].dir).toBe("rtl");
-    expect(r.sections[1].entries[0].group.key).toBe("u-fa");
+    expect(r.sections[1].entries[0].key).toBe("u-fa");
   });
 
   test("هوشمندی (برعکس): تازه‌ترین مقاله RTL → بخش RTL بالاتر", () => {
     const r = sections(mixed(900, 100));
     expect(r.lead).toBe("rtl");
     expect(r.sections[0].dir).toBe("rtl");
-    expect(r.sections[0].entries[0].group.key).toBe("u-fa");
+    expect(r.sections[0].entries[0].key).toBe("u-fa");
     expect(r.sections[1].dir).toBe("ltr");
   });
 
@@ -671,45 +581,43 @@ describe("pipeline بخش‌های جهتی — groupRecords → paginate → le
       rec("en2", { urlNorm: "u-en2", url: "u-en2", title: "The dir attribute and bidi text", text: "The dir attribute sets the base direction for bidi text.", updatedAt: 50 }),
     ];
     const r = sections(list);
-    const globalOrder = r.page.visible.map((v: any) => v.group.key);
+    const globalOrder = r.groups.map((g: any) => g.key);
     expect(globalOrder).toEqual(["u-fa", "u-en", "u-fa2", "u-en2"]); /* درهم — نه بلوکی */
     expect(r.lead).toBe("rtl");
     /* توالی هر جهت در ترتیب کلی، عیناً همان توالی داخل بخش خودش است */
     const seqOf = (dir: string) => globalOrder.filter(function (k: string) {
       return dir === "rtl" ? k === "u-fa" || k === "u-fa2" : k === "u-en" || k === "u-en2";
     });
-    const secOf = (dir: string) => r.sections.find((s: any) => s.dir === dir)!.entries.map((e: any) => e.group.key);
+    const secOf = (dir: string) => r.sections.find((s: any) => s.dir === dir)!.entries.map((e: any) => e.key);
     expect(secOf("rtl")).toEqual(seqOf("rtl")); /* [u-fa, u-fa2] */
     expect(secOf("ltr")).toEqual(seqOf("ltr")); /* [u-en, u-en2] */
   });
 
-  test("تک‌جهته: فقط مقاله‌های فارسی → یک بخش؛ sort و paginate و collapse همه دست‌نخورده", () => {
+  test("تک‌جهته: فقط مقاله‌های فارسی → یک بخش؛ sort و collapse همه دست‌نخورده", () => {
     const list = [
       rec("fa1", { urlNorm: "u-fa", url: "u-fa", title: "مقاله یک", text: "متن فارسی", updatedAt: 100 }),
       rec("fa2", { urlNorm: "u-fa2", url: "u-fa2", title: "مقاله دو", text: "متن فارسی۲", updatedAt: 500 }),
     ];
     const groups = HL.dash.groupRecords(list, "newest");
-    const page = HL.dash.paginate(groups, 50);
     const lead = HL.dash.leadDir(groups);
-    const secs = HL.dash.splitDirSections(page.visible, lead);
+    const secs = HL.dash.splitDirSections(groups, lead);
     expect(lead).toBe("rtl");
-    expect(secs).toEqual([{ dir: "rtl", entries: page.visible }]); /* عیناً همان لیست قبلی، در یک بخش */
+    expect(secs).toEqual([{ dir: "rtl", entries: groups }]); /* عیناً همان لیست قبلی، در یک بخش */
   });
 
   test("با sort=page (الفبایی): بخش‌ها جدا می‌مانند ولی ترتیب الفبایی داخل هر بخش حفظ می‌شود", () => {
     const list = mixed(100, 900);
     const groups = HL.dash.groupRecords(list, "page"); /* الفبایی با locale فارسی */
-    const page = HL.dash.paginate(groups, 50);
     const lead = HL.dash.leadDir(groups);
-    const secs = HL.dash.splitDirSections(page.visible, lead);
+    const secs = HL.dash.splitDirSections(groups, lead);
     expect(lead).toBe("ltr"); /* تازه‌ترین (en1@850) هنوز LTR است — مستقل از sort */
     expect(secs[0].dir).toBe("ltr");
     /* توالی هر جهت در ترتیب الفبایی کلی، عیناً داخل بخش خودش حفظ می‌شود */
-    const globalOrder = page.visible.map((v: any) => v.group.key);
+    const globalOrder = groups.map((g: any) => g.key);
     const seqOf = (dir: string) => globalOrder.filter(function (k: string) {
       return dir === "rtl" ? k === "u-fa" || k === "u-fa2" : k === "u-en" || k === "u-en2";
     });
-    const secOf = (dir: string) => secs.find((s: any) => s.dir === dir)!.entries.map((e: any) => e.group.key);
+    const secOf = (dir: string) => secs.find((s: any) => s.dir === dir)!.entries.map((e: any) => e.key);
     expect(secOf("rtl")).toEqual(seqOf("rtl"));
     expect(secOf("ltr")).toEqual(seqOf("ltr"));
   });
@@ -759,60 +667,6 @@ describe("bulkAction — تصمیم دکمه‌ی باز/بستن گروهی (v0
     expect(groups.map((g: any) => g.key)).toEqual(["a", "b"]);
     expect([...collapsed]).toEqual(["a"]);
     expect(groups[0].items).toEqual([]); /* بدون تغییر */
-  });
-});
-
-describe("pipeline گروهی — bulkAction + paginate(Infinity) (v0.3.0)", () => {
-  /* همان ترکیبی که کنترلر انجام می‌دهد: تصمیم تازه + بالابردن سقف صفحه‌بندی.
-     مکانیزم «بارگذاری همه» از دل paginate دست‌نخورده می‌گذرد: limit=Infinity. */
-  const bulk = (n: number) => {
-    const list: any[] = [];
-    for (let i = 0; i < n; i++) {
-      list.push(rec("b" + i, {
-        urlNorm: "u-bulk" + (i % 5), url: "u-bulk" + (i % 5),
-        title: "مقاله انبوه " + (i % 5), text: "متن " + i, updatedAt: i,
-      }));
-    }
-    return HL.dash.groupRecords(list, "newest");
-  };
-
-  test("قرارداد بارگذاری کامل: paginate(groups, Infinity) → همه‌ی گروه‌ها، remaining=0 همه‌جا، overflow=0", () => {
-    const groups = bulk(120); /* ۵ مقاله × ۲۴ هایلایت */
-    const page = HL.dash.paginate(groups, Infinity);
-    expect(page.visible.length).toBe(5); /* هیچ گروهی بیرون نمی‌ماند */
-    expect(page.overflow).toBe(0); /* load-more مخفی می‌شود */
-    page.visible.forEach((v: any) => expect(v.remaining).toBe(0)); /* هیچ جای‌نگه‌دارِ item-more نیست */
-    expect(page.shown).toBe(120);
-  });
-
-  test("چرخه‌ی کامل توگل هوشمند: بوت(expand) → بازکردن همه(collapse) → بستن همه(expand) — هر بار همه بارگذاری می‌شود", () => {
-    const groups = bulk(70); /* ۵ مقاله × ۱۴ */
-    const collapsed = new Set(HL.dash.initialCollapsed(groups));
-    /* ۱) بعد از بوت: دکمه «باز کردن همه» — کلیک: clear + Infinity */
-    expect(HL.dash.bulkAction(groups, collapsed)).toBe("expand");
-    collapsed.clear();
-    let page = HL.dash.paginate(groups, Infinity);
-    expect(HL.dash.bulkAction(groups, collapsed)).toBe("collapse"); /* برچسب برمی‌گردد */
-    expect(page.overflow).toBe(0);
-    /* ۲) بعد از بازکردن همه: دکمه «بستن همه» — کلیک: add همه + Infinity */
-    groups.forEach((g: any) => collapsed.add(g.key));
-    page = HL.dash.paginate(groups, Infinity);
-    expect(HL.dash.bulkAction(groups, collapsed)).toBe("expand"); /* برچسب برمی‌گردد */
-    expect(page.overflow).toBe(0); /* بستن هم «همه را بارگذاری» می‌کند — خواسته‌ی صریح مالک */
-    expect(collapsed.size).toBe(5);
-  });
-
-  test("مرتب‌سازی/گروه‌بندی موجود دست‌نخورده: توالی گروه‌های صفحه‌ی عادی، پیشوندِ همان توالی در حالت کامل است", () => {
-    const groups = bulk(60); /* ۵ مقاله × ۱۲ */
-    const normal = HL.dash.paginate(groups, 25); /* برش واقعی: ۲ گروه کامل + گروه سوم نیمه (remaining>0) */
-    const all = HL.dash.paginate(groups, Infinity);
-    expect(normal.visible.length).toBe(3); /* ۱۲ + ۱۲ + ۱ → گروه سوم straddle می‌شود */
-    expect(normal.visible[2].remaining).toBe(11);
-    /* توالی گروه‌ها در حالت کامل همان توالی عادی است — فقط ادامه‌اش اضافه می‌شود */
-    expect(all.visible.map((v: any) => v.group.key).slice(0, 3))
-      .toEqual(normal.visible.map((v: any) => v.group.key));
-    expect(all.visible.length).toBe(5);
-    expect(all.visible[2].remaining).toBe(0); /* همان گروه straddle شده، این‌جا کامل است */
   });
 });
 
@@ -901,78 +755,6 @@ describe("itemOrder — نگاشت sort پایه + پرچم برگشت ← کل�
   test("مرتب‌سازی ناشناخته → همان شاخه‌ی newest (آینه‌ی شاخه‌ی پیش‌فرض groupRecords — برچسب هرگز با ترتیب واقعی نمی‌سازد)", () => {
     expect(HL.dash.itemOrder(undefined as any, false)).toBe("newest");
     expect(HL.dash.itemOrder("garbage" as any, true)).toBe("oldest");
-  });
-});
-
-describe("pipeline ترتیب کارت — groupRecords → applyItemReversal → paginate (v0.4.0)", () => {
-  /* همان ترکیبی که کنترلر انجام می‌دهد: برشِ سقف ۵۰ آیتمی روی گروه‌های
-     برگردانده‌شده — قرارداد «سرِ برش = سرِ لیست برگردانده‌شده». */
-  const flip = (n: number) => {
-    const list: any[] = [];
-    for (let i = 0; i < n; i++) {
-      list.push(rec("f" + i, {
-        urlNorm: "u-flip" + (i % 5), url: "u-flip" + (i % 5),
-        title: "مقاله چرخشی " + (i % 5), text: "متن " + i, updatedAt: i, createdAt: i,
-      }));
-    }
-    return HL.dash.groupRecords(list, "newest");
-  };
-
-  test("straddle با برگشت: برش visible سرِ لیست معکوس است و remaining دقیق می‌ماند", () => {
-    const groups = flip(120); /* ۵ مقاله × ۲۴ هایلایت؛ پایه newest: f119…f96 */
-    const firstKey = groups[0].key;
-    const baseIds = groups[0].items.map((i: any) => i.id);
-    const out = HL.dash.applyItemReversal(groups, new Set([firstKey]));
-    const page = HL.dash.paginate(out, 30); /* گروه اول کامل + گروه دوم نیمه */
-    const v0 = page.visible[0];
-    expect(v0.group.key).toBe(firstKey);
-    expect(v0.group.items.length).toBe(24); /* کامل */
-    /* گروه دوم straddle: ۶ آیتم + remaining=۱۸ */
-    expect(page.visible[1].group.items.length).toBe(6);
-    expect(page.visible[1].remaining).toBe(18);
-    /* ترتیبِ داخل گروه برگردانده‌شده دقیقاً معکوس ترتیب پایه است */
-    expect(out[0].items.map((i: any) => i.id)).toEqual(baseIds.slice().reverse());
-  });
-
-  test("بارگذاری همه (Infinity) با برگشت: همه‌ی گروه‌ها، remaining=0، سرنوشتِ ترتیب حفظ می‌شود", () => {
-    const groups = flip(60); /* ۵ مقاله × ۱۲ */
-    const firstKey = groups[0].key;
-    const baseIds = groups[0].items.map((i: any) => i.id);
-    const out = HL.dash.applyItemReversal(groups, new Set([firstKey]));
-    const page = HL.dash.paginate(out, Infinity);
-    expect(page.visible.length).toBe(5);
-    expect(page.overflow).toBe(0);
-    page.visible.forEach((v: any) => expect(v.remaining).toBe(0));
-    expect(page.visible[0].group.items.map((i: any) => i.id)).toEqual(baseIds.slice().reverse());
-    /* بقیه‌ی گروه‌ها ترتیب پایه را دارند */
-    expect(page.visible[1].group.items.map((i: any) => i.id))
-      .toEqual(groups[1].items.map((i: any) => i.id));
-  });
-
-  test("چرخه‌ی کامل کاربر: برگرداندن ← برگرداندن مجدد = بازگشت به ترتیب پایه (گروه مبدا هرگز تخریب نمی‌شود)", () => {
-    const groups = flip(15); /* ۵ مقاله × ۳ */
-    const key = groups[2].key;
-    const baseIds = groups[2].items.map((i: any) => i.id);
-    const rev = new Set([key]);
-    const once = HL.dash.applyItemReversal(groups, rev);
-    expect(once[2].items.map((i: any) => i.id)).toEqual(baseIds.slice().reverse());
-    rev.delete(key); /* کلیک دوم: کنترلر پرچم را برمی‌دارد */
-    const twice = HL.dash.applyItemReversal(groups, rev);
-    expect(twice[2].items.map((i: any) => i.id)).toEqual(baseIds); /* دقیقاً ترتیب اول */
-  });
-
-  test("سیاست‌های دیگر روی گروه‌های برگردانده‌شده همان جواب را می‌دهند: initialCollapsed/leadDir/bulkAction", () => {
-    const groups = flip(20); /* ۵ مقاله × ۴ */
-    const before = {
-      collapsed: HL.dash.initialCollapsed(groups),
-      lead: HL.dash.leadDir(groups),
-      bulk: HL.dash.bulkAction(groups, new Set()),
-    };
-    const out = HL.dash.applyItemReversal(groups, new Set(groups.map((g: any) => g.key)));
-    /* همه‌ی گروه‌ها کپی سطحی شده‌اند — سیاست‌ها فقط key/latest/dir می‌خوانند */
-    expect(HL.dash.initialCollapsed(out)).toEqual(before.collapsed);
-    expect(HL.dash.leadDir(out)).toBe(before.lead);
-    expect(HL.dash.bulkAction(out, new Set())).toBe(before.bulk);
   });
 });
 

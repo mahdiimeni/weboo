@@ -166,7 +166,6 @@ const en = {
   'bulk.expandTitle': 'All article cards open, and every unloaded highlight loads too',
   'bulk.collapse': 'Collapse all articles',
   'bulk.collapseTitle': 'All article cards close and every unloaded highlight loads too; opening any article then shows its highlights in full',
-  'list.loadMore': 'Load more ({n} remaining)',
   'empty.noResults': 'No results found.',
   'empty.noResultsSub': 'Try a different search phrase or color/tag filters.',
   'empty.first': 'No highlights yet. Select your first text!',
@@ -188,7 +187,6 @@ const en = {
   'card.orderAria': 'Highlight order for this article: {label}',
   'card.viewPageTitle': 'Open this page in a new tab',
   'card.deleteGroupTitle': 'Delete everything from this page',
-  'card.remaining': '…{n} more from this page (press “Load more” to show them)',
 
   /* ---------- highlight item ---------- */
   'item.previewTitle': 'Show this highlight’s full text',
@@ -497,7 +495,6 @@ const fa: Record<TranslationKey, DictValue> = {
   'bulk.expandTitle': 'همه‌ی کارت مقاله‌ها باز می‌شوند و همه‌ی هایلایت‌های بارگذاری‌نشده هم بارگذاری می‌شوند',
   'bulk.collapse': 'بستن همه‌ی مقاله‌ها',
   'bulk.collapseTitle': 'همه‌ی کارت مقاله‌ها بسته می‌شوند و همه‌ی هایلایت‌های بارگذاری‌نشده هم بارگذاری می‌شوند؛ با باز کردن هر مقاله، هایلایت‌هایش کامل نمایش داده می‌شوند',
-  'list.loadMore': 'بارگذاری بیشتر ({n} مورد باقی‌مانده)',
   'empty.noResults': 'نتیجه‌ای پیدا نشد.',
   'empty.noResultsSub': 'عبارت جست‌وجو یا فیلترهای رنگ و برچسب را تغییر بده.',
   'empty.first': 'هنوز هایلایتی ثبت نشده. اولین متن را انتخاب کنید!',
@@ -519,7 +516,6 @@ const fa: Record<TranslationKey, DictValue> = {
   'card.orderAria': 'ترتیب نمایش هایلایت‌های این مقاله: {label}',
   'card.viewPageTitle': 'باز کردن این صفحه در تب جدید',
   'card.deleteGroupTitle': 'حذف همه‌ی این صفحه',
-  'card.remaining': '…{n} مورد دیگر از این صفحه (برای نمایش، «بارگذاری بیشتر» را بزنید)',
 
   /* ---------- highlight item ---------- */
   'item.previewTitle': 'نمایش متن کامل این هایلایت',
@@ -828,7 +824,6 @@ const de: Record<TranslationKey, DictValue> = {
   'bulk.expandTitle': 'Alle Artikelkarten klappen auf und alle nicht geladenen Highlights werden geladen',
   'bulk.collapse': 'Alle Artikel einklappen',
   'bulk.collapseTitle': 'Alle Artikelkarten klappen sich zu und alle nicht geladenen Highlights werden geladen; beim Öffnen eines Artikels werden dessen Highlights vollständig angezeigt',
-  'list.loadMore': 'Mehr laden ({n} verbleibend)',
   'empty.noResults': 'Keine Ergebnisse gefunden.',
   'empty.noResultsSub': 'Anderen Suchbegriff oder andere Farb-/Tag-Filter ausprobieren.',
   'empty.first': 'Noch keine Highlights. Markieren Sie Ihren ersten Text!',
@@ -850,7 +845,6 @@ const de: Record<TranslationKey, DictValue> = {
   'card.orderAria': 'Reihenfolge der Highlights dieses Artikels: {label}',
   'card.viewPageTitle': 'Diese Seite in einem neuen Tab öffnen',
   'card.deleteGroupTitle': 'Alles von dieser Seite löschen',
-  'card.remaining': '…{n} weitere von dieser Seite (zum Anzeigen „Mehr laden“ drücken)',
 
   /* ---------- highlight item ---------- */
   'item.previewTitle': 'Vollständigen Text dieses Highlights anzeigen',
@@ -1157,7 +1151,6 @@ const es: Record<TranslationKey, DictValue> = {
   'bulk.expandTitle': 'Todas las tarjetas de artículo se despliegan y también se cargan los resaltados sin cargar',
   'bulk.collapse': 'Plegar todos los artículos',
   'bulk.collapseTitle': 'Todas las tarjetas de artículo se pliegan y también se cargan los resaltados sin cargar; al abrir un artículo se muestran sus resaltados completos',
-  'list.loadMore': 'Cargar más ({n} restantes)',
   'empty.noResults': 'No se encontraron resultados.',
   'empty.noResultsSub': 'Prueba con otra búsqueda o cambia los filtros de color y etiquetas.',
   'empty.first': 'Aún no hay resaltados. ¡Selecciona tu primer texto!',
@@ -1179,7 +1172,6 @@ const es: Record<TranslationKey, DictValue> = {
   'card.orderAria': 'Orden de los resaltados de este artículo: {label}',
   'card.viewPageTitle': 'Abrir esta página en una pestaña nueva',
   'card.deleteGroupTitle': 'Eliminar todo lo de esta página',
-  'card.remaining': '…{n} más de esta página (pulsa «Cargar más» para verlos)',
 
   /* ---------- highlight item ---------- */
   'item.previewTitle': 'Ver el texto completo de este resaltado',
@@ -1485,7 +1477,6 @@ const ru: Record<TranslationKey, DictValue> = {
   'bulk.expandTitle': 'Все карточки статей развернутся, и все незагруженные выделения тоже загрузятся',
   'bulk.collapse': 'Свернуть все статьи',
   'bulk.collapseTitle': 'Все карточки статей свернутся, и все незагруженные выделения тоже загрузятся; при открытии статьи её выделения показываются полностью',
-  'list.loadMore': 'Загрузить ещё (осталось {n})',
   'empty.noResults': 'Ничего не найдено.',
   'empty.noResultsSub': 'Измените поисковый запрос или фильтры цвета и тегов.',
   'empty.first': 'Выделений ещё нет. Выделите свой первый текст!',
@@ -1507,7 +1498,6 @@ const ru: Record<TranslationKey, DictValue> = {
   'card.orderAria': 'Порядок выделений этой статьи: {label}',
   'card.viewPageTitle': 'Открыть эту страницу в новой вкладке',
   'card.deleteGroupTitle': 'Удалить всё с этой страницы',
-  'card.remaining': '…ещё {n} с этой страницы (нажмите «Загрузить ещё», чтобы показать)',
 
   /* ---------- highlight item ---------- */
   'item.previewTitle': 'Показать полный текст этого выделения',
@@ -1811,7 +1801,6 @@ const it: Record<TranslationKey, DictValue> = {
   'bulk.expandTitle': 'Tutte le schede articolo si aprono e si caricano anche le evidenziazioni non ancora caricate',
   'bulk.collapse': 'Comprimi tutti gli articoli',
   'bulk.collapseTitle': 'Tutte le schede articolo si chiudono e si caricano anche le evidenziazioni non ancora caricate; aprendo un articolo le sue evidenziazioni si mostrano complete',
-  'list.loadMore': 'Carica altri ({n} rimanenti)',
   'empty.noResults': 'Nessun risultato trovato.',
   'empty.noResultsSub': 'Prova un’altra ricerca o cambia i filtri colore e tag.',
   'empty.first': 'Ancora nessuna evidenziazione. Seleziona il tuo primo testo!',
@@ -1833,7 +1822,6 @@ const it: Record<TranslationKey, DictValue> = {
   'card.orderAria': 'Ordine delle evidenziazioni di questo articolo: {label}',
   'card.viewPageTitle': 'Apri questa pagina in una nuova scheda',
   'card.deleteGroupTitle': 'Elimina tutto di questa pagina',
-  'card.remaining': '…altri {n} da questa pagina (premi «Carica altri» per mostrarli)',
 
   /* ---------- highlight item ---------- */
   'item.previewTitle': 'Mostra il testo completo di questa evidenziazione',
@@ -2139,7 +2127,6 @@ const fr: Record<TranslationKey, DictValue> = {
   'bulk.expandTitle': 'Toutes les cartes d’article se déplient et les surlignages non chargés sont chargés aussi',
   'bulk.collapse': 'Replier tous les articles',
   'bulk.collapseTitle': 'Toutes les cartes d’article se replient et les surlignages non chargés sont chargés aussi ; en ouvrant un article, ses surlignages s’affichent en entier',
-  'list.loadMore': 'Charger plus ({n} restants)',
   'empty.noResults': 'Aucun résultat.',
   'empty.noResultsSub': 'Essayez une autre recherche ou changez les filtres de couleur et de tags.',
   'empty.first': 'Aucun surlignage pour l’instant. Sélectionnez votre premier texte !',
@@ -2161,7 +2148,6 @@ const fr: Record<TranslationKey, DictValue> = {
   'card.orderAria': 'Ordre des surlignages de cet article : {label}',
   'card.viewPageTitle': 'Ouvrir cette page dans un nouvel onglet',
   'card.deleteGroupTitle': 'Supprimer tout le contenu de cette page',
-  'card.remaining': '…{n} autres de cette page (appuyez sur « Charger plus » pour les afficher)',
 
   /* ---------- highlight item ---------- */
   'item.previewTitle': 'Afficher le texte complet de ce surlignage',
@@ -2466,7 +2452,6 @@ const tr: Record<TranslationKey, DictValue> = {
   'bulk.expandTitle': 'Tüm makale kartları açılır ve yüklenmemiş vurgulamalar da yüklenir',
   'bulk.collapse': 'Tüm makaleleri kapat',
   'bulk.collapseTitle': 'Tüm makale kartları kapanır ve yüklenmemiş vurgulamalar da yüklenir; bir makaleyi açtığınızda vurgulamaları tam olarak gösterilir',
-  'list.loadMore': 'Daha fazla yükle ({n} kaldı)',
   'empty.noResults': 'Sonuç bulunamadı.',
   'empty.noResultsSub': 'Başka bir arama deneyin veya renk ile etiket filtrelerini değiştirin.',
   'empty.first': 'Henüz vurgulama yok. İlk metninizi seçin!',
@@ -2488,7 +2473,6 @@ const tr: Record<TranslationKey, DictValue> = {
   'card.orderAria': 'Bu makalenin vurgulama sırası: {label}',
   'card.viewPageTitle': 'Bu sayfayı yeni sekmede aç',
   'card.deleteGroupTitle': 'Bu sayfanın her şeyini sil',
-  'card.remaining': '…bu sayfadan {n} tane daha (görmek için "Daha fazla yükle"ye basın)',
 
   /* ---------- highlight item ---------- */
   'item.previewTitle': 'Bu vurgulamanın tam metnini göster',
@@ -2795,7 +2779,6 @@ const zh: Record<TranslationKey, DictValue> = {
   'bulk.expandTitle': '所有文章卡片将展开，未加载的高亮也会加载',
   'bulk.collapse': '折叠全部文章',
   'bulk.collapseTitle': '所有文章卡片将折叠，未加载的高亮也会加载；打开文章时会完整显示其高亮',
-  'list.loadMore': '加载更多（剩余 {n} 项）',
   'empty.noResults': '未找到结果。',
   'empty.noResultsSub': '试试其他搜索词，或更改颜色和标签筛选。',
   'empty.first': '还没有高亮。选择你的第一段文字吧！',
@@ -2817,7 +2800,6 @@ const zh: Record<TranslationKey, DictValue> = {
   'card.orderAria': '此文章的高亮顺序：{label}',
   'card.viewPageTitle': '在新标签页中打开此页面',
   'card.deleteGroupTitle': '删除此页面的全部内容',
-  'card.remaining': '…此页面还有 {n} 条（点击「加载更多」查看）',
 
   /* ---------- highlight item ---------- */
   'item.previewTitle': '查看此高亮的完整文本',
@@ -3122,7 +3104,6 @@ const ja: Record<TranslationKey, DictValue> = {
   'bulk.expandTitle': 'すべての記事カードが開き、未読み込みのハイライトも読み込まれます',
   'bulk.collapse': 'すべての記事を閉じる',
   'bulk.collapseTitle': 'すべての記事カードが閉じ、未読み込みのハイライトも読み込まれます。記事を開くとハイライト全体が表示されます',
-  'list.loadMore': 'さらに読み込む（残り {n} 件）',
   'empty.noResults': '結果が見つかりませんでした。',
   'empty.noResultsSub': '検索語や色・タグのフィルターを変更してみてください。',
   'empty.first': 'まだハイライトはありません。最初のテキストを選択しましょう！',
@@ -3144,7 +3125,6 @@ const ja: Record<TranslationKey, DictValue> = {
   'card.orderAria': 'この記事のハイライト順：{label}',
   'card.viewPageTitle': 'このページを新しいタブで開く',
   'card.deleteGroupTitle': 'このページのすべてを削除',
-  'card.remaining': '…このページのほか {n} 件（「さらに読み込む」で表示）',
 
   /* ---------- highlight item ---------- */
   'item.previewTitle': 'このハイライトの全文を表示',
@@ -3450,7 +3430,6 @@ const ko: Record<TranslationKey, DictValue> = {
   'bulk.expandTitle': '모든 문서 카드가 펼쳐지고 아직 로드되지 않은 하이라이트도 로드됩니다',
   'bulk.collapse': '모든 문서 접기',
   'bulk.collapseTitle': '모든 문서 카드가 접히고 아직 로드되지 않은 하이라이트도 로드됩니다. 문서를 열면 하이라이트 전체가 표시됩니다',
-  'list.loadMore': '더 불러오기({n}개 남음)',
   'empty.noResults': '결과를 찾을 수 없습니다.',
   'empty.noResultsSub': '다른 검색어를 시도하거나 색상·태그 필터를 바꿔 보세요.',
   'empty.first': '아직 하이라이트가 없습니다. 첫 텍스트를 선택해 보세요!',
@@ -3472,7 +3451,6 @@ const ko: Record<TranslationKey, DictValue> = {
   'card.orderAria': '이 문서의 하이라이트 순서: {label}',
   'card.viewPageTitle': '이 페이지를 새 탭에서 열기',
   'card.deleteGroupTitle': '이 페이지의 모든 항목 삭제',
-  'card.remaining': '…이 문서에서 {n}개 더 남음("더 불러오기"를 눌러 표시)',
 
   /* ---------- highlight item ---------- */
   'item.previewTitle': '이 하이라이트의 전체 텍스트 보기',
@@ -3780,7 +3758,6 @@ const ar: Record<TranslationKey, DictValue> = {
   'bulk.expandTitle': 'ستُفتَح جميع بطاقات المقالات وتُحمَّل التمييزات غير المحمَّلة أيضًا',
   'bulk.collapse': 'إغلاق جميع المقالات',
   'bulk.collapseTitle': 'ستُغلَق جميع بطاقات المقالات وتُحمَّل التمييزات غير المحمَّلة أيضًا؛ وعند فتح أي مقالة تُعرَض تمييزاته كاملة',
-  'list.loadMore': 'تحميل المزيد ({n} المتبقي)',
   'empty.noResults': 'لا توجد نتائج.',
   'empty.noResultsSub': 'جرّب كلمات بحث أخرى أو غيّر مرشحات الألوان والوسوم.',
   'empty.first': 'لا توجد تمييزات بعد. حدّد نصّك الأول!',
@@ -3802,7 +3779,6 @@ const ar: Record<TranslationKey, DictValue> = {
   'card.orderAria': 'ترتيب تمييزات هذه المقالة: {label}',
   'card.viewPageTitle': 'فتح هذه الصفحة في تبويب جديد',
   'card.deleteGroupTitle': 'حذف كل ما في هذه الصفحة',
-  'card.remaining': '…{n} المزيد من هذه الصفحة (اضغط «تحميل المزيد» لعرضها)',
 
   /* ---------- highlight item ---------- */
   'item.previewTitle': 'عرض النص الكامل لهذا التمييز',

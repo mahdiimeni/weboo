@@ -25,7 +25,7 @@ const DIR_SECTION_LABELS: Record<string, TranslationKey> = {
 
 export interface DirSectionData {
   dir: "rtl" | "ltr";
-  entries: Array<{ group: Group; remaining: number }>;
+  entries: Group[];
 }
 
 export function DirSection({ section, lead, collapsed, cardState, handlers }: {
@@ -77,13 +77,12 @@ export function DirSection({ section, lead, collapsed, cardState, handlers }: {
         <span className="dir-sec-chev" aria-hidden="true"><IconChev /></span>
       </div>
       <div className="dir-sec-body" hidden={collapsed}>
-        {section.entries.map((v) => {
-          const st = cardState(v.group);
+        {section.entries.map((g) => {
+          const st = cardState(g);
           return (
             <GroupCard
-              key={v.group.key}
-              g={v.group}
-              remaining={v.remaining}
+              key={g.key}
+              g={g}
               collapsed={st.collapsed}
               order={st.order}
               handlers={handlers}

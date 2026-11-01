@@ -258,7 +258,7 @@ import { tags } from "../shared/tags.js"; /* 7c-3 */
   function splitDirSections(entries, lead) {
     var buckets = { rtl: [], ltr: [] };
     (entries || []).forEach(function (v) {
-      var d = (v.group && v.group.dir) === 'ltr' ? 'ltr' : 'rtl';
+      var d = (v && v.dir) === 'ltr' ? 'ltr' : 'rtl';
       buckets[d].push(v);
     });
     var order = lead === 'ltr' ? ['ltr', 'rtl'] : ['rtl', 'ltr'];
@@ -473,26 +473,6 @@ import { tags } from "../shared/tags.js"; /* 7c-3 */
    * cut-off point are skipped whole.
    * Returns { visible: [{ group, remaining }], shown, overflow }.
    */
-  function paginate(groups, limit) {
-    var total = 0;
-    groups.forEach(function (g) { total += g.items.length; });
-    var visible = [];
-    var shown = 0;
-    for (var i = 0; i < groups.length; i++) {
-      var g = groups[i];
-      if (shown >= limit) break;
-      var room = limit - shown;
-      if (g.items.length > room) {
-        visible.push({ group: Object.assign({}, g, { items: g.items.slice(0, room) }), remaining: g.items.length - room });
-        shown += room;
-        break;
-      }
-      visible.push({ group: g, remaining: 0 });
-      shown += g.items.length;
-    }
-    return { visible: visible, shown: shown, overflow: total - shown };
-  }
-
   /* Shared display formats from the core (HL.format) — just delegated
      exported directly. num is the language-aware generalization (v0.14.0);
      faNum stays the forced-Persian rendering for legacy consumers. */
@@ -521,7 +501,6 @@ import { tags } from "../shared/tags.js"; /* 7c-3 */
     backupSelectionOptions: backupSelectionOptions,
     articleOptions: articleOptions,
     filterGroupsByKeys: filterGroupsByKeys,
-    paginate: paginate
   };
 
 

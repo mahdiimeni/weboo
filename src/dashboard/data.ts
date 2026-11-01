@@ -10,7 +10,6 @@
  *     immediately after this module's own write actions;
  *   settings                   — storage-backed via onSettingsChanged;
  *   filters / collapsedGroups / reversedGroups / collapsedSections /
- *     visibleLimit             — user-owned SESSION view state (formerly the
  *     controller's module state); immutable updates (fresh Sets) so snapshot
  *     identity drives re-renders.
  *
@@ -82,7 +81,6 @@ export interface DashboardData {
   /** v0.5.0: collapsed direction sections ('rtl'|'ltr') */
   collapsedSections: Set<string>;
   /** pagination window (50 → +50 per load-more → Infinity after bulk) */
-  visibleLimit: number;
   /** the highlight preview window's record (v0.6.1) — session state */
   preview: HighlightRecord | null;
   /** the settings drawer + booklet modal open states — session chrome */
@@ -106,7 +104,6 @@ let state: DashboardData = {
   collapsedGroups: new Set(),
   reversedGroups: new Set(),
   collapsedSections: new Set(),
-  visibleLimit: 50,
   preview: null,
   drawerOpen: false,
   bookletOpen: false,
@@ -134,12 +131,9 @@ export function subscribeData(cb: () => void): () => void {
   return () => { listeners.delete(cb); };
 }
 
-function mergeFilters(patch: Partial<Filters>, resetLimit: boolean): void {
+function mergeFilters(patch: Partial<Filters>): void {
   const f = state.filters;
-  setState({
-    filters: { ...f, ...patch },
-    visibleLimit: resetLimit ? 50 : state.visibleLimit,
-  });
+  setState({ filters: { ...f, ...patch } });
 }
 
 /** Theme application goes through the ui module (domkit root application +
@@ -353,35 +347,33 @@ export function toggleSection(dir: string, willCollapse: boolean): void {
 }
 
 export function setSearch(q: string): void {
-  mergeFilters({ q: String(q || "").trim().toLowerCase() }, true);
+  mergeFilters({ q: String(q || "").trim().toLowerCase() });
 }
 
 export function toggleColorFilter(key: string): void {
   const next = new Set(state.filters.colors);
   if (next.has(key)) next.delete(key);
   else next.add(key);
-  mergeFilters({ colors: next }, true);
+  mergeFilters({ colors: next });
 }
 
 export function setNotesOnly(on: boolean): void {
-  mergeFilters({ notesOnly: !!on }, true);
+  mergeFilters({ notesOnly: !!on });
 }
 
 export function setSort(sort: string): void {
-  mergeFilters({ sort: sort || "newest" }, true);
+  mergeFilters({ sort: sort || "newest" });
 }
 
 export function toggleTagFilter(tag: string): void {
   const next = new Set(state.filters.tags);
   if (next.has(tag)) next.delete(tag);
   else next.add(tag);
-  mergeFilters({ tags: next }, true);
+  mergeFilters({ tags: next });
 }
 
-/** v0.3.0 bulk expand/collapse — both modes also load every unloaded
- *  highlight by lifting visibleLimit to Infinity through the UNTOUCHED
- *  paginate. The action is recomputed fresh from the current state (what the
- *  button says is exactly what this does). */
+/** v0.3.0 bulk expand/collapse — the action is recomputed fresh from the
+ *  current state (what the button says is exactly what this does). */
 export function bulkApply(): void {
   const s = state;
   const filtered = dash.applyFilters(s.records, s.filters, s.tagMap);
@@ -394,11 +386,7 @@ export function bulkApply(): void {
     collapsedGroups = new Set(s.collapsedGroups);
     groups.forEach((g: { key: string }) => collapsedGroups.add(g.key));
   }
-  setState({ collapsedGroups, visibleLimit: Infinity });
-}
-
-export function loadMore(): void {
-  setState({ visibleLimit: state.visibleLimit + 50 });
+  setState({ collapsedGroups });
 }
 
 /* ---------- preview window (v0.6.1) ---------- */

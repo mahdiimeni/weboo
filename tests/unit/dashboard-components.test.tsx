@@ -25,7 +25,6 @@ import { BehaviorSwitches } from "../../src/dashboard/components/BehaviorSwitche
 import { EmptyState } from "../../src/dashboard/components/EmptyState";
 import { PreviewModal, RestoreModal, BookletModal, BackupModal } from "../../src/dashboard/components/Modals";
 import type { BookletFontId, BookletBuildOptions } from "../../src/types/booklet";
-import { LoadMore } from "../../src/dashboard/components/LoadMore";
 import { setLanguage as setBundleLanguage } from "../../extension/shared/i18n.js";
 import { GroupCard } from "../../src/dashboard/components/GroupCard";
 import { dash } from "../../extension/dashboard/dashboard-data.js";
@@ -418,7 +417,7 @@ describe("ThemeRadios + ColorDots + BehaviorSwitches (Phase 8 slice 7)", () => {
   });
 });
 
-describe("EmptyState + LoadMore (Phase 8 slice 6)", () => {
+describe("EmptyState (Phase 8 slice 6)", () => {
   test("EmptyState: hidden when shown=false, byte-equal skeleton otherwise", async () => {
     const host = document.createElement("div");
     document.body.appendChild(host);
@@ -451,31 +450,6 @@ describe("EmptyState + LoadMore (Phase 8 slice 6)", () => {
     expect(host.querySelector("#empty-title")?.textContent).toBe("نتیجه‌ای پیدا نشد.");
     expect(host.querySelector("#empty-sub")?.textContent).toBe("عبارت جست‌وجو یا فیلترهای رنگ و برچسب را تغییر بده.");
     root.unmount();
-  });
-
-  test("LoadMore: hidden without overflow, Persian count label otherwise", async () => {
-    const host = document.createElement("div");
-    document.body.appendChild(host);
-    const { root } = mount(<LoadMore shown={false} overflow={0} onLoadMore={() => {}} />, host);
-    await tick();
-    const btn = host.querySelector("button#load-more") as HTMLElement;
-    expect(btn.hidden).toBe(true);
-    expect(btn.className).toBe("btn btn-ghost load-more");
-    root.unmount();
-
-    const host2 = document.createElement("div");
-    document.body.appendChild(host2);
-    const applied: number[] = [];
-    const root2 = createRoot(host2);
-    root2.render(<LoadMore shown={true} overflow={23} onLoadMore={() => applied.push(1)} />);
-    await tick();
-    const btn2 = host2.querySelector("button#load-more") as HTMLElement;
-    expect(btn2.hidden).toBe(false);
-    expect(btn2.textContent).toBe("بارگذاری بیشتر (" + dash.faNum(23) + " مورد باقی‌مانده)");
-    btn2.click();
-    await tick();
-    expect(applied).toEqual([1]);
-    root2.unmount();
   });
 });
 
@@ -965,23 +939,6 @@ describe("i18n (v0.14.0) — components follow the interface language", () => {
     expect(host.querySelector("#empty-title")?.textContent).toBe("هنوز هایلایتی ثبت نشده. اولین متن را انتخاب کنید!");
     root.unmount();
   });
-
-  test("LoadMore: plural-free fa label and the en rendering", async () => {
-    const host = document.createElement("div");
-    document.body.appendChild(host);
-    let root = createRoot(host);
-    root.render(createElement(LoadMore, { shown: true, overflow: 130, onLoadMore: () => {} }));
-    await tick();
-    expect(host.querySelector("#load-more")?.textContent).toBe("بارگذاری بیشتر (۱۳۰ مورد باقی‌مانده)");
-    root.unmount();
-    setBundleLanguage("en");
-    root = createRoot(host);
-    root.render(createElement(LoadMore, { shown: true, overflow: 1, onLoadMore: () => {} }));
-    await tick();
-    expect(host.querySelector("#load-more")?.textContent).toBe("Load more (1 remaining)");
-    root.unmount();
-    setBundleLanguage("fa");
-  });
 });
 
 
@@ -1004,18 +961,18 @@ describe("i18n (v0.14.2) — smart content direction in both UI languages", () =
     const host = document.createElement("div");
     document.body.appendChild(host);
     let root = createRoot(host);
-    root.render(createElement(GroupCard, { g: group("rtl"), remaining: 0, collapsed: true, order: "newest", handlers } as any));
+    root.render(createElement(GroupCard, { g: group("rtl"), collapsed: true, order: "newest", handlers } as any));
     await tick();
     expect(host.querySelector(".group")?.getAttribute("dir")).toBe("rtl");
     root.unmount();
     root = createRoot(host);
-    root.render(createElement(GroupCard, { g: group("ltr"), remaining: 0, collapsed: true, order: "newest", handlers } as any));
+    root.render(createElement(GroupCard, { g: group("ltr"), collapsed: true, order: "newest", handlers } as any));
     await tick();
     expect(host.querySelector(".group")?.getAttribute("dir")).toBe("ltr");
     root.unmount();
     /* hand-built groups without a dir (tests) keep inheriting — groupRecords always sets one */
     root = createRoot(host);
-    root.render(createElement(GroupCard, { g: group(undefined), remaining: 0, collapsed: true, order: "newest", handlers } as any));
+    root.render(createElement(GroupCard, { g: group(undefined), collapsed: true, order: "newest", handlers } as any));
     await tick();
     expect(host.querySelector(".group")?.getAttribute("dir")).toBeNull();
     root.unmount();

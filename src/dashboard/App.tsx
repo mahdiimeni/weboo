@@ -53,7 +53,6 @@ import {
   setSort,
   toggleTagFilter,
   bulkApply,
-  loadMore,
 } from "./data";
 import { toast } from "./toast";
 import { t } from "../../extension/shared/i18n.js";
@@ -66,7 +65,6 @@ import { StatsStrip } from "./components/StatsStrip";
 import { DisabledHosts } from "./components/DisabledHosts";
 import { BulkToggle } from "./components/BulkToggle";
 import { EmptyState } from "./components/EmptyState";
-import { LoadMore } from "./components/LoadMore";
 import { ThemeRadios } from "./components/ThemeRadios";
 import { ColorDots } from "./components/ColorDots";
 import { BehaviorSwitches } from "./components/BehaviorSwitches";
@@ -167,8 +165,7 @@ function listModel(s: ReturnType<typeof getData>) {
       favicon: (s.favicons[g.host] && s.favicons[g.host].icon) || null,
       tags: s.tagMap[g.key] || [],
     }));
-  const page = dash.paginate(groups, s.visibleLimit);
-  return { filtered, groups, page, lead: dash.leadDir(groups) };
+  return { filtered, groups, lead: dash.leadDir(groups) };
 }
 
 /** Region root 6 — mounted into .toolbar (slice 4). */
@@ -196,18 +193,12 @@ export function BulkRegion() {
   return <BulkToggle action={dash.bulkAction(groups, s.collapsedGroups)} onApply={bulkApply} />;
 }
 
-/** Region roots 8+9 — mounted into #empty-host / #load-more-host (slice 6,
- *  now state-driven: computed from the same pipeline the list renders). */
+/** Region root 8 — mounted into #empty-host (slice 6, now state-driven:
+ *  computed from the same pipeline the list renders). */
 export function EmptyRegion() {
   const s = useSyncExternalStore(subscribeData, getData);
   const { filtered } = listModel(s);
   return <EmptyState shown={filtered.length === 0} hasRecords={s.records.length > 0} />;
-}
-
-export function MoreRegion() {
-  const s = useSyncExternalStore(subscribeData, getData);
-  const { page } = listModel(s);
-  return <LoadMore shown={page.overflow > 0} overflow={page.overflow} onLoadMore={loadMore} />;
 }
 
 /** Region roots 11-13 — the three modals (slice 5). The preview window is
@@ -273,7 +264,7 @@ export function BackupModalRegion() {
  *  slice 5 ports the hl-modal. */
 export function ListRegion() {
   const s = useSyncExternalStore(subscribeData, getData);
-  const { page, lead } = listModel(s);
+  const { groups, lead } = listModel(s);
 
   const handlers: GroupCardHandlers = {
     onOpen: openArticle,
@@ -291,7 +282,7 @@ export function ListRegion() {
 
   return (
     <>
-      {dash.splitDirSections(page.visible, lead).map((sec) => (
+      {dash.splitDirSections(groups, lead).map((sec) => (
         <DirSection
           key={sec.dir}
           section={sec}

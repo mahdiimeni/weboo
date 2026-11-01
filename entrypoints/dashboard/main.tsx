@@ -12,7 +12,7 @@
  * restore/drawer sections, danger zone).
  */
 import { createRoot } from "react-dom/client";
-import { StatsRegion, HostsRegion, BulkRegion, ThemeRegion, DotsRegion, SwitchesRegion, LanguageRegion, EmptyRegion, MoreRegion, ToolbarRegion, ListRegion, PreviewModalRegion, RestoreModalRegion, BookletModalRegion, BackupModalRegion, TopbarActionsRegion, RestoreSectionRegion, DangerSectionRegion } from "../../src/dashboard/App";
+import { StatsRegion, HostsRegion, BulkRegion, ThemeRegion, DotsRegion, SwitchesRegion, LanguageRegion, EmptyRegion, ToolbarRegion, ListRegion, PreviewModalRegion, RestoreModalRegion, BookletModalRegion, BackupModalRegion, TopbarActionsRegion, RestoreSectionRegion, DangerSectionRegion } from "../../src/dashboard/App";
 import { startData } from "../../src/dashboard/data";
 import { initDrawerChrome } from "../../src/dashboard/chrome";
 
@@ -57,9 +57,6 @@ if (groupsHost) mounts.push([groupsHost, <ListRegion />]);
 
 const emptyHost = document.getElementById("empty-host");
 if (emptyHost) mounts.push([emptyHost, <EmptyRegion />]);
-
-const moreHost = document.getElementById("load-more-host");
-if (moreHost) mounts.push([moreHost, <MoreRegion />]);
 
 const hlModalHost = document.getElementById("hl-modal-host");
 if (hlModalHost) mounts.push([hlModalHost, <PreviewModalRegion />]);
