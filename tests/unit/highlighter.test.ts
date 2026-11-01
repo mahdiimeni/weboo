@@ -254,6 +254,21 @@ describe("removeHighlight", () => {
   });
 });
 
+describe("copy toast — رگرسیون v0.14 (سایه‌ی پارامتر t)", () => {
+  test("کپی موفق → toast محلی‌سازی‌شده ظاهر می‌شود", async () => {
+    const ctrl = makeController();
+    /* the clipboard resolves true — the real one needs user-gesture permissions */
+    const realCopy = HL.clipboard.copyText;
+    HL.clipboard.copyText = async () => true;
+    /* the toolbar's copy callback — the exact path the click takes */
+    ctrl.toolbar.onCopy({ text: "متن کپی" });
+    await sleep(30);
+    /* the toast text comes from the ENGINE's language state (fa by default) */
+    expect(events.some(([k, v]) => k === "toast" && v === HL.t("hl.copied"))).toBe(true);
+    HL.clipboard.copyText = realCopy;
+  });
+});
+
 describe("selectionCtx — محدوده و گاردها", () => {
   test("انتخاب داخل scope معتبر است و مرزها نرمال می‌شوند", () => {
     const hl = makeController();

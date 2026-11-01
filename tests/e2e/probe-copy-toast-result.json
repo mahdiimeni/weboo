@@ -1,0 +1,11 @@
+{
+  "toastState": {
+    "hostCount": 3,
+    "toastExists": true,
+    "text": "Copied ✓",
+    "showing": true,
+    "opacity": "1",
+    "dir": "ltr"
+  },
+  "dismissed": true
+}

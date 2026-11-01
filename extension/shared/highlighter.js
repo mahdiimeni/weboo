@@ -191,9 +191,12 @@ import { t } from "./i18n.js"; /* v0.14.0 — user-facing strings follow the UI 
 
     /* ---------- Copy (single implementation in HL.clipboard — the toast is our responsibility here) ---------- */
 
-    function copyText(t) {
-      if (!t) return;
-      clipboard.copyText(t).then(function (ok) {
+    /* the parameter is `text` — NOT `t`: the i18n translation function is
+       `t` and a shadowing parameter made the copy toast throw (v0.14.0
+       regression: copy worked, the toast never appeared) */
+    function copyText(text) {
+      if (!text) return;
+      clipboard.copyText(text).then(function (ok) {
         if (ok) toast(t('hl.copied'));
       });
     }
