@@ -292,6 +292,30 @@ function pageVars(rel: string[], which: "light" | "media-dark" | "forced-dark"):
   return varMap(m[1]);
 }
 
+/* ---------- font stack contract (v0.22.1) ----------
+   ONE font stack for every UI language: Vazirmatn first. The i18n era added
+   an html[dir="ltr"] body override that demoted Vazirmatn to second for all
+   LTR languages (English, German, …) — the reported "wrong font" bug.
+   The stack is language-independent; other scripts fall back per-glyph. */
+describe("قرارداد فونت — یک پشته برای همه‌ی زبان‌ها (v0.22.1)", () => {
+  const bodyFont = (rel: string[]) =>
+    readFile(ext(...rel)).match(/(?:^|\n)\s*body \{[^}]*font-family: ([^;]+);/)?.[1];
+
+  test("داشبورد و پاپ‌آپ: Vazirmatn اول است", () => {
+    for (const rel of [["dashboard", "dashboard.css"], ["popup", "popup.css"]]) {
+      const font = bodyFont(rel);
+      expect(font?.startsWith("Vazirmatn")).toBe(true);
+    }
+  });
+
+  test("هیچ بازنویسی فونتی وابسته به dir وجود ندارد", () => {
+    for (const rel of [["dashboard", "dashboard.css"], ["popup", "popup.css"]]) {
+      const css = readFile(ext(...rel));
+      expect(css).not.toMatch(/html\[dir=.ltr.\] body \{[^}]*font-family/);
+    }
+  });
+});
+
 describe("قرارداد کنتراست پالت روشن — کف‌های تفکیک عناصر (v1.2.2)", () => {
   /* floors chosen per the adjacency separation threshold (~10%) and WCAG AA
      text; the previous (v1.2.1) values all fail — reverting to them turns the test red. */

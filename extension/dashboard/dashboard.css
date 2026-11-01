@@ -151,7 +151,8 @@ body {
 }
 /* English UI (v0.14.0): Latin-first stack — no new fonts, just the order.
    Persian USER content inside cards still renders via the fallbacks. */
-html[dir="ltr"] body { font-family: 'Segoe UI', Vazirmatn, Tahoma, sans-serif; }
+/* one font stack for EVERY UI language — Vazirmatn first (its Latin
+   glyphs cover the Latin-language UIs; other scripts fall back per-glyph) */
 
 /* Dark theme keeps the flat canvas — the gradient is a light-only layer */
 @media (prefers-color-scheme: dark) {

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Weboo — Local highlights & notes",
   "short_name": "Weboo",
-  "version": "0.22.0",
+  "version": "0.22.1",
     "description": "Highlight any web text in 6 colors, attach notes, 100% local storage with JSON backup — no server, no account, no subscription.",
   "permissions": ["storage", "unlimitedStorage", "contextMenus", "activeTab"],
   "background": {

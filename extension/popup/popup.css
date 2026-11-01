@@ -105,7 +105,8 @@ body {
   color: var(--text);
   font-family: Vazirmatn, 'Segoe UI', Tahoma, sans-serif;
 /* English UI (v0.14.0): Latin-first stack — no new fonts, just the order. */
-html[dir="ltr"] body { font-family: 'Segoe UI', Vazirmatn, Tahoma, sans-serif; }
+/* one font stack for EVERY UI language — Vazirmatn first (its Latin
+   glyphs cover the Latin-language UIs; other scripts fall back per-glyph) */
   font-size: 13px;
   line-height: 1.8;
 }
