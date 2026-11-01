@@ -76,16 +76,25 @@ export function NotesOnlySwitch({ on, onToggle }: { on: boolean; onToggle: (v: b
   );
 }
 
+/* The sort control is a SEGMENTED radiogroup — always visible, each option
+   self-labeled (the old <select> hid the choices behind a dropdown and the
+   "by page" option read like a mystery). The sort VALUES and the data-layer
+   semantics are unchanged: this is a presentation-only redesign. */
 export function SortSelect({ sort, onChange }: { sort: string; onChange: (s: string) => void }) {
+  const opts: Array<{ id: string; label: string }> = [
+    { id: "newest", label: t("sort.newest") },
+    { id: "oldest", label: t("sort.oldest") },
+    { id: "page", label: t("sort.page") },
+  ];
   return (
-    <label className="sort-box">
-      <span className="muted small">{t("filter.sortLabel")}</span>
-      <select id="f-sort" value={sort} onChange={(e) => onChange(e.target.value)}>
-        <option value="newest">{t("sort.newest")}</option>
-        <option value="oldest">{t("sort.oldest")}</option>
-        <option value="page">{t("sort.page")}</option>
-      </select>
-    </label>
+    <div className="seg" id="f-sort" role="radiogroup" aria-label={t("filter.sortLabel")}>
+      {opts.map((o) => (
+        <label className={"seg-item" + (sort === o.id ? " active" : "")} key={o.id}>
+          <input type="radio" name="sort-mode" value={o.id} checked={sort === o.id} onChange={() => onChange(o.id)} />
+          <span>{o.label}</span>
+        </label>
+      ))}
+    </div>
   );
 }
 

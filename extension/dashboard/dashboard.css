@@ -416,13 +416,25 @@ html[dir="ltr"] body { font-family: 'Segoe UI', Vazirmatn, Tahoma, sans-serif; }
 .switch input:focus-visible ~ .track { outline: 2px solid var(--accent); outline-offset: 2px; }
 .switch-lbl { font-size: 13px; font-weight: 600; }
 
-.sort-box { display: inline-flex; align-items: center; gap: 8px; margin-inline-start: auto; }
-.sort-box select {
-  border: 1px solid var(--line); border-radius: var(--r-ctl);
-  background: var(--card); color: var(--text);
-  font: inherit; font-size: 13px;
-  padding: 6px 10px; cursor: pointer;
+/* ---------- Sort segmented control (v0.21.2 redesign) ----------
+   The three sort modes as always-visible segments in the chip family —
+   the old <select> hid the choices and «بر اساس صفحه» read like a mystery.
+   Everything rides the language/tokens: labels via data-i18n, shapes via
+   --r-ctl, colors from the frozen palette. */
+.seg { display: inline-flex; align-items: center; gap: 2px; margin-inline-start: auto;
+  background: var(--card); border: 1px solid var(--line); border-radius: 999px;
+  padding: 3px; }
+.seg-item {
+  display: inline-flex; align-items: center;
+  padding: 5px 12px; border-radius: 999px;
+  font-size: 12.5px; font-weight: 600; color: var(--muted);
+  cursor: pointer; user-select: none;
+  transition: background var(--motion), color var(--motion);
 }
+.seg-item input { position: absolute; opacity: 0; pointer-events: none; }
+.seg-item:hover { color: var(--text); }
+.seg-item.active { background: var(--accent-soft); color: var(--accent-h); }
+.seg-item:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
 /* the drawer's language dropdown (v0.20.0) — the same palette on the
    40px control height */
 .lang-select {
@@ -1111,7 +1123,7 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
 @media (max-width: 760px) {
   .container { padding: 16px 12px 36px; }
   .topbar-in { padding: 10px 12px; }
-  .sort-box { margin-inline-start: 0; }
+  .seg { margin-inline-start: 0; }
   .group-head { flex-wrap: wrap; gap: 10px; }
   .group-txt { flex-basis: calc(100% - 110px); }
   .gchips { order: 3; flex-basis: 100%; }

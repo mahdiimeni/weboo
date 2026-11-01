@@ -157,7 +157,7 @@ const en = {
   'filter.sortLabel': 'Sort:',
   'sort.newest': 'Newest',
   'sort.oldest': 'Oldest',
-  'sort.page': 'By page',
+  'sort.page': 'Reading order',
   'filter.tagsLabel': 'Article tags:',
   'filter.tagsAria': 'Article tag filter',
 
@@ -488,7 +488,7 @@ const fa: Record<TranslationKey, DictValue> = {
   'filter.sortLabel': 'مرتب‌سازی:',
   'sort.newest': 'جدیدترین',
   'sort.oldest': 'قدیمی‌ترین',
-  'sort.page': 'بر اساس صفحه',
+  'sort.page': 'ترتیب خواندن',
   'filter.tagsLabel': 'برچسب مقاله‌ها:',
   'filter.tagsAria': 'فیلتر برچسب مقاله‌ها',
 
@@ -819,7 +819,7 @@ const de: Record<TranslationKey, DictValue> = {
   'filter.sortLabel': 'Sortierung:',
   'sort.newest': 'Neueste',
   'sort.oldest': 'Älteste',
-  'sort.page': 'Nach Seite',
+  'sort.page': 'Lesereihenfolge',
   'filter.tagsLabel': 'Artikel-Tags:',
   'filter.tagsAria': 'Artikel-Tag-Filter',
 
@@ -1148,7 +1148,7 @@ const es: Record<TranslationKey, DictValue> = {
   'filter.sortLabel': 'Ordenar:',
   'sort.newest': 'Más recientes',
   'sort.oldest': 'Más antiguos',
-  'sort.page': 'Por página',
+  'sort.page': 'Orden de lectura',
   'filter.tagsLabel': 'Etiquetas de artículos:',
   'filter.tagsAria': 'Filtro de etiquetas de artículos',
 
@@ -1476,7 +1476,7 @@ const ru: Record<TranslationKey, DictValue> = {
   'filter.sortLabel': 'Сортировка:',
   'sort.newest': 'Сначала новые',
   'sort.oldest': 'Сначала старые',
-  'sort.page': 'По странице',
+  'sort.page': 'Порядок чтения',
   'filter.tagsLabel': 'Теги статей:',
   'filter.tagsAria': 'Фильтр по тегам статей',
 
@@ -1802,7 +1802,7 @@ const it: Record<TranslationKey, DictValue> = {
   'filter.sortLabel': 'Ordina:',
   'sort.newest': 'Più recenti',
   'sort.oldest': 'Più vecchi',
-  'sort.page': 'Per pagina',
+  'sort.page': 'Ordine di lettura',
   'filter.tagsLabel': 'Tag degli articoli:',
   'filter.tagsAria': 'Filtro per tag degli articoli',
 
@@ -2130,7 +2130,7 @@ const fr: Record<TranslationKey, DictValue> = {
   'filter.sortLabel': 'Tri :',
   'sort.newest': 'Plus récents',
   'sort.oldest': 'Plus anciens',
-  'sort.page': 'Par page',
+  'sort.page': 'Ordre de lecture',
   'filter.tagsLabel': 'Tags des articles :',
   'filter.tagsAria': 'Filtre par tags d’articles',
 
@@ -2457,7 +2457,7 @@ const tr: Record<TranslationKey, DictValue> = {
   'filter.sortLabel': 'Sıralama:',
   'sort.newest': 'En yeni',
   'sort.oldest': 'En eski',
-  'sort.page': 'Sayfaya göre',
+  'sort.page': 'Okuma sırası',
   'filter.tagsLabel': 'Makale etiketleri:',
   'filter.tagsAria': 'Makale etiketi filtresi',
 
@@ -2786,7 +2786,7 @@ const zh: Record<TranslationKey, DictValue> = {
   'filter.sortLabel': '排序：',
   'sort.newest': '最新优先',
   'sort.oldest': '最早优先',
-  'sort.page': '按页面',
+  'sort.page': '阅读顺序',
   'filter.tagsLabel': '文章标签：',
   'filter.tagsAria': '文章标签筛选',
 
@@ -3113,7 +3113,7 @@ const ja: Record<TranslationKey, DictValue> = {
   'filter.sortLabel': '並べ替え：',
   'sort.newest': '新しい順',
   'sort.oldest': '古い順',
-  'sort.page': 'ページ順',
+  'sort.page': '読む順',
   'filter.tagsLabel': '記事タグ：',
   'filter.tagsAria': '記事タグフィルター',
 
@@ -3441,7 +3441,7 @@ const ko: Record<TranslationKey, DictValue> = {
   'filter.sortLabel': '정렬:',
   'sort.newest': '최신순',
   'sort.oldest': '오래된순',
-  'sort.page': '페이지순',
+  'sort.page': '읽는 순서',
   'filter.tagsLabel': '문서 태그:',
   'filter.tagsAria': '문서 태그 필터',
 
@@ -3771,7 +3771,7 @@ const ar: Record<TranslationKey, DictValue> = {
   'filter.sortLabel': 'الترتيب:',
   'sort.newest': 'الأحدث',
   'sort.oldest': 'الأقدم',
-  'sort.page': 'حسب الصفحة',
+  'sort.page': 'ترتيب القراءة',
   'filter.tagsLabel': 'وسوم المقالات:',
   'filter.tagsAria': 'تصفية حسب وسوم المقالات',
 

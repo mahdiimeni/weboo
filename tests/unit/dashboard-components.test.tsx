@@ -11,6 +11,7 @@ import { describe, test, expect, beforeEach } from "bun:test";
 import { setupDom } from "./helpers/engine";
 import { createRoot } from "react-dom/client";
 import { createElement } from "react";
+import { SortSelect } from "../../src/dashboard/components/Toolbar";
 import { StatsStrip } from "../../src/dashboard/components/StatsStrip";
 import { DisabledHosts } from "../../src/dashboard/components/DisabledHosts";
 import { BulkToggle } from "../../src/dashboard/components/BulkToggle";
@@ -330,6 +331,28 @@ describe("ThemeRadios + ColorDots + BehaviorSwitches (Phase 8 slice 7)", () => {
     dark.click();
     await tick();
     expect(picked).toEqual(["dark"]);
+    root.unmount();
+  });
+
+  test("SortSelect: the segmented control — 3 modes, active state, onChange", async () => {
+    const host = document.createElement("div");
+    document.body.appendChild(host);
+    const picked: string[] = [];
+    const root = createRoot(host);
+    /* controlled component: the parent owns `sort` and re-renders on change */
+    const renderWith = (sort: string) => root.render(createElement(SortSelect, { sort, onChange: (s2: string) => { picked.push(s2); renderWith(s2); } }));
+    renderWith("newest");
+    await tick();
+    const group = host.querySelector("#f-sort");
+    expect(group?.getAttribute("role")).toBe("radiogroup");
+    const radios = [...host.querySelectorAll('input[name="sort-mode"]')] as HTMLInputElement[];
+    expect(radios.length).toBe(3);
+    expect(radios.map((r) => r.value)).toEqual(["newest", "oldest", "page"]);
+    expect((host.querySelector(".seg-item.active") as HTMLElement).textContent).toContain("جدیدترین");
+    radios[1].click();
+    await tick();
+    expect(picked).toEqual(["oldest"]);
+    expect(host.querySelector(".seg-item.active")?.textContent).toContain("قدیمی‌ترین");
     root.unmount();
   });
 

@@ -76,14 +76,20 @@
           </span>
           <span class="switch-lbl">فقط یادداشت‌دار</span>
         </label>
-        <label class="sort-box">
-          <span class="muted small">مرتب‌سازی:</span>
-          <select id="f-sort">
-            <option value="newest">جدیدترین</option>
-            <option value="oldest">قدیمی‌ترین</option>
-            <option value="page">بر اساس صفحه</option>
-          </select>
-        </label>
+        <div class="seg" id="f-sort" role="radiogroup" aria-label="ترتیب" data-i18n-aria="filter.sortLabel">
+          <label class="seg-item active">
+            <input type="radio" name="sort-mode" value="newest" checked>
+            <span data-i18n="sort.newest">جدیدترین</span>
+          </label>
+          <label class="seg-item">
+            <input type="radio" name="sort-mode" value="oldest">
+            <span data-i18n="sort.oldest">قدیمی‌ترین</span>
+          </label>
+          <label class="seg-item">
+            <input type="radio" name="sort-mode" value="page">
+            <span data-i18n="sort.page">ترتیب خواندن</span>
+          </label>
+        </div>
       </div>
       <!-- Article tag filter (v1.2.15) — filled by the controller from the live
            tag map; hidden by default until at least one tag exists -->
