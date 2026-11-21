@@ -233,11 +233,17 @@ describe("برند یک‌جا در کل افزونه (APP_NAME)", () => {
 });
 
 describe("قرارداد میزبان‌های داشبورد (region mounts)", () => {
-  test("سه بخشِ ثابتِ کشو، تیتر و میزبانِ درونی دارند؛ React بخش را نمی‌بلعد", () => {
-    /* the shell owns the section chrome — h3s + the flex wrapper */
+  test("سه گروهِ کشو تیترِ گروه دارند؛ بخش‌ها و میزبان‌های درونی ثابت می‌مانند؛ React بخش را نمی‌بلعد", () => {
+    /* the shell owns the section chrome — group titles + h3s + the hosts */
     const shell = readFile(ext("..", "entrypoints", "dashboard", "index.html"));
     /* v0.14.0: the section chrome carries data-i18n* keys (the static Persian
        copy stays the pre-boot markup; i18n.applyDom translates at runtime) */
+    /* v0.23.0 «grouped & quieter»: the drawer is organized into THREE groups
+       (byte-equal group titles carry the new keys); the section h3s and the
+       region hosts keep their contracts */
+    expect(shell).toContain('<h2 class="drawer-group-title" data-i18n="dash.groupDisplay">نمایش و زبان</h2>');
+    expect(shell).toContain('<h2 class="drawer-group-title" data-i18n="dash.groupContent">محتوا و رفتار</h2>');
+    expect(shell).toContain('<h2 class="drawer-group-title" data-i18n="dash.groupData">داده‌ها</h2>');
     expect(shell).toContain('<h3 data-i18n="dash.sectionAppearance">ظاهر</h3>');
     expect(shell).toContain('<h3 data-i18n="dash.sectionColor">رنگ پیش‌فرض هایلایت</h3>');
     expect(shell).toContain('<h3 data-i18n="dash.sectionBehavior">رفتار</h3>');

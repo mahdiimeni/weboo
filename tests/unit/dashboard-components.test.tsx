@@ -61,7 +61,7 @@ describe("سpike: bun + tsx + happy-dom + react-dom/client", () => {
 });
 
 describe("StatsStrip (Phase 8 slice 1)", () => {
-  test("four stat cards — same DOM contract the static shell + controller wrote", async () => {
+  test("one slim strip of four stat groups — v0.23.0 «compact & scannable»; ids + .stat-num survive", async () => {
     const host = document.createElement("section");
     host.className = "stats";
     host.setAttribute("aria-label", "آمار کلی");
@@ -70,8 +70,8 @@ describe("StatsStrip (Phase 8 slice 1)", () => {
     root.render(<StatsStrip stats={{ total: 12, notes: 3, pages: 5, sites: 4 }} />);
     await tick();
 
-    expect(host.querySelectorAll(".stat-card").length).toBe(4);
-    expect(host.querySelector("#st-total .stat-num, .stat-card")?.textContent).toBeTruthy();
+    expect(host.querySelectorAll(".stats-strip").length).toBe(1);
+    expect(host.querySelectorAll(".stat-group").length).toBe(4);
     const ids = ["st-total", "st-notes", "st-pages", "st-sites"];
     const values = [12, 3, 5, 4];
     const labels = ["کل هایلایت‌ها", "یادداشت‌ها", "صفحات", "سایت‌ها"];
@@ -79,14 +79,14 @@ describe("StatsStrip (Phase 8 slice 1)", () => {
       const num = host.querySelector(`#${id}`)!;
       expect(num?.className).toBe("stat-num");
       expect(num?.textContent).toBe(dash.faNum(values[i])); /* Persian digits — the same formatter the controller used */
-      const card = num.closest(".stat-card")!;
-      expect(card.querySelector(".stat-lbl")?.textContent).toBe(labels[i]);
+      const group = num.closest(".stat-group")!;
+      expect(group.querySelector(".stat-lbl")?.textContent).toBe(labels[i]);
     });
     /* the static section wrapper is NOT React-owned (aria-label stays) */
     expect(host.getAttribute("aria-label")).toBe("آمار کلی");
     root.unmount();
     await tick();
-    expect(host.querySelectorAll(".stat-card").length).toBe(0);
+    expect(host.querySelectorAll(".stat-group").length).toBe(0);
   });
 
   test("re-render updates the numbers in place (store subscription path)", async () => {
@@ -304,18 +304,20 @@ describe("ThemeRadios + ColorDots + BehaviorSwitches (Phase 8 slice 7)", () => {
     return sec;
   }
 
-  test("ThemeRadios: one radio per THEME_KEYS — labels from the registry, hints from the single source", async () => {
+  test("ThemeRadios: one preview mini-card per THEME_KEYS — labels from the registry, hints as titles (v0.23.0)", async () => {
     const sec = setSec("theme");
     const { root } = mount(<ThemeRadios theme="auto" onSelect={() => {}} />, sec);
     await tick();
     const radios = sec.querySelectorAll('input[type="radio"][name="hlx-theme"]');
     expect(radios.length).toBe(3);
-    const labels = [...sec.querySelectorAll("label.radio")];
-    labels.forEach((lab, i) => {
+    const cards = [...sec.querySelectorAll("label.tcard")];
+    expect(cards.length).toBe(3);
+    cards.forEach((lab, i) => {
       const key = THEME_KEYS[i];
       expect(lab.querySelector("input")?.getAttribute("value")).toBe(key);
       expect(lab.querySelector("strong")?.textContent).toBe((THEMES as Record<string, { label: string }>)[key].label);
-      expect(lab.querySelector(".muted.small")?.textContent).toBe(t(THEME_HINTS[key]));
+      expect(lab.getAttribute("title")).toBe(t(THEME_HINTS[key]));
+      expect(lab.querySelector(".tcard-prev")).toBeTruthy();
       expect((lab.querySelector("input") as HTMLInputElement).checked).toBe(key === "auto");
     });
     root.unmount();
@@ -369,6 +371,8 @@ describe("ThemeRadios + ColorDots + BehaviorSwitches (Phase 8 slice 7)", () => {
     const inactive = sec.querySelector('button.cdot[data-key="yellow"]')!;
     expect(inactive.classList.contains("active")).toBe(false);
     expect(inactive.getAttribute("aria-checked")).toBeNull();
+    /* v0.23.0 — the selected color's display name rides the row's end edge */
+    expect(sec.querySelector(".cdot-name")?.textContent).toBe(t("color.teal"));
     root.unmount();
   });
 

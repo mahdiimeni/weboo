@@ -6,6 +6,10 @@
  * button.cdot[data-key][role=radio] with .active + aria-checked="true" on
  * the selection, title/aria-label «رنگ پیش‌فرض: <label>», span.dot colored
  * from the registry's dot value.
+ *
+ * v0.23.0 «grouped & quieter»: the selected color's DISPLAY NAME rides the
+ * row's end edge (span.cdot-name — reuses the existing color.* keys, so no
+ * new dictionary entries; margin-inline-start:auto pushes it to the end).
  */
 import type { HighlightColor } from "../../types/highlight";
 import { COLOR_KEYS, COLORS } from "../../../extension/shared/constants.js";
@@ -37,6 +41,7 @@ export function ColorDots({ defaultColor, onSelect }: { defaultColor: HighlightC
           </button>
         );
       })}
+      <span className="cdot-name muted small">{t(("color." + (KEYS.indexOf(defaultColor) !== -1 ? defaultColor : "yellow")) as TranslationKey)}</span>
     </>
   );
 }

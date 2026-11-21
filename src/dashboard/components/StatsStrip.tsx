@@ -1,10 +1,12 @@
 /**
  * Phase 8 Task 4 slice 1 — the dashboard stats strip as a React component.
  *
- * Replaces the static shell's four stat cards + the controller's renderStats()
- * (els.st* textContent writes). The DOM contract is load-bearing and stays
- * byte-equal: .stat-card > (.stat-num#st-total|st-notes|st-pages|st-sites +
- * .stat-lbl) — the packaging tests and the E2E smokes query these.
+ * Replaces the static shell's stat markup + the controller's renderStats()
+ * (els.st* textContent writes). v0.23.0 «compact & scannable»: the four
+ * separate cards became ONE slim strip — .stats-strip > .stat-group × 4
+ * (the hairline dividers ride the CSS sibling rule). The DOM contract stays
+ * load-bearing: .stat-num#st-total|st-notes|st-pages|st-sites + .stat-lbl —
+ * the E2E smokes query these ids.
  *
  * The component is pure presentation: it receives computed stats and formats
  * through the language-aware formatter (dash.num — v0.14.0; faNum stays the
@@ -23,7 +25,7 @@ export interface Stats {
   sites: number;
 }
 
-const CARDS: Array<{ id: string; key: keyof Stats; label: TranslationKey }> = [
+const GROUPS: Array<{ id: string; key: keyof Stats; label: TranslationKey }> = [
   { id: "st-total", key: "total", label: "stats.total" },
   { id: "st-notes", key: "notes", label: "stats.notes" },
   { id: "st-pages", key: "pages", label: "stats.pages" },
@@ -32,15 +34,15 @@ const CARDS: Array<{ id: string; key: keyof Stats; label: TranslationKey }> = [
 
 export function StatsStrip({ stats }: { stats: Stats }) {
   return (
-    <>
-      {CARDS.map((c) => (
-        <div className="stat-card" key={c.id}>
+    <div className="stats-strip">
+      {GROUPS.map((c) => (
+        <div className="stat-group" key={c.id}>
           <span className="stat-num" id={c.id}>
             {dash.num(stats[c.key])}
           </span>
           <span className="stat-lbl">{t(c.label)}</span>
         </div>
       ))}
-    </>
+    </div>
   );
 }

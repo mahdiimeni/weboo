@@ -288,24 +288,27 @@ body {
   padding: 20px 16px 44px;
 }
 
-/* ---------- Stats ---------- */
-.stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 16px;
-}
-.stat-card {
+/* ---------- Stats — v0.23.0 «compact & scannable» ----------
+   ONE slim strip instead of four heavy cards: the four stat groups sit
+   inline, separated by hairline dividers (the sibling rule). The ids and
+   the .stat-num/.stat-lbl contract survive — the E2E smokes query #st-*. */
+.stats { margin-bottom: 16px; }
+.stats-strip {
   background: var(--card);
   border: 1px solid var(--edge, var(--line));
   border-radius: var(--r-surface);
-  padding: var(--sp-4);
   box-shadow: var(--depth-surface);
-  display: flex; flex-direction: column; gap: 2px;
-  text-align: center; /* v0.5.2 — the number and its label read centered in the card */
+  padding: 10px var(--sp-4);
+  display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap;
 }
-.stat-num { font-size: 27px; font-weight: 800; color: var(--accent-h); line-height: 1.35; }
-.stat-lbl { color: var(--muted); font-size: 12.5px; }
+.stat-group {
+  display: flex; flex-direction: column; align-items: center; gap: 0;
+  padding: 4px var(--sp-4);
+  text-align: center; /* the number and its label read centered in the group */
+}
+.stat-group + .stat-group { border-inline-start: 1px solid var(--hairline, var(--line)); }
+.stat-num { font-size: 20px; font-weight: 800; color: var(--accent-h); line-height: 1.35; }
+.stat-lbl { color: var(--muted); font-size: 12px; line-height: 1.6; }
 
 /* ---------- Filter toolbar ---------- */
 .toolbar {
@@ -314,7 +317,7 @@ body {
   border-radius: var(--r-surface);
   padding: var(--sp-3) var(--sp-4);
   box-shadow: var(--depth-surface);
-  display: flex; flex-direction: column; gap: 10px;
+  display: flex; flex-direction: column; gap: 8px;
   margin-bottom: 16px;
 }
 .search-box {
@@ -488,6 +491,16 @@ body {
 }
 .dir-sec-head:hover { background: var(--hover); }
 .dir-sec-head:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+/* v0.23.0 — the band rule: a hairline runs from the header to the end edge,
+   so the direction sections read as bands. Logical margin keeps it correct
+   in the document's RTL flow. */
+.dir-sec-head::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--hairline, var(--line));
+  margin-inline-start: 6px;
+}
 /* State chevron (v0.5.0) — the card chev's quiet sibling; the head always
    lives in the document's RTL flow, so one rotation rule mirrors the card's
    (.group.collapsed .chev). */
@@ -554,9 +567,9 @@ body {
 .group-head:hover { background: var(--hover); }
 .group-head:focus-visible { outline-offset: -2px; }
 .fl {
-  width: 38px; height: 38px; border-radius: var(--r-ctl); flex: none;
+  width: 42px; height: 42px; border-radius: var(--r-ctl); flex: none;
   background: var(--accent-soft); color: var(--accent-h);
-  font-weight: 800; font-size: 17px;
+  font-weight: 800; font-size: 18px;
   display: grid; place-items: center;
   position: relative; overflow: hidden;
 }
@@ -571,7 +584,7 @@ body {
 .fl.has-fav { color: transparent; }
 .group-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .group-title {
-  font-size: 14px; font-weight: 700;
+  font-size: 15px; font-weight: 700;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .group-url {
@@ -582,10 +595,13 @@ body {
 .gchips { display: flex; gap: 6px; flex: none; }
 /* Count capsules (v0.6.3): LIGHT BLUE — the owner's requested color, tokened
    (--info-*) so both themes carry it with the same text/soft/line discipline
-   the amber accent taught (uitheme.test.ts asserts the floors + the wiring). */
+   the amber accent taught (uitheme.test.ts asserts the floors + the wiring).
+   v0.23.0 «compact & scannable»: the capsule goes OUTLINED (transparent
+   ground, the same blue text + hairline) — a quieter scan line in the card
+   headers; the tokens and the floors are untouched. */
 .chip {
   font-size: 11.5px; font-weight: 700;
-  color: var(--info-h); background: var(--info-soft);
+  color: var(--info-h); background: transparent;
   border: 1px solid var(--info-line);
   padding: 2px 10px; border-radius: 999px;
   white-space: nowrap;
@@ -686,7 +702,7 @@ body {
 
 .item {
   position: relative;
-  padding: var(--sp-3) var(--sp-4);
+  padding: 10px var(--sp-4); /* v0.23.0 — tighter vertical rhythm */
   padding-inline-start: 20px;
   border-bottom: 1px solid var(--line);
   transition: background var(--motion) var(--motion-ease);
@@ -810,14 +826,79 @@ body {
 }
 
 .set-sec { display: flex; flex-direction: column; gap: 10px; }
+/* v0.23.0 «grouped & quieter» — section titles go NEUTRAL: amber is reserved
+   for active/selected states; the danger zone keeps its red (its own rule). */
 .set-sec h3 {
   margin: 0;
   font-size: 13.5px; font-weight: 800;
   display: flex; align-items: center; gap: 8px;
-  color: var(--accent-h);
+  color: var(--text);
 }
 .set-sec .muted { margin: 0; }
 .set-sec .switch-box + .switch-box { margin-top: 2px; }
+
+/* ---------- v0.23.0 «grouped & quieter» — drawer groups ----------
+   The flat section list is organized into three labeled groups: a quiet
+   muted title with a hairline rule running to the end edge, then the
+   group's sections. The region hosts inside keep their pinned contracts. */
+.drawer-group-title {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0;
+  font-size: 11.5px; font-weight: 800;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+.drawer-group-title::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--hairline, var(--line));
+}
+.drawer-group { display: flex; flex-direction: column; gap: 10px; }
+
+/* Theme picker — v0.23.0: a ONE-ROW family of preview mini-cards (the old
+   vertical .radio list). The checked card keeps the .radio visual contract:
+   amber border + soft amber fill. The mini canvases depict BOTH themes
+   regardless of the ACTIVE theme, so their colors mirror the frozen palette
+   VALUES (uitheme.test.ts owns the tokens — these are illustrations of the
+   exact frozen values, not new colors; do not drift). */
+.theme-cards { display: flex; gap: 8px; }
+.tcard {
+  position: relative;
+  flex: 1 1 0; min-width: 0;
+  display: flex; flex-direction: column; gap: 6px;
+  border: 1px solid var(--line); border-radius: var(--r-surface);
+  padding: var(--sp-3);
+  cursor: pointer;
+  transition: border-color var(--motion), background var(--motion);
+}
+.tcard input { position: absolute; opacity: 0; pointer-events: none; }
+.tcard:hover { border-color: var(--accent); }
+.tcard:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
+.tcard:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
+.tcard-txt { display: flex; align-items: center; }
+.tcard-txt strong { font-size: 13px; }
+.tcard-prev {
+  display: flex; flex-direction: column; gap: 3px;
+  height: 44px;
+  border-radius: var(--r-ctl);
+  padding: 6px;
+}
+.tp-bar { height: 5px; width: 55%; border-radius: 99px; }
+.tp-line { height: 3px; width: 85%; border-radius: 99px; }
+.tp-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: auto; }
+.tcard-prev-light { background: #fff; border: 1px solid #d1d5db; }   /* --card / --line (light) */
+.tcard-prev-light .tp-bar, .tcard-prev-light .tp-line { background: #d1d5db; }
+.tcard-prev-light .tp-dot { background: #d97706; }                   /* --accent (light) */
+.tcard-prev-dark { background: #1a1d24; border: 1px solid #2a2f3a; } /* --card / --line (dark) */
+.tcard-prev-dark .tp-bar, .tcard-prev-dark .tp-line { background: #2a2f3a; }
+.tcard-prev-dark .tp-dot { background: #f59e0b; }                   /* --accent (dark) */
+.tcard-prev-auto { background: linear-gradient(90deg, #fff 50%, #1a1d24 50%); border: 1px solid var(--line); }
+.tcard-prev-auto .tp-bar, .tcard-prev-auto .tp-line { background: var(--muted); }
+.tcard-prev-auto .tp-dot { background: var(--accent); }
+
+/* the selected color's display name rides the dots row's end edge */
+.color-dots .cdot-name { margin-inline-start: auto; }
 
 /* Backup restore section (v0.6.3) — the button that moved in from the topbar:
    full-width like the export modal's action buttons (one visual family for
@@ -1117,10 +1198,6 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
 .toast.info { background: #374151; }
 
 /* ---------- Responsive ---------- */
-@media (max-width: 900px) {
-  .stats { grid-template-columns: repeat(2, 1fr); }
-}
-
 @media (max-width: 760px) {
   .container { padding: 16px 12px 36px; }
   .topbar-in { padding: 10px 12px; }
@@ -1130,13 +1207,13 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
   .gchips { order: 3; flex-basis: 100%; }
   .group-tags { padding: 8px 12px; }
   .item-meta { flex-direction: column; align-items: flex-start; gap: 4px; }
-  .stat-num { font-size: 22px; }
+  .stat-num { font-size: 18px; }
   .modal-card { padding: 16px; }
 }
 
 @media (max-width: 480px) {
-  .stats { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .stat-card { padding: 12px; }
+  .stats-strip { padding: 8px var(--sp-3); }
+  .stat-group { padding: 4px var(--sp-3); }
   .btn { padding: 8px 12px; font-size: 12.5px; }
   .ver { display: none; }
   .fl { width: 32px; height: 32px; font-size: 15px; border-radius: var(--r-ctl); }

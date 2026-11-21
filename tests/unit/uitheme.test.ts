@@ -478,12 +478,12 @@ describe("قرارداد کپسول آبی و ردیف اکشن سرصفحه —
 
   const dashCss = () => readFile(ext("dashboard", "dashboard.css"));
 
-  test("کپسول .chip به توکن‌های آبی وصل است — نه hex خام، نه آمبر", () => {
+  test("کپسول .chip به توکن‌های آبی وصل است — پس‌زمینه‌ی شفاف (v0.23.0 outlined)، نه hex خام، نه آمبر", () => {
     const m = dashCss().match(/\.chip\s*\{([^}]*)\}/);
     if (!m) throw new Error("بلوک .chip پیدا نشد");
     const body = m[1].replace(/\/\*[\s\S]*?\*\//g, "");
     expect(body).toMatch(/color\s*:\s*var\(--info-h\)/);
-    expect(body).toMatch(/background\s*:\s*var\(--info-soft\)/);
+    expect(body).toMatch(/background\s*:\s*transparent/); /* v0.23.0 — quieter scan line */
     expect(body).toMatch(/border\s*:\s*1px solid var\(--info-line\)/);
     expect(body).not.toMatch(/--accent|#[0-9a-fA-F]{3,8}/); /* فقط توکن */
   });

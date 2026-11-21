@@ -1,13 +1,17 @@
 /**
- * Phase 8 Task 4 slice 7 — the «ظاهر» theme radios as a React component.
+ * Phase 8 Task 4 slice 7 — the «ظاهر» theme picker as a React component.
  *
  * Replaces the view's buildThemeRadios() writes into #theme-radios. Registry
  * driven (THEME_KEYS/THEMES from constants.js — a new theme = a registry
- * entry); the hints stay the single source in dashboard-view.js until Task 5
- * Markup contract byte-equal: label.radio > input[type=radio
- * name=hlx-theme] + span.radio-txt > strong + span.muted.small.
+ * entry); the hints stay the single source in dashboard-view.js until Task 5.
  *
- * The visual theme side-effect (HL.applyThemeNow, the classic theme-boot
+ * v0.23.0 «grouped & quieter»: the vertical .radio list became a ONE-ROW
+ * family of preview mini-cards — label.tcard > hidden radio input + the
+ * mini canvas (.tcard-prev, per-theme variant) + the label. The radio
+ * contract survives (input[name=hlx-theme][value], checked mirrors the
+ * setting, onChange reports); each card's hint rides the title attribute.
+ *
+ * The visual theme side-effect (ui.applyThemeNow, the classic theme-boot
  * contract) stays with the caller — this component only reports selection.
  */
 import type { ThemeKey } from "../../types/settings";
@@ -28,9 +32,13 @@ export function ThemeRadios({ theme, onSelect }: { theme: ThemeKey; onSelect: (k
   const KEYS = THEME_KEYS as ThemeKey[];
   const cur = KEYS.indexOf(theme) !== -1 ? theme : "auto";
   return (
-    <>
+    <div className="theme-cards">
       {KEYS.map((k) => (
-        <label className="radio" key={k}>
+        <label
+          className={"tcard" + (k === cur ? " active" : "")}
+          key={k}
+          title={THEME_HINTS[k] ? t(THEME_HINTS[k]) : ""}
+        >
           <input
             type="radio"
             name="hlx-theme"
@@ -38,12 +46,16 @@ export function ThemeRadios({ theme, onSelect }: { theme: ThemeKey; onSelect: (k
             checked={k === cur}
             onChange={() => { if (k !== cur) onSelect(k); }}
           />
-          <span className="radio-txt">
+          <span className={"tcard-prev tcard-prev-" + k} aria-hidden="true">
+            <span className="tp-bar" />
+            <span className="tp-line" />
+            <span className="tp-dot" />
+          </span>
+          <span className="tcard-txt">
             <strong>{t(("theme." + k) as TranslationKey)}</strong>
-            <span className="muted small">{THEME_HINTS[k] ? t(THEME_HINTS[k]) : ""}</span>
           </span>
         </label>
       ))}
-    </>
+    </div>
   );
 }

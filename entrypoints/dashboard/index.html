@@ -23,7 +23,7 @@
           <strong data-i18n="app.name">وبو</strong>
           <span class="muted small" data-i18n="dash.brandSub">داشبورد مدیریت</span>
         </span>
-        <span class="ver" id="ver" title="نسخه" data-i18n-title="common.version">v0.22.2</span>
+        <span class="ver" id="ver" title="نسخه" data-i18n-title="common.version">v0.23.0</span>
       </div>
       <!-- Topbar actions (v0.6.3): «کتابچه» first (unchanged), then the two
            icon-only buttons (خروجی پشتیبان primary / تنظیمات ghost — their
@@ -41,23 +41,27 @@
   <!-- Body -->
   <main class="container">
 
-    <!-- Stats -->
+    <!-- Stats — v0.23.0 «compact & scannable»: ONE slim strip (the hairline
+         dividers ride the .stat-group + .stat-group sibling rule); React
+         renders INTO this section and owns the children -->
     <section class="stats" aria-label="آمار کلی" data-i18n-aria="dash.statsAria">
-      <div class="stat-card">
-        <span class="stat-num" id="st-total">۰</span>
-        <span class="stat-lbl">کل هایلایت‌ها</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-num" id="st-notes">۰</span>
-        <span class="stat-lbl">یادداشت‌ها</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-num" id="st-pages">۰</span>
-        <span class="stat-lbl">صفحات</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-num" id="st-sites">۰</span>
-        <span class="stat-lbl">سایت‌ها</span>
+      <div class="stats-strip">
+        <div class="stat-group">
+          <span class="stat-num" id="st-total">۰</span>
+          <span class="stat-lbl">کل هایلایت‌ها</span>
+        </div>
+        <div class="stat-group">
+          <span class="stat-num" id="st-notes">۰</span>
+          <span class="stat-lbl">یادداشت‌ها</span>
+        </div>
+        <div class="stat-group">
+          <span class="stat-num" id="st-pages">۰</span>
+          <span class="stat-lbl">صفحات</span>
+        </div>
+        <div class="stat-group">
+          <span class="stat-num" id="st-sites">۰</span>
+          <span class="stat-lbl">سایت‌ها</span>
+        </div>
       </div>
     </section>
 
@@ -136,50 +140,68 @@
     </div>
     <div class="drawer-body">
 
-      <section class="set-sec">
-        <h3 data-i18n="dash.sectionAppearance">ظاهر</h3>
-        <div class="radio-list" id="theme-radios" role="radiogroup" aria-label="قالب رابط" data-i18n-aria="dash.themeGroupAria"></div>
-      </section>
-      <section class="set-sec">
-        <h3 data-i18n="lang.label">زبان رابط کاربری</h3>
-        <p class="muted small" data-i18n="lang.desc">روی پنجره، داشبورد و ابزارهای شناور فوراً اعمال می‌شود.</p>
-        <!-- LanguageRegion mounts the dropdown here (language-select) — the
-             v0.20.0 selector; options ride the shared i18n dictionary -->
-        <div id="language-select"></div>
-      </section>
+      <!-- v0.23.0 «grouped & quieter»: the flat section list is organized
+           into three labeled groups (quiet muted titles + hairline rules);
+           the region hosts keep their pinned contracts. -->
+      <h2 class="drawer-group-title" data-i18n="dash.groupDisplay">نمایش و زبان</h2>
+      <div class="drawer-group">
 
+        <section class="set-sec">
+          <h3 data-i18n="dash.sectionAppearance">ظاهر</h3>
+          <div class="theme-cards" id="theme-radios" role="radiogroup" aria-label="قالب رابط" data-i18n-aria="dash.themeGroupAria"></div>
+        </section>
 
-      <section class="set-sec">
-        <h3 data-i18n="dash.sectionColor">رنگ پیش‌فرض هایلایت</h3>
-        <div class="color-dots" id="color-dots" role="radiogroup" aria-label="رنگ پیش‌فرض هایلایت" data-i18n-aria="dash.sectionColor"></div>
-      </section>
+        <section class="set-sec">
+          <h3 data-i18n="lang.label">زبان رابط کاربری</h3>
+          <p class="muted small" data-i18n="lang.desc">روی پنجره، داشبورد و ابزارهای شناور فوراً اعمال می‌شود.</p>
+          <!-- LanguageRegion mounts the dropdown here (language-select) — the
+               v0.20.0 selector; options ride the shared i18n dictionary -->
+          <div id="language-select"></div>
+        </section>
 
-      <section class="set-sec">
-        <h3 data-i18n="dash.sectionBehavior">رفتار</h3>
-        <!-- SwitchesRegion mounts here (behavior-host) — the region renders
-             the byte-equal switch-box labels; the static copies existed only
-             for the pre-React shell. -->
-        <div id="behavior-host"></div>
-      </section>
+      </div>
 
-      <section class="set-sec">
-        <h3>سایت‌های غیرفعال</h3>
-        <p class="muted small">روی این سایت‌ها هایلایت ساخته یا نمایش داده نمی‌شود (داده‌ها حذف نمی‌شوند).</p>
-        <div class="host-chips" id="host-chips"></div>
-        <div class="host-add">
-          <input type="text" id="host-input" placeholder="افزودن دامنه (مثل example.com)" aria-label="دامنه‌ی جدید">
-          <button type="button" class="btn btn-ghost" id="host-add">افزودن</button>
-        </div>
-      </section>
+      <h2 class="drawer-group-title" data-i18n="dash.groupContent">محتوا و رفتار</h2>
+      <div class="drawer-group">
 
-      <!-- Phase 8 Task 5: React host — RestoreSectionRegion renders the exact
-           .set-sec.restore-sec this placeholder replaced (button + hidden
-           file input; the import modal opens from data.ts's stagedBackup) -->
-      <div id="restore-sec-host"></div>
+        <section class="set-sec">
+          <h3 data-i18n="dash.sectionColor">رنگ پیش‌فرض هایلایت</h3>
+          <div class="color-dots" id="color-dots" role="radiogroup" aria-label="رنگ پیش‌فرض هایلایت" data-i18n-aria="dash.sectionColor"></div>
+        </section>
 
-      <!-- Phase 8 Task 5: React host — DangerSectionRegion renders the exact
-           .set-sec.danger-zone three-step confirmation this placeholder replaced -->
-      <div id="danger-sec-host"></div>
+        <section class="set-sec">
+          <h3 data-i18n="dash.sectionBehavior">رفتار</h3>
+          <!-- SwitchesRegion mounts here (behavior-host) — the region renders
+               the byte-equal switch-box labels; the static copies existed only
+               for the pre-React shell. -->
+          <div id="behavior-host"></div>
+        </section>
+
+        <section class="set-sec">
+          <h3>سایت‌های غیرفعال</h3>
+          <p class="muted small">روی این سایت‌ها هایلایت ساخته یا نمایش داده نمی‌شود (داده‌ها حذف نمی‌شوند).</p>
+          <div class="host-chips" id="host-chips"></div>
+          <div class="host-add">
+            <input type="text" id="host-input" placeholder="افزودن دامنه (مثل example.com)" aria-label="دامنه‌ی جدید">
+            <button type="button" class="btn btn-ghost" id="host-add">افزودن</button>
+          </div>
+        </section>
+
+      </div>
+
+      <h2 class="drawer-group-title" data-i18n="dash.groupData">داده‌ها</h2>
+      <div class="drawer-group">
+
+        <!-- Phase 8 Task 5: React host — RestoreSectionRegion renders the exact
+             .set-sec.restore-sec this placeholder replaced (button + hidden
+             file input; the import modal opens from data.ts's stagedBackup) -->
+        <div id="restore-sec-host"></div>
+
+        <!-- Phase 8 Task 5: React host — DangerSectionRegion renders the exact
+             .set-sec.danger-zone three-step confirmation this placeholder replaced -->
+        <div id="danger-sec-host"></div>
+
+      </div>
 
     </div>
   </aside>
