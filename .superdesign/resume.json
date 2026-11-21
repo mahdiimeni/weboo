@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "targets": {
+    "settings-drawer": {
+      "targetKind": "existing-ui",
+      "projectId": "86cd9350-d665-4b0a-ba48-39992b8bbe9c",
+      "baselineDraftId": "9b518e4a-cba6-4595-82f1-83b4319c0307",
+      "activeDraftId": "9b518e4a-cba6-4595-82f1-83b4319c0307",
+      "designSystemPath": ".superdesign/design-system.md",
+      "referenceIds": [],
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        "entrypoints/dashboard/index.html",
+        "extension/globals.css",
+        "extension/dashboard/dashboard.css:1:282",
+        "extension/dashboard/dashboard.css:330:449",
+        "extension/dashboard/dashboard.css:575:700",
+        "extension/dashboard/dashboard.css:770:985",
+        "src/dashboard/components/PageChrome.tsx",
+        "src/dashboard/components/ThemeRadios.tsx",
+        "src/dashboard/components/ColorDots.tsx",
+        "src/dashboard/components/BehaviorSwitches.tsx",
+        "src/dashboard/components/LanguageSelect.tsx",
+        "src/dashboard/components/DisabledHosts.tsx",
+        "src/dashboard/components/pageIcons.tsx"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "c68be90e251f8edafc5126ec2fe24936eda841fcf0b96a0e7c741ba040619cf0",
+        "entrypoints/dashboard/index.html": "ae72da670d0e429a8db686caea279aaae412f71d15a6bbaaa1856551a8db747e",
+        "extension/globals.css": "137511e413b6a4cecb11b57dadd2e7c33686dfcc8947d644e597a6e48be13fd3",
+        "extension/dashboard/dashboard.css": "e42e928eeea818b2e09452a527e29d70d72797ef69a06081228f3d2a87592cc3",
+        "src/dashboard/components/PageChrome.tsx": "9c20596469d44d50b5e1e258a3c03ae7e3f6f9fef4f02f7b09ca6fb366641b79",
+        "src/dashboard/components/ThemeRadios.tsx": "e29772adca226b956376f17858f83541278eed5e51757304be4ee074d4961cdb",
+        "src/dashboard/components/ColorDots.tsx": "0330c96fc4cb7f598dbcd03369a66492fce4b0cca90720294bb5816fbc27fb3d",
+        "src/dashboard/components/BehaviorSwitches.tsx": "49867d00c33a4646a4749ed2bf9586e0164459787accaf7edfb2d9eebea33e6e",
+        "src/dashboard/components/LanguageSelect.tsx": "f24ea8b8977f0b66c85f66dc75f5c8a96af920dd612003480cae6341c15b357e",
+        "src/dashboard/components/DisabledHosts.tsx": "e7065a5d3f23f41b8221222a9d1095f42d31db26e08a9eef5b334b28d39024a8",
+        "src/dashboard/components/pageIcons.tsx": "a10fac2b0bac633fd0b8fdf1964fa85536f2f3a33f0d01bc0b966d224a3de242"
+      },
+      "components": [],
+      "drafts": {
+        "9b518e4a-cba6-4595-82f1-83b4319c0307": {
+          "title": "Current settings drawer (baseline)",
+          "visualDirection": "pixel-perfect reproduction of the current drawer-over-dashboard (light theme, drawer open)",
+          "parentDraftId": null,
+          "currentVersion": 1
+        },
+        "f4e42fde-1aec-4fad-8fd9-8172a164908a": {
+          "title": "داشبورد وبو — تنظیمات جدید",
+          "visualDirection": "branch 1 — grouped & quieter: 3 logical groups, neutral headers (amber only for active states), theme as 3-up preview mini-cards, language inline, one quiet color-dot row with selected-name label, compressed hosts add-row",
+          "parentDraftId": "9b518e4a-cba6-4595-82f1-83b4319c0307",
+          "currentVersion": 1
+        },
+        "a0465e8d-0472-4e3b-b7aa-9984421553f1": {
+          "title": "داشبورد وبو — تنظیمات (ساختار جدید)",
+          "visualDirection": "branch 2 — settings as a page of cards: each section its own soft card with inline start-edge icons, theme as a 3-segment pill control, centered dot row, hairline-separated switch rows, tighter danger block",
+          "parentDraftId": "9b518e4a-cba6-4595-82f1-83b4319c0307",
+          "currentVersion": 1
+        }
+      },
+      "updatedAt": "2026-11-21T00:00:00Z"
+    },
+    "dashboard-main": {
+      "targetKind": "existing-ui",
+      "projectId": "86cd9350-d665-4b0a-ba48-39992b8bbe9c",
+      "baselineDraftId": "fca188da-964d-4163-b916-a2e6cb3bebdb",
+      "activeDraftId": "fca188da-964d-4163-b916-a2e6cb3bebdb",
+      "designSystemPath": ".superdesign/design-system.md",
+      "referenceIds": [],
+      "contextFiles": [
+        ".superdesign/design-system.md",
+        "entrypoints/dashboard/index.html",
+        "extension/globals.css",
+        "extension/dashboard/dashboard.css:1:449",
+        "extension/dashboard/dashboard.css:450:770",
+        "src/dashboard/components/PageChrome.tsx",
+        "src/dashboard/components/StatsStrip.tsx",
+        "src/dashboard/components/Toolbar.tsx",
+        "src/dashboard/components/BulkToggle.tsx",
+        "src/dashboard/components/DirSection.tsx",
+        "src/dashboard/components/GroupCard.tsx",
+        "src/dashboard/components/ItemCard.tsx",
+        "src/dashboard/components/TagsRow.tsx",
+        "src/dashboard/components/EmptyState.tsx",
+        "src/dashboard/components/ArmIconButton.tsx",
+        "src/dashboard/components/icons.tsx",
+        "src/dashboard/components/pageIcons.tsx"
+      ],
+      "fingerprints": {
+        ".superdesign/design-system.md": "c68be90e251f8edafc5126ec2fe24936eda841fcf0b96a0e7c741ba040619cf0",
+        "entrypoints/dashboard/index.html": "ae72da670d0e429a8db686caea279aaae412f71d15a6bbaaa1856551a8db747e",
+        "extension/globals.css": "137511e413b6a4cecb11b57dadd2e7c33686dfcc8947d644e597a6e48be13fd3",
+        "extension/dashboard/dashboard.css": "e42e928eeea818b2e09452a527e29d70d72797ef69a06081228f3d2a87592cc3",
+        "src/dashboard/components/PageChrome.tsx": "9c20596469d44d50b5e1e258a3c03ae7e3f6f9fef4f02f7b09ca6fb366641b79",
+        "src/dashboard/components/StatsStrip.tsx": "6c71fa179227b101f6868989487b74ce7ededfd65d4b1b36d91671f1f936d13e",
+        "src/dashboard/components/Toolbar.tsx": "ab07c307e228fa375be9cd9b1c4d4f95edd592723ed241f06bd505367000746f",
+        "src/dashboard/components/BulkToggle.tsx": "6e0df064b44007bfb6c7b349d42a9728e9c63bcc88732a6bb9490a485f4b98c2",
+        "src/dashboard/components/DirSection.tsx": "4cea0583a8b9829b1afe9a721db13fb1c80a7b3c604aa8686d024e3d3d302aaf",
+        "src/dashboard/components/GroupCard.tsx": "7761f64d338db9857d9a8ed4ec82e8b36f1b680b4033643d2b2ea9799d00d829",
+        "src/dashboard/components/ItemCard.tsx": "9d933faa6d720dfa4a16f55cc8b6077b281afff2b2bbfe3c7ddffbe26719953a",
+        "src/dashboard/components/TagsRow.tsx": "026731d67f9bdd463e725aab3445162e3174c94546bfa676c83e4c002fc3780d",
+        "src/dashboard/components/EmptyState.tsx": "9f9d111de4c7f5e17a0d7fc59233b35605de0a6163a50816f146e54339d606d8",
+        "src/dashboard/components/ArmIconButton.tsx": "4f099a58e4a9877be6d5c998cb6278934f4fdf981f956f06ccf0827dbd48bf7a",
+        "src/dashboard/components/icons.tsx": "7b1a9dfe474cb45388f0edc78003c90748b65f96b3e35471bd6cefc73eaad4e9",
+        "src/dashboard/components/pageIcons.tsx": "a10fac2b0bac633fd0b8fdf1964fa85536f2f3a33f0d01bc0b966d224a3de242"
+      },
+      "components": [],
+      "drafts": {
+        "fca188da-964d-4163-b916-a2e6cb3bebdb": {
+          "title": "Current dashboard (baseline)",
+          "visualDirection": "pixel-perfect reproduction of the dashboard main page (drawer closed) — topbar, stats strip, filter toolbar, RTL/LTR article sections",
+          "parentDraftId": null,
+          "currentVersion": 1
+        },
+        "baeb5883-df3e-45b8-a7e7-23fb314759c6": {
+          "title": "داشبورد وبو — فشرده و اسکن‌پذیر",
+          "visualDirection": "branch 1 — compact & scannable (agent-authored, credits-free import): one slim inline stats strip with hairline dividers, merged toolbar rows, 42px favicon tiles + 15px titles, outlined count capsules, tighter item rhythm, hairline band rules on section headers",
+          "parentDraftId": "fca188da-964d-4163-b916-a2e6cb3bebdb",
+          "currentVersion": 1,
+          "importedFrom": ".superdesign/tmp/dashboard-compact.html"
+        },
+        "0c7b1c27-cca2-4022-9bd3-e800ed5bd3b7": {
+          "title": "داشبورد وبو — کتابخانه‌ی شبکه‌ای",
+          "visualDirection": "branch 2 — library grid (agent-authored, credits-free import): responsive two-column article card grid per direction section, each card = header + two color-bar quote previews (2-line clamp, note pill) + tags row + meta footer (latest date, view/trash)",
+          "parentDraftId": "fca188da-964d-4163-b916-a2e6cb3bebdb",
+          "currentVersion": 1,
+          "importedFrom": ".superdesign/tmp/dashboard-library-grid.html"
+        }
+      },
+      "updatedAt": "2026-11-21T00:00:00Z"
+    }
+  }
+}

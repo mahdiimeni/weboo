@@ -15,3 +15,6 @@ src/**/*.js
 .wxt/
 # workspace meta (agent plans/scratch) — not extension content
 .hermes/
+
+# superdesign scratch (skill temp HTML)
+.superdesign/tmp/
