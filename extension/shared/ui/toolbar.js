@@ -67,7 +67,8 @@ import { t, dirOf } from "../i18n.js"; /* v0.14.0 — labels follow the UI langu
     '@keyframes hlx-pop { from { opacity: 0; transform: translateY(5px) scale(.95); } to { opacity: 1; } }',
     '.hlx-tb .c { width: 25px; height: 25px; border-radius: 999px; border: 2px solid var(--tb-dot-border);',
     '  transition: transform .12s ease, border-color .12s ease; flex: 0 0 auto; }',
-    '.hlx-tb .c:hover { transform: scale(1.2); border-color: var(--tb-dot-border-h); }',
+    /* v0.24.1 unslop pass — hover is a border step, not a jump (motion rule) */
+    '.hlx-tb .c:hover { border-color: var(--tb-dot-border-h); }',
     '.hlx-tb .sep { width: 1px; height: 20px; background: var(--tb-sep); margin: 0 5px; flex: 0 0 auto; }',
     '.hlx-tb .b { width: 30px; height: 30px; border-radius: 9px; color: var(--tb-btn-fg); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }',
     /* v0.10.0 craft: the controls answer the pointer; reduced-motion turns it off */

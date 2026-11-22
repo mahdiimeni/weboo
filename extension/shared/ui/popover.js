@@ -132,8 +132,9 @@ import { t, dirOf } from "../i18n.js"; /* v0.14.0 — labels follow the UI langu
     '.hlx-po.dragging .head { cursor: grabbing; }',
     '.hlx-po.dragging { animation: none; box-shadow: 0 22px 60px rgba(0,0,0,.3); }',
     '.hlx-po.dragging .q, .hlx-po.dragging .note-text { user-select: none; }',
-    '.hlx-po .c { width: 21px; height: 21px; border-radius: 999px; border: 2px solid var(--po-dot-bd); flex: 0 0 auto; transition: transform .12s; }',
-    '.hlx-po .c:hover { transform: scale(1.15); }',
+    '.hlx-po .c { width: 21px; height: 21px; border-radius: 999px; border: 2px solid var(--po-dot-bd); flex: 0 0 auto; transition: transform .12s, border-color .12s; }',
+    /* v0.24.1 unslop pass — hover is a border step toward the active amber, not a jump */
+    '.hlx-po .c:hover { border-color: var(--po-act); }',
     '.hlx-po .c.active { border-color: var(--po-act); box-shadow: 0 0 0 2px var(--po-ring), 0 0 0 4px #d97706; }',
     '.hlx-po .grow { flex: 1; }',
     '.hlx-po .x { width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--po-ic); }',
