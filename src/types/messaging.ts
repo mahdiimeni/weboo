@@ -11,6 +11,7 @@
  * The parity test (tests/unit/types-contract.test.ts) asserts the string
  * values here match runtime HL.MSG — never rename one side alone.
  */
+import type { Language } from './settings';
 
 /** Payload per message type; `null` = payload-free message. */
 export interface MessagePayloads {
@@ -18,6 +19,7 @@ export interface MessagePayloads {
   'hlx:get-count': null;
   'hlx:goto': { id: string };
   'hlx:highlight-selection': null;
+  'hlx:i18n-dict': { lang: Language };
 }
 
 export type ExtensionMessageType = keyof MessagePayloads;
@@ -32,6 +34,7 @@ export type MessageResponse<T extends ExtensionMessageType> =
   T extends 'hlx:get-count' ? { count: number } :
   T extends 'hlx:goto' ? { ok: true } :
   T extends 'hlx:highlight-selection' ? { ok: boolean } :
+  T extends 'hlx:i18n-dict' ? { dict: Record<string, unknown> | null } :
   T extends 'hlx:count-report' ? undefined :
   never;
 
@@ -41,4 +44,5 @@ export const EXTENSION_MESSAGE_TYPES = [
   'hlx:get-count',
   'hlx:goto',
   'hlx:highlight-selection',
+  'hlx:i18n-dict',
 ] as const satisfies readonly ExtensionMessageType[];

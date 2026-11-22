@@ -18,6 +18,7 @@
  * imported by the service worker.
  */
 import { MSG } from "./constants.js";
+import { LANG_KEYS } from "./i18n.js";
 /** Highlight-record ids are engine-generated (host + base64url segment);
  *  a sane inbound id is short, non-empty and has no control characters. */
 function isValidId(id) {
@@ -43,6 +44,12 @@ export function parseMessage(value) {
             return isValidId(v.id) ? { type: MSG.GOTO, id: v.id } : null;
         case MSG.HIGHLIGHT_SELECTION:
             return { type: MSG.HIGHLIGHT_SELECTION };
+        case MSG.I18N_DICT:
+            /* the requested language must be a registered one — the SW answers
+               from its dictionary registry; anything else was never a key */
+            return typeof v.lang === "string" && LANG_KEYS.indexOf(v.lang) !== -1
+                ? { type: MSG.I18N_DICT, lang: v.lang }
+                : null;
         default:
             return null; /* unknown discriminator — never guess */
     }

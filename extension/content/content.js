@@ -32,7 +32,7 @@ import { util } from "../shared/utils.js";
 import { createStore } from "../shared/store.js";
 import { runtime } from "../shared/runtime-bridge.js";
 import { ui } from "../shared/ui/base.js";
-import { setLanguage } from "../shared/i18n.js"; /* v0.14.0 — widget language follows settings */
+import { setLanguage, ensureLanguage, setDictionaryLoader } from "../shared/i18n.js"; /* v0.14.0 — widget language follows settings */
 (function () {
   'use strict';
   if (window.__hlxContentInit) return;
@@ -44,6 +44,16 @@ import { setLanguage } from "../shared/i18n.js"; /* v0.14.0 — widget language 
   /* ---------- Composition root ---------- */
 
   const store = createStore(backends.chromeStorage()); /* DI: local instance — no namespace slot */
+
+  /* Audit R1 (payload diet): the content bundle ships ONLY the canonical
+     dictionary — every other UI language is fetched from the SW on demand
+     (hlx:i18n-dict; the SW registers all twelve). The loader keeps i18n
+     platform-free (DIP — the same injection pattern as cfg.store). */
+  setDictionaryLoader(function (lang) {
+    return runtime.send({ type: MSG.I18N_DICT, lang: lang }).then(function (resp) {
+      return (resp && resp.dict && typeof resp.dict === 'object') ? resp.dict : null;
+    });
+  });
 
   var state = {
     settings: null,
@@ -229,11 +239,10 @@ import { setLanguage } from "../shared/i18n.js"; /* v0.14.0 — widget language 
     ui.setTheme(s && s.theme); /* floating widgets get the same extension UI theme */
     /* v0.14.0 — and the same UI language: the widget hosts take lang/dir and
        the open widgets re-read their labels (the web page's own root
-       lang/dir is never touched — it belongs to the page). */
-    setLanguage(s && s.language);
-    ui.setLang(s && s.language);
-    hl.toolbar.refreshLabels();
-    if (hl.isPopoverOpen()) hl.popover.render(hl.popover.mode === 'edit' ? 'edit' : 'view');
+       lang/dir is never touched — it belongs to the page). The dictionary
+       fetch (audit R1) is async, so the language application moved below —
+       the last-wins guard keeps rapid switches in settings order. */
+    void applySettingsLanguage(s);
     var wasDisabled = state.disabled;
     state.settings = s;
     var nowDisabled = !!((s.disabledHosts || []).indexOf(page.host) !== -1);
@@ -251,6 +260,24 @@ import { setLanguage } from "../shared/i18n.js"; /* v0.14.0 — widget language 
       reportCount();
     }
   });
+
+  /* The language side of a settings change, split out for the async
+     dictionary fetch (audit R1): ensure the dictionary, THEN apply it —
+     labels never render from an unregistered language. ensureLanguage never
+     rejects and resolves immediately for already-registered languages, so
+     the en/fa paths are as synchronous as before; the seq guard preserves
+     the exact last-change-wins behavior of the old sync handler. */
+  var langSeq = 0;
+  async function applySettingsLanguage(s) {
+    var seq = ++langSeq;
+    var lang = s && s.language;
+    await ensureLanguage(lang);
+    if (seq !== langSeq) return; /* a newer settings change superseded this apply */
+    setLanguage(lang);
+    ui.setLang(lang);
+    hl.toolbar.refreshLabels();
+    if (hl.isPopoverOpen()) hl.popover.render(hl.popover.mode === 'edit' ? 'edit' : 'view');
+  }
 
   store.onRecordsChanged(function () { syncFromStorage(); });
 
@@ -331,6 +358,7 @@ import { setLanguage } from "../shared/i18n.js"; /* v0.14.0 — widget language 
     var here = url.normalizeUrl(location.href);
     if (here && (here.norm !== page.norm || here.host !== page.host)) hl.setPage(here); /* navigated while settings loaded */
     state.disabled = !!((state.settings.disabledHosts || []).indexOf(page.host) !== -1);
+    await ensureLanguage(state.settings.language); /* audit R1 — the UI dictionary is in place before any widget label renders */
     ui.setTheme(state.settings.theme); /* widgets render with the right theme from the very start */
     ui.setLang(state.settings.language); /* v0.14.0 — and the right language/direction */
     hl.toolbar.refreshLabels(); /* the widgets predate the settings read — labels re-read now */

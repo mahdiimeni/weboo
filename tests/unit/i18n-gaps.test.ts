@@ -31,6 +31,7 @@ import { restoreSeed } from "./helpers/danger-world";
 import { startData, setSettings, getData } from "../../src/dashboard/data";
 import { RestoreSectionRegion } from "../../src/dashboard/components/PageChrome";
 import { applyDom } from "../../extension/shared/i18n.js";
+import "../../extension/shared/i18n/all.js"; /* audit R1 — register all dictionaries on the Bun-side module graph too */
 import { createElement } from "react";
 import { createRoot } from "react-dom/client";
 

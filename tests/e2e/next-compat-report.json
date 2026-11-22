@@ -1,8 +1,8 @@
 {
-  "browser": "Chrome/145.0.7632.6",
-  "extensionId": "ljfppidaoggceodlhiekmedglcopjdjh",
+  "browser": "Chrome/157.0.8103.79",
+  "extensionId": "lhbgcfolpfemfdmfkdlmdieijonndjpk",
   "site": "http://127.0.0.1:8090",
-  "ranAt": "2026-10-25T08:18:34.796Z",
+  "ranAt": "2026-11-22T10:49:45.659Z",
   "passed": 16,
   "failed": 0,
   "pageErrors": [],

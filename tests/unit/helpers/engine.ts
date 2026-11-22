@@ -296,6 +296,12 @@ export interface EngineOptions {
   chrome?: any;
   files?: string[];
   extraFiles?: string[]; /* extra absolute paths outside the shared engine (e.g. content/favicon.js) */
+  /** Audit R1 (payload diet): i18n.js ships only the canonical (en)
+   *  dictionary; the other languages live in shared/i18n/<lang>.js and
+   *  must be registered per world. Default = ALL (the exact pre-split
+   *  behavior every existing test expects); "none" = fresh en-only world
+   *  (the lazy-path tests); a list = only those languages. */
+  dicts?: string[] | "none";
 }
 
 /** Returns a fresh HL (previous chrome/HL is cleared before loading).
@@ -312,6 +318,24 @@ export function loadEngine(opts: EngineOptions = {}): Promise<any> {
   const cache: WorldCache = new Map();
   return (async () => {
     for (const p of paths) await loadGraph(p, cache);
+    /* dictionary registration (audit R1): the emitted dict modules carry no
+       imports (their `import type` erased at emit) — eval + register via the
+       harvested i18n bindings, so every world sees the same DICTS the
+       pre-split monolith had. */
+    const i18nMod = cache.get(ext("shared", "i18n.js"));
+    const i18nNs: any = i18nMod ? i18nMod.namespace : null;
+    if (i18nNs && typeof i18nNs.registerDictionary === "function" && opts.dicts !== "none") {
+      const langs: readonly string[] = opts.dicts || i18nNs.LANG_KEYS;
+      for (const lang of langs) {
+        if (lang === "en") continue; /* ships with the logic module */
+        const f = ext("shared", "i18n", lang + ".js");
+        if (!existsSync(f)) continue;
+        await loadGraph(f, cache);
+        const ns: any = cache.get(f)!.namespace;
+        const dict = ns[lang];
+        if (dict) i18nNs.registerDictionary(lang, dict);
+      }
+    }
     return harvestInto(paths, cache, {});
   })();
 }

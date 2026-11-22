@@ -14,6 +14,7 @@ import { runtime } from "../shared/runtime-bridge.js";
 import { pop } from "./popup-data.js";
 import { popView as view } from "./popup-view.js";
 import { t, applyDom } from "../shared/i18n.js"; /* v0.14.0 */
+import "../shared/i18n/all.js"; /* audit R1 — pages register every dictionary statically (not injected into web pages → zero async) */
 
 /**
  * Weboo — popup controller (platform-specific page)

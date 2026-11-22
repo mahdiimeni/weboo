@@ -12,6 +12,7 @@ import { setupDom, loadEngine, ext, readFile } from "./helpers/engine";
    the same one the WXT dashboard bundle has); the engine world's instance is
    separate, so the React block drives language through this import */
 import { setLanguage as setBunLanguage } from "../../extension/shared/i18n.js";
+import "../../extension/shared/i18n/all.js"; /* audit R1 — register all dictionaries on the Bun-side module graph too */
 
 let HL: any;
 

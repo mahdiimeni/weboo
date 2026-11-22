@@ -23,7 +23,7 @@ describe("dictionaries", () => {
        RUNTIME side through t(): every canonical (en) key resolves in EVERY
        registered language — a missing entry would return the key itself.
        The en key list comes from the source (the canonical set). */
-    const src = readFile(ext("..", "src", "shared", "i18n.ts"));
+    const src = readFile(ext("..", "src", "shared", "i18n", "en.ts")); /* audit R1: the canonical dictionary moved to its own data module */
     const enBlock = src.slice(src.indexOf("const en = {"), src.indexOf("} as const;"));
     const keys = [...enBlock.matchAll(/'([a-z]+\.[A-Za-z0-9]+)':/g)].map((m) => m[1]);
     expect(keys.length).toBeGreaterThan(150);
@@ -39,8 +39,8 @@ describe("dictionaries", () => {
   });
 
   test("no translation value is empty (all languages)", () => {
-    const src = readFile(ext("..", "src", "shared", "i18n.ts"));
-    const faBlock = src.slice(src.indexOf("const fa: Record<TranslationKey, DictValue> = {"), src.indexOf("export type TranslationKey"));
+    /* audit R1: each dictionary is its own data module — the Persian file IS the block */
+    const faBlock = readFile(ext("..", "src", "shared", "i18n", "fa.ts"));
     /* every quoted value is non-empty */
     for (const m of faBlock.matchAll(/: '([^']*)'/g)) expect(m[1].length).toBeGreaterThan(0);
   });
@@ -82,7 +82,7 @@ describe("t() and count()", () => {
   });
 
   test("every plural-capable key in en has a {one,other} shape and a fa string", () => {
-    const src = readFile(ext("..", "src", "shared", "i18n.ts"));
+    const src = readFile(ext("..", "src", "shared", "i18n", "en.ts")); /* audit R1: the canonical dictionary moved to its own data module */
     const enBlock = src.slice(src.indexOf("const en = {"), src.indexOf("} as const;"));
     for (const m of enBlock.matchAll(/'([a-z]+\.[A-Za-z0-9]+)': \{/g)) {
       const k = m[1];

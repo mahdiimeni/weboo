@@ -18,6 +18,7 @@ import { BulkToggle } from "../../src/dashboard/components/BulkToggle";
 import { THEME_KEYS, THEMES, COLORS } from "../../extension/shared/constants.js";
 import { BULK_ACTION_META } from "../../src/dashboard/components/BulkToggle";
 import { t } from "../../extension/shared/i18n.js";
+import "../../extension/shared/i18n/all.js"; /* audit R1 — register all dictionaries on the Bun-side module graph too */
 import { THEME_HINTS } from "../../src/dashboard/components/ThemeRadios";
 import { ThemeRadios } from "../../src/dashboard/components/ThemeRadios";
 import { ColorDots } from "../../src/dashboard/components/ColorDots";

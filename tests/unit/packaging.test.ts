@@ -115,7 +115,9 @@ describe("emit کلاسیک (TypeScript → اسکریپت قابل تزریق)"
        + engine strip-path; manifest list = order data). The allowlist is
        explicit: a conversion outside it fails here until its classic loaders
        are removed first. */
-    const emitted = ["format", "detect-dir", "url", "utils", "tags", "textindex", "anchor", "store", "message-guard"];
+    const emitted = ["format", "detect-dir", "url", "utils", "tags", "textindex", "anchor", "store", "message-guard",
+      /* audit R1 (payload diet): the i18n logic module + its 12 dictionary data modules */
+      "i18n", "i18n/all", "i18n/en", "i18n/fa", "i18n/de", "i18n/es", "i18n/ru", "i18n/it", "i18n/fr", "i18n/tr", "i18n/zh", "i18n/ja", "i18n/ko", "i18n/ar"];
     for (const name of emitted) {
       /* source of truth lives in src/shared (ext() is extension/-rooted — ".." climbs out) */
       expect(exists(ext("..", "src", "shared", name + ".ts"))).toBe(true);

@@ -17,7 +17,8 @@ import { APP_ID, DEFAULT_SETTINGS, MSG, SETTINGS_HASH } from '../shared/constant
 import { backends } from '../shared/backends/chrome-storage.js';
 import { createStoreReader } from '../shared/store.js';
 import { parseMessage } from '../shared/message-guard.js';
-import { setLanguage, t } from '../shared/i18n.js'; /* v0.14.0 — the context menu follows the UI language */
+import { setLanguage, t, getDictionary } from '../shared/i18n.js'; /* v0.14.0 — the context menu follows the UI language */
+import '../shared/i18n/all.js'; /* audit R1 — register every UI-language dictionary: the SW serves the content bundle's on-demand fetches (hlx:i18n-dict) and keeps the context-menu title in every language */
 
 /* Composition root: the read-only reader (ISP) — the SW never writes;
    utils/format/clipboard/export are not loaded at all for this layer.
@@ -212,14 +213,20 @@ const reader = createStoreReader(backends.chromeStorage());
   /* ---------- Runtime messages (COUNT_REPORT from content) ---------- */
 
   try {
-    chrome.runtime.onMessage.addListener(function (msg, sender) {
+    chrome.runtime.onMessage.addListener(function (msg, sender, sendResponse) {
       try {
         const m = parseMessage(msg);
-        if (!m || m.type !== MSG.COUNT_REPORT) return false; /* parser rejects malformed payloads */
-        if (!sender || !sender.tab || sender.tab.id == null) return false;
-        updateBadge(sender.tab.id, m.count);
+        if (!m) return false; /* parser rejects malformed payloads */
+        if (m.type === MSG.COUNT_REPORT) {
+          if (!sender || !sender.tab || sender.tab.id == null) return false;
+          updateBadge(sender.tab.id, m.count);
+        } else if (m.type === MSG.I18N_DICT) {
+          /* the content bundle's on-demand dictionary fetch (audit R1) — a
+             synchronous registry read, so the sync sendResponse is exact */
+          sendResponse({ dict: getDictionary(m.lang) });
+        }
       } catch (e) { /* noop */ }
-      return false; /* we never respond (the message channel closes) */
+      return false; /* sync handling only — the channel closes after the response */
     });
   } catch (e) { /* noop */ }
 

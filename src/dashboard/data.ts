@@ -47,6 +47,7 @@ import { markdown } from "../../extension/shared/markdown-export.js";
 import { booklet, BOOKLET_FONTS } from "../../extension/shared/booklet-export.js";
 import { matchesBackupSelection } from "../../extension/shared/store.js";
 import { t, count, applyDom } from "../../extension/shared/i18n.js";
+import "../../extension/shared/i18n/all.js"; /* audit R1 — pages register every dictionary statically (zero async) */
 import type { HighlightRecord } from "../types/highlight";
 import type { Settings, ThemeKey, Language } from "../types/settings";
 import type { BackupSelection } from "../types/storage";

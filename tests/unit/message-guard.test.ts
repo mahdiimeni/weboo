@@ -65,3 +65,20 @@ describe("parseMessage — malformed / hostile rejections", () => {
     expect(parse({ type: "hlx:count-report", count: 1, url: "javascript:alert(1)" })).toEqual({ type: "hlx:count-report", count: 1 });
   });
 });
+
+describe("parseMessage — I18N_DICT (audit R1: the on-demand dictionary fetch)", () => {
+  test("a registered language passes", () => {
+    expect(parse({ type: "hlx:i18n-dict", lang: "de" })).toEqual({ type: "hlx:i18n-dict", lang: "de" });
+    expect(parse({ type: "hlx:i18n-dict", lang: "ar" })).toEqual({ type: "hlx:i18n-dict", lang: "ar" });
+  });
+  test("unknown/missing/wrong-type languages → null (the SW only answers real registry keys)", () => {
+    expect(parse({ type: "hlx:i18n-dict" })).toBeNull();
+    expect(parse({ type: "hlx:i18n-dict", lang: "zz" })).toBeNull();
+    expect(parse({ type: "hlx:i18n-dict", lang: 42 })).toBeNull();
+    expect(parse({ type: "hlx:i18n-dict", lang: "de\x00" })).toBeNull();
+  });
+  test("extra fields are ignored (not trusted, not fatal)", () => {
+    expect(parse({ type: "hlx:i18n-dict", lang: "fa", dict: { evil: true } }))
+      .toEqual({ type: "hlx:i18n-dict", lang: "fa" });
+  });
+});

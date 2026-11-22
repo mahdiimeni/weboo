@@ -26,7 +26,8 @@
     COUNT_REPORT: 'hlx:count-report',     // content → SW: badge update
     GET_COUNT: 'hlx:get-count',           // SW/popup → content: fetch count
     GOTO: 'hlx:goto',                     // popup → content: scroll to highlight
-    HIGHLIGHT_SELECTION: 'hlx:highlight-selection' // SW → content: highlight current selection
+    HIGHLIGHT_SELECTION: 'hlx:highlight-selection', // SW → content: highlight current selection
+    I18N_DICT: 'hlx:i18n-dict'            // content → SW: fetch a UI-language dictionary (payload { lang }) — audit R1 (payload diet): the content bundle ships only the canonical dictionary
   };
 
   /** Hash prefix for jumping straight to a highlight (#hlx-goto-<id>) */

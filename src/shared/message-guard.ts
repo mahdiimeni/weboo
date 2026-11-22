@@ -18,6 +18,7 @@
  * imported by the service worker.
  */
 import { MSG } from "./constants.js";
+import { LANG_KEYS } from "./i18n.js";
 
 /** Discriminated union of the messages this build ACTS on (wire values are
  *  MSG's — single source; shape mirror of src/types/messaging.ts). */
@@ -25,7 +26,8 @@ export type ParsedMessage =
   | { type: typeof MSG.COUNT_REPORT; count: number }
   | { type: typeof MSG.GET_COUNT }
   | { type: typeof MSG.GOTO; id: string }
-  | { type: typeof MSG.HIGHLIGHT_SELECTION };
+  | { type: typeof MSG.HIGHLIGHT_SELECTION }
+  | { type: typeof MSG.I18N_DICT; lang: string };
 
 /** Highlight-record ids are engine-generated (host + base64url segment);
  *  a sane inbound id is short, non-empty and has no control characters. */
@@ -52,6 +54,12 @@ export function parseMessage(value: unknown): ParsedMessage | null {
       return isValidId(v.id) ? { type: MSG.GOTO, id: v.id as string } : null;
     case MSG.HIGHLIGHT_SELECTION:
       return { type: MSG.HIGHLIGHT_SELECTION };
+    case MSG.I18N_DICT:
+      /* the requested language must be a registered one — the SW answers
+         from its dictionary registry; anything else was never a key */
+      return typeof v.lang === "string" && (LANG_KEYS as string[]).indexOf(v.lang) !== -1
+        ? { type: MSG.I18N_DICT, lang: v.lang }
+        : null;
     default:
       return null; /* unknown discriminator — never guess */
   }
