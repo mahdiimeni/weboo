@@ -7,6 +7,13 @@
       "sourceType": "github",
       "skillPath": "skills/superdesign/SKILL.md",
       "computedHash": "1bbfd4289a83e3d866f39ce3e76b852db1ea57fa953f23e8e904cdfd1164d4d5"
+    },
+    "unslop": {
+      "source": "heydamir/unslop",
+      "commit": "620163eedb3529d9cd23a3994ed8d287d06f760d",
+      "sourceType": "github",
+      "skillPath": "skills/unslop/SKILL.md",
+      "computedHash": "34b16270083f9892424a0b41dec4d5f25a73709c9cffa7702e57c723000e6df5"
     }
   }
 }
