@@ -84,5 +84,7 @@ DOM widgets) and an injected store — see `docs/anchor-engine.md`.
 - CI (`.github/workflows/ci.yml`): install → typecheck → lint → test →
   build + parity on every push/PR; browser rigs stay local by design.
 - `bun run zip` rebuilds `.output/chrome-mv3` through the parity gate and
-  packs `dist/`; the release zip is a tracked artifact refreshed on release
-  commits only.
+  packs `dist/`; the zip ships through the release workflow (a version tag
+  builds, gates, and publishes it as a GitHub Release asset) — since the
+  R9 hygiene pass the repo no longer tracks `dist/` (the old
+  tracked-artifact policy predates the automated release pipeline).

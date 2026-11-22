@@ -40,6 +40,11 @@
   "exclude": [
     "node_modules",
     "extension",
-    "skills"
+    "skills",
+    /* vendored VibeFarsi reference components (AGENTS.md decision: typed
+       REFERENCE material, nothing imports them) — excluded from typecheck
+       since the R9 hygiene pass; they cost type surface for zero product use.
+       Adopt-into-a-page remains the documented path when one is needed. */
+    "components"
   ]
 }

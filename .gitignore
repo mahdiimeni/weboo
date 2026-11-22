@@ -18,3 +18,16 @@ src/**/*.js
 
 # superdesign scratch (skill temp HTML)
 .superdesign/tmp/
+
+# release zips are CI-built by the release workflow (GitHub Releases) —
+# the repo no longer tracks dist/ (audit R9; the old tracked-artifact policy
+# predates the automated release pipeline)
+dist/
+
+# rig artifacts (screenshots / report JSONs) — outputs of the local real-Chrome
+# rigs, preserved under the tag archive/test-rigs-screenshots-v0.24.2 (audit R9)
+tests/*.png
+tests/e2e/*.png
+tests/e2e/*.pdf
+tests/e2e/*-report.json
+tests/e2e/*-result.json
