@@ -83,7 +83,7 @@ in this repository.
 Requirements: Chrome 102 or newer, or any Chromium-based browser that accepts
 unpacked extensions.
 
-1. Download `dist/weboo-v0.12.0.zip` (or the newest `weboo-v*.zip`).
+1. Download `dist/weboo-v0.24.2.zip` (or the newest `weboo-v*.zip`).
 2. Unzip it into a folder you can keep, for example `Documents/weboo`.
 3. Open `chrome://extensions`.
 4. Turn on **Developer mode** in the top corner.

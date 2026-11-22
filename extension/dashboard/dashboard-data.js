@@ -463,16 +463,12 @@ import { tags } from "../shared/tags.js"; /* 7c-3 */
     return { sites: sites, articles: articleOptionsOf(groups), tags: tags.tagCounts(tagMap) };
   }
 
-  /* ---------- Pagination (v1.2.9 — extracted from the controller's renderList) ---------- */
-
-  /**
-   * Pure pagination over grouped records: which groups/items are visible
-   * under `limit` total items, plus the overflow count for the load-more label.
-   * A group that straddles the limit is shallow-copied with its items sliced;
-   * `remaining` carries how many of that group fell off. Groups after the
-   * cut-off point are skipped whole.
-   * Returns { visible: [{ group, remaining }], shown, overflow }.
-   */
+  /* ---------- Pagination — REMOVED (v0.22.0, 8b6b163) ----------
+     The v1.2.9 paginate() (visible/remaining/overflow over a `limit`) was
+     retired when the full library started always rendering — the function
+     no longer exists. This tombstone keeps the v0.3.0 bulk note above
+     (which narrates passing Infinity through it) anchored to history; do
+     not reintroduce pagination without real evidence. */
   /* Shared display formats from the core (HL.format) — just delegated
      exported directly. num is the language-aware generalization (v0.14.0);
      faNum stays the forced-Persian rendering for legacy consumers. */

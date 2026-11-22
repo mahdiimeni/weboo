@@ -95,11 +95,14 @@ export interface BackupSelection {
  *
  * Phase 5 migration (TypeScript): this file is the source of truth and is
  * compiled by `bun run build:ext` (tsconfig.extension.json) into
- * extension/shared/store.js — never edit the .js directly. Classic-script
- * invariant: NO import/export (would emit `export {};` — see textindex.ts).
- * The port type below is declared GLOBAL (script file, erased at emit) and
- * is pinned byte-for-byte to src/types/storage.ts by the compile-time
- * mutual-assignability tripwire in tests/unit/types-contract.test.ts.
+ * extension/shared/store.js — never edit the .js directly. Phase 7b turned
+ * this into a REAL ES module (top-level imports, exported facade at the
+ * bottom) — the earlier "classic-script: NO import/export" invariant is
+ * RETIRED; its only loaders are module graphs now (the WXT content bundle,
+ * the pages' module entries, the test engine's vm graph). The
+ * StorageBackend interface below is the compile-time mirror of
+ * src/types/storage.ts, pinned by the mutual-assignability tripwire in
+ * tests/unit/types-contract.test.ts (the same test pins BackupSelection).
   */
 
   var K_SETTINGS = 'hlx:settings';
