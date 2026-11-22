@@ -110,6 +110,13 @@ export function GroupCard({ g, collapsed, order, handlers }: {
   handlers: GroupCardHandlers;
 }) {
   const canFlip = g.items.length > 1;
+  /* v0.24.0 — the library grid: the card previews its first two highlights;
+     a quiet show-all row expands the card to the full list (every per-item
+     feature stays: preview peek, copy, delete, dates). While collapsed the
+     body is hidden, so the slice/button don't render at all. */
+  const [showAll, setShowAll] = useState(false);
+  const visibleItems = showAll || collapsed ? g.items : g.items.slice(0, 2);
+  const hiddenCount = g.items.length - visibleItems.length;
 
   function headToggle(ev: React.MouseEvent | React.KeyboardEvent) {
     /* a click on ANY header button (open/delete/order) never toggles */
@@ -166,7 +173,16 @@ export function GroupCard({ g, collapsed, order, handlers }: {
       />
 
       <div className="group-items" hidden={collapsed}>
-        {g.items.map((rec) => <ItemCard key={rec.id} rec={rec} handlers={handlers} />)}
+        {visibleItems.map((rec) => <ItemCard key={rec.id} rec={rec} handlers={handlers} />)}
+        {hiddenCount > 0 ? (
+          <button
+            type="button"
+            className="show-all"
+            onClick={() => setShowAll(true)}
+          >
+            {count("card.showAll", hiddenCount)}
+          </button>
+        ) : null}
       </div>
     </div>
   );

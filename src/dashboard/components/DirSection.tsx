@@ -77,18 +77,22 @@ export function DirSection({ section, lead, collapsed, cardState, handlers }: {
         <span className="dir-sec-chev" aria-hidden="true"><IconChev /></span>
       </div>
       <div className="dir-sec-body" hidden={collapsed}>
-        {section.entries.map((g) => {
-          const st = cardState(g);
-          return (
-            <GroupCard
-              key={g.key}
-              g={g}
-              collapsed={st.collapsed}
-              order={st.order}
-              handlers={handlers}
-            />
-          );
-        })}
+        {/* v0.24.0 — the library grid: the section's article cards fill a
+            responsive two-column grid (one column on narrow viewports) */}
+        <div className="dir-grid">
+          {section.entries.map((g) => {
+            const st = cardState(g);
+            return (
+              <GroupCard
+                key={g.key}
+                g={g}
+                collapsed={st.collapsed}
+                order={st.order}
+                handlers={handlers}
+              />
+            );
+          })}
+        </div>
       </div>
     </section>
   );

@@ -7,7 +7,22 @@
  * The underline = the "this highlight has a note" marker;
  * it applies only to elements on which domwrap.setNoted has set the
  * data-hl-noted="1" attribute (a highlight without a note gets no underline).
+ *
+ * v0.24.0 — the UI font loads here for the Shadow-DOM widgets: this
+ * stylesheet is injected into every web page (manifest css), so the
+ * @font-face loads the bundled Dastkhat document-wide and the widget
+ * hosts resolve it (uiBase.FONT). The file ships from the extension
+ * origin — web_accessible_resources exposes fonts/*.woff2 to
+ * http(s)/file pages. No remote font URL — the offline rule.
  */
+@font-face {
+  font-family: "Dastkhat";
+  src: url("/fonts/Dastkhat-Variable.woff2") format("woff2-variations"),
+       url("/fonts/Dastkhat-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 
 mark.hlx-marker {
   background-color: #ffe380 !important;

@@ -1006,3 +1006,58 @@ describe("i18n (v0.14.2) — smart content direction in both UI languages", () =
     setBundleLanguage("fa");
   });
 });
+
+/* ---------- v0.24.0 — the library grid ---------- */
+describe("GroupCard — library grid (v0.24.0)", () => {
+  const noop = () => {};
+  const handlers = {
+    onOpen: noop, onDeleteGroup: noop, onToggle: noop, onItemOrder: noop,
+    onAddTag: noop, onRemoveTag: noop, onView: noop, onCopy: noop, onDelete: noop, onPreview: noop,
+  };
+  const rec = (i: number) => ({
+    id: "r" + i, host: "a.test", url: "https://a.test/p", urlNorm: "https://a.test/p",
+    text: "متن هایلایت شماره‌ی " + dash.faNum(i + 1), note: "", color: "teal",
+    createdAt: 1700000000000 + i, updatedAt: 1700000000000 + i,
+  } as any);
+  const group = (n: number) => ({
+    key: "https://a.test/p", host: "a.test", url: "https://a.test/p",
+    title: "عنوان مقاله", dir: "rtl", notes: 0,
+    items: Array.from({ length: n }, (_, i) => rec(i)), favicon: null, tags: [],
+  });
+
+  test("پیش‌نمایش: دو ردیف اول + دکمه‌ی نمایش با شمار درست", async () => {
+    const { host, root } = mount(createElement(GroupCard, { g: group(5), collapsed: false, order: "newest", handlers } as any));
+    await tick();
+    expect(host.querySelectorAll(".group .item").length).toBe(2);
+    const btn = host.querySelector(".show-all") as HTMLButtonElement;
+    expect(btn?.textContent).toContain(dash.num(3)); /* «نمایش ۳ هایلایت دیگر» */
+    root.unmount();
+  });
+
+  test("نمایش همه: با کلیک، همه‌ی ردیف‌ها می‌آیند و دکمه می‌رود", async () => {
+    const { host, root } = mount(createElement(GroupCard, { g: group(5), collapsed: false, order: "newest", handlers } as any));
+    await tick();
+    (host.querySelector(".show-all") as HTMLButtonElement).click();
+    await tick();
+    expect(host.querySelectorAll(".group .item").length).toBe(5);
+    expect(host.querySelector(".show-all")).toBeNull();
+    root.unmount();
+  });
+
+  test("دو هایلایت یا کمتر: همه رندر می‌شوند، بدون دکمه", async () => {
+    const { host, root } = mount(createElement(GroupCard, { g: group(2), collapsed: false, order: "newest", handlers } as any));
+    await tick();
+    expect(host.querySelectorAll(".group .item").length).toBe(2);
+    expect(host.querySelector(".show-all")).toBeNull();
+    root.unmount();
+  });
+
+  test("جمع‌شده: ردیف‌ها در بدنه‌ی پنهان می‌مانند (قرارداد [hidden]) — بدون دکمه", async () => {
+    const { host, root } = mount(createElement(GroupCard, { g: group(5), collapsed: true, order: "newest", handlers } as any));
+    await tick();
+    expect(host.querySelectorAll(".group .item").length).toBe(5);
+    expect(host.querySelector(".group-items")?.hasAttribute("hidden")).toBe(true);
+    expect(host.querySelector(".show-all")).toBeNull();
+    root.unmount();
+  });
+});

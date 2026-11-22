@@ -16,6 +16,21 @@
    modern minimal look — one bigger radius family (soft corners) and low-ambient
    shadows instead of hairline-inset depth. The frozen palettes (uitheme.test.ts)
    are untouched. */
+
+/* ---------- UI font (v0.24.0) — bundled, offline, CSP-safe ----------
+   Dastkhat (built on Vazirmatn, Latin from Roboto; SIL OFL 1.1 — the license
+   file ships next to the font). ONE variable file carries weights 100–900.
+   The @font-face lives here so BOTH pages load it; the content side repeats
+   it in mark-style.css (injected into web pages) + manifest
+   web_accessible_resources. No remote font URL anywhere — the offline rule. */
+@font-face {
+  font-family: "Dastkhat";
+  src: url("/fonts/Dastkhat-Variable.woff2") format("woff2-variations"),
+       url("/fonts/Dastkhat-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
 :root {
   color-scheme: dark;
 
@@ -80,8 +95,11 @@
   --destructive: var(--danger);
   --success: var(--ok-text);
   --warning: var(--accent-h);
-  /* shape scale — Weboo's component radii read the graphite shapes */
+  /* shape scale — Weboo's component radii read the graphite shapes.
+     v0.24.0: surfaces/overlays drop to a 16px family (nested-radius
+     discipline — cards 12–16, panels 14–20); controls stay at graphite's
+     --shape-control. Graphite's delivered --shape-* tokens stay pristine. */
   --r-ctl: var(--shape-control);
-  --r-surface: var(--shape-surface);
-  --r-overlay: var(--shape-overlay);
+  --r-surface: 16px;
+  --r-overlay: 16px;
 }

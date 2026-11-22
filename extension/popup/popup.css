@@ -20,16 +20,7 @@
   --toggle: #d1d5db;
   --ok-text: #047857;
   --shadow: 0 1px 3px rgba(17, 24, 39, .1);
-  /* Air canvas (v0.12 redesign): a light gradient behind the UI — an amber glow
-     at the RTL start corner and a sky glow at the end corner over an airy base.
-     --bg above keeps the flat value for the contrast contract (uitheme.test.ts)
-     and as the dark-theme canvas; the gradient is a light-only layer. */
-  --bg-grad:
-    radial-gradient(420px 280px at 100% 0%, rgba(251, 191, 36, .15), transparent 72%),
-    radial-gradient(400px 260px at 0% 100%, rgba(147, 197, 253, .17), transparent 72%),
-    linear-gradient(168deg, #fbfbfd 0%, #f5f4f8 52%, #f1f4f8 100%);
-  /* Glass chrome (v0.12): the translucent header/footer color — the canvas
-     gradient breathes through; solid var(--card) stays the dark fallback. */
+  /* v0.24.0 — flat canvas: the Air washes retired (the unslop round). */
   --glass: color-mix(in srgb, var(--card) 76%, transparent);
   --hairline: color-mix(in srgb, var(--line) 55%, transparent);
 }
@@ -103,7 +94,7 @@ html, body { width: 370px; margin: 0; padding: 0; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: Vazirmatn, 'Segoe UI', Tahoma, sans-serif;
+  font-family: Dastkhat, Vazirmatn, 'Segoe UI', Tahoma, sans-serif;
 /* English UI (v0.14.0): Latin-first stack — no new fonts, just the order. */
 /* one font stack for EVERY UI language — Vazirmatn first (its Latin
    glyphs cover the Latin-language UIs; other scripts fall back per-glyph) */
@@ -116,14 +107,8 @@ body {
   flex-direction: column;
   height: 560px;
   overflow: hidden;
-  background: var(--bg-grad, var(--bg));
+  background: var(--bg); /* v0.24.0 — flat canvas (the Air washes retired) */
 }
-
-/* Dark theme keeps the flat canvas — the gradient is a light-only layer */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .wrap { background: var(--bg); }
-}
-:root[data-theme="dark"] .wrap { background: var(--bg); }
 
 /* ---------- Header ---------- */
 .hdr {
@@ -247,11 +232,17 @@ body {
 html[dir="ltr"] .page-host { text-align: left; }
 html[dir="ltr"] .toggle-txt .small { text-align: left; }
 .chips { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+/* v0.24.0 — the page's highlight count reads as quiet text with a dot */
 .chip {
+  display: inline-flex; align-items: center; gap: 6px;
   font-size: 11.5px; font-weight: 700;
-  color: var(--accent-h); background: var(--accent-soft);
-  border: 1px solid var(--accent-line);
-  padding: 2px 10px; border-radius: 999px;
+  color: var(--accent-h); background: transparent;
+}
+.chip::before {
+  content: "";
+  width: 6px; height: 6px; border-radius: 50%;
+  background: color-mix(in srgb, var(--accent-h) 55%, transparent);
+  flex: none;
 }
 
 /* ---------- Site toggle ---------- */

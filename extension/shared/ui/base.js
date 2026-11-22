@@ -26,7 +26,7 @@ import { setLanguage, getLanguage, dirOf, validLanguage } from "../i18n.js";
 import { domkit } from "../domkit.js";
 
 
-  var FONT = "Vazirmatn, 'Segoe UI', Tahoma, sans-serif";
+  var FONT = "Dastkhat, Vazirmatn, 'Segoe UI', Tahoma, sans-serif"; /* v0.24.0 — bundled Dastkhat first (see globals.css @font-face) */
 
   /* ---------- Content widget theming (aligned with the extension UI theme) ---------- */
 

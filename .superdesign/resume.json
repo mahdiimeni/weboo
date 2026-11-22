@@ -5,7 +5,7 @@
       "targetKind": "existing-ui",
       "projectId": "86cd9350-d665-4b0a-ba48-39992b8bbe9c",
       "baselineDraftId": "9b518e4a-cba6-4595-82f1-83b4319c0307",
-      "activeDraftId": "9b518e4a-cba6-4595-82f1-83b4319c0307",
+      "activeDraftId": "f4e42fde-1aec-4fad-8fd9-8172a164908a",
       "designSystemPath": ".superdesign/design-system.md",
       "referenceIds": [],
       "contextFiles": [
@@ -47,9 +47,9 @@
         },
         "f4e42fde-1aec-4fad-8fd9-8172a164908a": {
           "title": "داشبورد وبو — تنظیمات جدید",
-          "visualDirection": "branch 1 — grouped & quieter: 3 logical groups, neutral headers (amber only for active states), theme as 3-up preview mini-cards, language inline, one quiet color-dot row with selected-name label, compressed hosts add-row",
+          "visualDirection": "branch 1 — grouped & quieter; v2 = implementation sync to shipped v0.23.1 (8593d03 + 446bcce): grouped drawer, theme preview mini-cards, flat amber logo, tabular figures, weight 700 titles — imported via design-with-your-model",
           "parentDraftId": "9b518e4a-cba6-4595-82f1-83b4319c0307",
-          "currentVersion": 1
+          "currentVersion": 2
         },
         "a0465e8d-0472-4e3b-b7aa-9984421553f1": {
           "title": "داشبورد وبو — تنظیمات (ساختار جدید)",
@@ -58,7 +58,7 @@
           "currentVersion": 1
         }
       },
-      "updatedAt": "2026-11-21T00:00:00Z"
+      "updatedAt": "2026-11-22T00:00:00Z"
     },
     "dashboard-main": {
       "targetKind": "existing-ui",

@@ -153,6 +153,7 @@ const en = {
     'card.order.pageTitle': 'Highlights are currently in page (reading) order; press to reverse the order',
     'card.order.pageRevTitle': 'Highlights are currently in reversed page order; press to restore reading order',
     'card.orderAria': 'Highlight order for this article: {label}',
+    'card.showAll': { one: 'Show 1 more highlight', other: 'Show {n} more highlights' },
     'card.viewPageTitle': 'Open this page in a new tab',
     'card.deleteGroupTitle': 'Delete everything from this page',
     /* ---------- highlight item ---------- */
@@ -458,6 +459,7 @@ const fa = {
     'card.order.pageTitle': 'ترتیب فعلی هایلایت‌ها: به ترتیب قرارگیری در متن صفحه؛ برای تغییر ترتیب، این دکمه را بزنید',
     'card.order.pageRevTitle': 'ترتیب فعلی هایلایت‌ها: برعکسِ ترتیب قرارگیری در متن صفحه؛ برای تغییر ترتیب، این دکمه را بزنید',
     'card.orderAria': 'ترتیب نمایش هایلایت‌های این مقاله: {label}',
+    'card.showAll': 'نمایش {n} هایلایت دیگر',
     'card.viewPageTitle': 'باز کردن این صفحه در تب جدید',
     'card.deleteGroupTitle': 'حذف همه‌ی این صفحه',
     /* ---------- highlight item ---------- */
@@ -764,6 +766,7 @@ const de = {
     'card.order.pageTitle': 'Aktuelle Reihenfolge der Highlights: in Lesereihenfolge der Seite; zum Umdrehen drücken',
     'card.order.pageRevTitle': 'Aktuelle Reihenfolge der Highlights: umgekehrte Lesereihenfolge der Seite; zum Umdrehen drücken',
     'card.orderAria': 'Reihenfolge der Highlights dieses Artikels: {label}',
+    'card.showAll': { one: '1 weiteres Highlight anzeigen', other: '{n} weitere Highlights anzeigen' },
     'card.viewPageTitle': 'Diese Seite in einem neuen Tab öffnen',
     'card.deleteGroupTitle': 'Alles von dieser Seite löschen',
     /* ---------- highlight item ---------- */
@@ -1068,6 +1071,7 @@ const es = {
     'card.order.pageTitle': 'Orden actual de los resaltados: según su posición en la página; pulsa para invertirlo',
     'card.order.pageRevTitle': 'Orden actual de los resaltados: posición inversa en la página; pulsa para restaurar el orden de lectura',
     'card.orderAria': 'Orden de los resaltados de este artículo: {label}',
+    'card.showAll': { one: 'Mostrar 1 resaltado más', other: 'Mostrar {n} resaltados más' },
     'card.viewPageTitle': 'Abrir esta página en una pestaña nueva',
     'card.deleteGroupTitle': 'Eliminar todo lo de esta página',
     /* ---------- highlight item ---------- */
@@ -1373,6 +1377,7 @@ const ru = {
     'card.order.pageTitle': 'Текущий порядок выделений: по расположению в тексте страницы; нажмите, чтобы изменить порядок',
     'card.order.pageRevTitle': 'Текущий порядок выделений: обратный порядку в тексте страницы; нажмите, чтобы вернуть порядок чтения',
     'card.orderAria': 'Порядок выделений этой статьи: {label}',
+    'card.showAll': { one: 'Показать ещё {n} выделение', few: 'Показать ещё {n} выделения', many: 'Показать ещё {n} выделений', other: 'Показать ещё {n} выделений' },
     'card.viewPageTitle': 'Открыть эту страницу в новой вкладке',
     'card.deleteGroupTitle': 'Удалить всё с этой страницы',
     /* ---------- highlight item ---------- */
@@ -1676,6 +1681,7 @@ const it = {
     'card.order.pageTitle': 'Ordine attuale delle evidenziazioni: secondo la posizione nella pagina; premi per invertirlo',
     'card.order.pageRevTitle': 'Ordine attuale delle evidenziazioni: posizione inversa nella pagina; premi per ripristinare l’ordine di lettura',
     'card.orderAria': 'Ordine delle evidenziazioni di questo articolo: {label}',
+    'card.showAll': { one: 'Mostra 1 altra evidenziazione', other: 'Mostra altre {n} evidenziazioni' },
     'card.viewPageTitle': 'Apri questa pagina in una nuova scheda',
     'card.deleteGroupTitle': 'Elimina tutto di questa pagina',
     /* ---------- highlight item ---------- */
@@ -1981,6 +1987,7 @@ const fr = {
     'card.order.pageTitle': 'Ordre actuel des surlignages : selon leur position dans la page ; appuyez pour inverser',
     'card.order.pageRevTitle': 'Ordre actuel des surlignages : position inverse dans la page ; appuyez pour rétablir l’ordre de lecture',
     'card.orderAria': 'Ordre des surlignages de cet article : {label}',
+    'card.showAll': { one: 'Afficher 1 autre surlignage', other: 'Afficher {n} autres surlignages' },
     'card.viewPageTitle': 'Ouvrir cette page dans un nouvel onglet',
     'card.deleteGroupTitle': 'Supprimer tout le contenu de cette page',
     /* ---------- highlight item ---------- */
@@ -2285,6 +2292,7 @@ const tr = {
     'card.order.pageTitle': 'Mevcut vurgulama sırası: sayfadaki konumuna göre; tersine çevirmek için basın',
     'card.order.pageRevTitle': 'Mevcut vurgulama sırası: sayfadaki konumunun tersi; okuma sırasını geri almak için basın',
     'card.orderAria': 'Bu makalenin vurgulama sırası: {label}',
+    'card.showAll': { one: '1 vurgulamayı daha göster', other: '{n} vurgulamayı daha göster' },
     'card.viewPageTitle': 'Bu sayfayı yeni sekmede aç',
     'card.deleteGroupTitle': 'Bu sayfanın her şeyini sil',
     /* ---------- highlight item ---------- */
@@ -2591,6 +2599,7 @@ const zh = {
     'card.order.pageTitle': '当前高亮顺序：按在页面中的位置；点击可反转',
     'card.order.pageRevTitle': '当前高亮顺序：按页面中的位置倒序；点击可恢复阅读顺序',
     'card.orderAria': '此文章的高亮顺序：{label}',
+    'card.showAll': '显示其余 {n} 条高亮',
     'card.viewPageTitle': '在新标签页中打开此页面',
     'card.deleteGroupTitle': '删除此页面的全部内容',
     /* ---------- highlight item ---------- */
@@ -2895,6 +2904,7 @@ const ja = {
     'card.order.pageTitle': '現在のハイライト順：ページ内の位置どおり。押すと順序が反転します',
     'card.order.pageRevTitle': '現在のハイライト順：ページ内の位置の逆順。押すと読書順に戻ります',
     'card.orderAria': 'この記事のハイライト順：{label}',
+    'card.showAll': '残り {n} 件のハイライトを表示',
     'card.viewPageTitle': 'このページを新しいタブで開く',
     'card.deleteGroupTitle': 'このページのすべてを削除',
     /* ---------- highlight item ---------- */
@@ -3200,6 +3210,7 @@ const ko = {
     'card.order.pageTitle': '현재 하이라이트 순서: 페이지 내 위치순. 누르면 역순이 됩니다',
     'card.order.pageRevTitle': '현재 하이라이트 순서: 페이지 내 위치의 역순. 누르면 읽기 순서로 돌아갑니다',
     'card.orderAria': '이 문서의 하이라이트 순서: {label}',
+    'card.showAll': '나머지 하이라이트 {n}개 보기',
     'card.viewPageTitle': '이 페이지를 새 탭에서 열기',
     'card.deleteGroupTitle': '이 페이지의 모든 항목 삭제',
     /* ---------- highlight item ---------- */
@@ -3507,6 +3518,7 @@ const ar = {
     'card.order.pageTitle': 'الترتيب الحالي للتمييزات: بحسب موضعها في الصفحة؛ اضغط لعكسه',
     'card.order.pageRevTitle': 'الترتيب الحالي للتمييزات: عكس موضعها في الصفحة؛ اضغط لاستعادة ترتيب القراءة',
     'card.orderAria': 'ترتيب تمييزات هذه المقالة: {label}',
+    'card.showAll': { zero: 'لا تمييزات أخرى', one: 'اعرض تمييزًا واحدًا آخر', two: 'اعرض تمييزين آخرين', few: 'اعرض {n} تمييزات أخرى', many: 'اعرض {n} تمييزًا آخر', other: 'اعرض {n} تمييز آخر' },
     'card.viewPageTitle': 'فتح هذه الصفحة في تبويب جديد',
     'card.deleteGroupTitle': 'حذف كل ما في هذه الصفحة',
     /* ---------- highlight item ---------- */

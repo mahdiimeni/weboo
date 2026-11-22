@@ -12,6 +12,7 @@
  *      turned into a test (v1.2.2)
  */
 import { describe, test, expect, beforeEach } from "bun:test";
+import { existsSync } from "node:fs";
 import { setupDom, loadEngine, readFile, ext } from "./helpers/engine";
 
 let HL: any;
@@ -292,20 +293,42 @@ function pageVars(rel: string[], which: "light" | "media-dark" | "forced-dark"):
   return varMap(m[1]);
 }
 
-/* ---------- font stack contract (v0.22.1) ----------
-   ONE font stack for every UI language: Vazirmatn first. The i18n era added
-   an html[dir="ltr"] body override that demoted Vazirmatn to second for all
-   LTR languages (English, German, …) — the reported "wrong font" bug.
-   The stack is language-independent; other scripts fall back per-glyph. */
-describe("قرارداد فونت — یک پشته برای همه‌ی زبان‌ها (v0.22.1)", () => {
+/* ---------- font stack contract (v0.24.0) ----------
+   ONE font stack for every UI language: the bundled Dastkhat variable font
+   first (built on Vazirmatn, Latin from Roboto; SIL OFL 1.1 — the license
+   file ships beside it), Vazirmatn as the per-glyph fallback. The @font-face
+   lives in globals.css (pages) and mark-style.css (content widgets); the
+   woff2 is BUNDLED — no remote font URL anywhere (the offline rule). */
+describe("قرارداد فونت — یک پشته برای همه‌ی زبان‌ها (v0.24.0)", () => {
   const bodyFont = (rel: string[]) =>
     readFile(ext(...rel)).match(/(?:^|\n)\s*body \{[^}]*font-family: ([^;]+);/)?.[1];
 
-  test("داشبورد و پاپ‌آپ: Vazirmatn اول است", () => {
+  test("داشبورد و پاپ‌آپ: Dastkhat اول است", () => {
     for (const rel of [["dashboard", "dashboard.css"], ["popup", "popup.css"]]) {
       const font = bodyFont(rel);
-      expect(font?.startsWith("Vazirmatn")).toBe(true);
+      expect(font?.startsWith("Dastkhat")).toBe(true);
     }
+  });
+
+  test("فونت باندل شده: فایل در extension/fonts هست و @font-face در هر دو لایه", () => {
+    expect(existsSync(ext("fonts", "Dastkhat-Variable.woff2"))).toBe(true);
+    expect(existsSync(ext("fonts", "Dastkhat-OFL.txt"))).toBe(true); /* OFL 1.1 — همراه فایل */
+    for (const rel of [["globals.css"], ["content", "mark-style.css"]]) {
+      const css = readFile(ext(...rel));
+      expect(css).toMatch(/@font-face\s*\{[^}]*font-family: ?"Dastkhat"/);
+    }
+  });
+
+  test("قرارداد آفلاین: هیچ URL فونت راه‌دوری وجود ندارد", () => {
+    for (const rel of [["globals.css"], ["dashboard", "dashboard.css"], ["popup", "popup.css"], ["content", "mark-style.css"]]) {
+      const css = readFile(ext(...rel));
+      expect(css).not.toMatch(/url\(\s*['"]?https?:\/\//);
+    }
+  });
+
+  test("مصرف فونت از web_accessible_resources می‌گذرد", () => {
+    const m = JSON.parse(readFile(ext("manifest.json")) as string) as { web_accessible_resources?: Array<{ resources: string[] }> };
+    expect(m.web_accessible_resources?.[0]?.resources).toContain("fonts/*.woff2");
   });
 
   test("هیچ بازنویسی فونتی وابسته به dir وجود ندارد", () => {
@@ -478,14 +501,18 @@ describe("قرارداد کپسول آبی و ردیف اکشن سرصفحه —
 
   const dashCss = () => readFile(ext("dashboard", "dashboard.css"));
 
-  test("کپسول .chip به توکن‌های آبی وصل است — پس‌زمینه‌ی شفاف (v0.23.0 outlined)، نه hex خام، نه آمبر", () => {
+  test("شمارند .chip متنِ آرام با نقطه است (v0.24.0 de-pill) — نه hex خام، نه آمبر", () => {
     const m = dashCss().match(/\.chip\s*\{([^}]*)\}/);
     if (!m) throw new Error("بلوک .chip پیدا نشد");
     const body = m[1].replace(/\/\*[\s\S]*?\*\//g, "");
     expect(body).toMatch(/color\s*:\s*var\(--info-h\)/);
-    expect(body).toMatch(/background\s*:\s*transparent/); /* v0.23.0 — quieter scan line */
-    expect(body).toMatch(/border\s*:\s*1px solid var\(--info-line\)/);
+    expect(body).toMatch(/background\s*:\s*transparent/);
+    expect(body).not.toMatch(/border|border-radius|padding/); /* متنِ آرام، نه کپسول */
     expect(body).not.toMatch(/--accent|#[0-9a-fA-F]{3,8}/); /* فقط توکن */
+    const dot = dashCss().match(/\.chip::before\s*\{([^}]*)\}/);
+    if (!dot) throw new Error("نقطه‌ی .chip::before پیدا نشد");
+    expect(dot[1]).toMatch(/content\s*:\s*""/);
+    expect(dot[1]).toMatch(/color-mix\(in srgb, var\(--info-h\)/);
   });
 
   test("ردیف اکشن: یک ارتفاع واحد + دکمه‌ی آیکونی مربع", () => {
