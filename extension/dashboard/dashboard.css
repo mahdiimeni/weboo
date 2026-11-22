@@ -1,23 +1,32 @@
 /* Weboo — dashboard styles (RTL, responsive down to 380px)
    Theme: auto = follow the system (default); light/dark = user's forced choice (data-theme).
-   ⚠️ The «:root[data-theme="dark"]» block must stay in sync with the dark palette inside the media query. */
+   ⚠️ The «:root[data-theme="dark"]» block must stay in sync with the dark palette inside the media query.
+
+   v0.25 design round («the reading desk», unslop × frontend-design):
+   the world is the reader's desk — warm paper in daylight, deep ink at night;
+   the only rich hues are the six marker inks, exactly where a highlighter
+   touches paper. The chrome goes quiet (flat surfaces, hairlines, no pill
+   inflation, weights 400–600 on a real type scale) and the marker ink-line
+   becomes the one structural motif. The dark palette is CONTRACT-FROZEN
+   (uitheme.test.ts «دارک دست نزن») — byte-identical values below. */
 
 :root {
   color-scheme: light dark;
-  /* Light palette (v1.2.2): tonal steps one notch deeper than the base
-     gray/amber/green/red so cards/borders/hovers/note boxes get past the
-     lightness-contrast threshold — the contract tested in uitheme.test.ts. */
-  --bg: #f3f4f6;
-  --card: #fff;
-  --text: #1f2937;
-  --muted: #4b5563;
-  --line: #d1d5db;
+  /* Light palette — the paper ramp (v0.25): warm neutrals with contrast floors
+     per uitheme.test.ts (card↔canvas 0.05, edges 0.25, hover 0.15, chip 0.05,
+     muted ≥ 6:1 AA). Amber stays the brand accent and is reserved for
+     selection and the primary action. */
+  --bg: #f7f5f0;
+  --card: #fffdf9;
+  --text: #26231c;
+  --muted: #5d584c;
+  --line: #d5d0c2;
   --accent: #d97706;
   --accent-h: #b45309;
   --accent-soft: #fef3c7;
   --accent-line: rgba(217, 119, 6, .45);
-  --hover: #e5e7eb;
-  --toggle: #d1d5db;
+  --hover: #eceade;
+  --toggle: #c9c3b4;
   --ok-bg: #dcfce7;
   --ok-line: #86efac;
   --ok-text: #166534;
@@ -25,15 +34,15 @@
   --danger-h: #b91c1c;
   --danger-bg: #fee2e2;
   --danger-line: #fca5a5;
-  /* Light-blue count capsules (v0.6.3) — the owner's requested chip color;
-     the amber accent stays the chrome accent. Same tonal discipline as the
-     amber trio (text/soft/line — uitheme.test.ts floors apply). */
+  /* Light-blue count capsules (v0.6.3) — the count semantic; the amber accent
+     stays the chrome accent. Same tonal discipline as the amber trio
+     (uitheme.test.ts floors apply). */
   --info-h: #1d4ed8;
   --info-soft: #dbeafe;
   --info-line: rgba(59, 130, 246, .45);
-  --shadow: 0 1px 3px rgba(17, 24, 39, .1);
-  /* v0.24.0 — flat canvas: the Air washes retired (the unslop round); the
-     surfaces carry the design on their own. Glass chrome + hairlines stay. */
+  --shadow: 0 1px 3px rgba(41, 36, 26, .08);
+  /* v0.24.0 — flat canvas: content cards are flat + hairline; the Air washes
+     stay retired. Glass chrome + hairlines on the sticky header only. */
   --glass: color-mix(in srgb, var(--card) 74%, transparent);
   --hairline: color-mix(in srgb, var(--line) 55%, transparent);
   --edge: color-mix(in srgb, var(--line) 62%, transparent);
@@ -99,11 +108,12 @@
 }
 
 /* ---------- Design language (v0.10.0 — craft rules learned from VibeFarsi)
-   ONE shape/depth/motion scale for the whole surface. The color palettes
-   above are contract-frozen (uitheme.test.ts «دارک دست نزن»); this layer is
-   the craft that rides on top: a radius scale instead of ad-hoc values,
-   one motion curve, press feedback on controls, one big-soft depth for
-   overlays, hairline cards — and reduced-motion is honored. */
+   ONE shape/depth/motion scale. The color palettes above are contract-frozen
+   (uitheme.test.ts «دارک دست نزن»); this layer is the craft that rides on
+   top: a radius scale, one motion curve, press feedback, hairline surfaces —
+   and reduced-motion is honored. v0.25: type weights 400–600 (hierarchy by
+   size and color, not boldness), one 7-step type scale, pills reserved for
+   true controls. */
 :root {
   /* shape/motion/press/depth now live in globals.css (the Graphite token
      layer) — components read the r/press/depth tokens from there; only the
@@ -139,17 +149,15 @@ body {
   font-size: 14px;
   line-height: 1.8;
 }
-/* English UI (v0.14.0): Latin-first stack — no new fonts, just the order.
-   Persian USER content inside cards still renders via the fallbacks. */
 /* one font stack for EVERY UI language — Dastkhat first since v0.24.0 (its
    Latin glyphs come from Roboto; Vazirmatn stays the per-glyph fallback) */
 
 .muted { color: var(--muted); }
 .small { font-size: 12px; }
-.warn { color: var(--danger-h); font-weight: 700; }
+.warn { color: var(--danger-h); font-weight: 500; }
 
-/* v0.23.1 unslop pass — figures align: one numeric rendering for every
-   number carrier (stats, dates, counts, badges) */
+/* v0.23.1 — figures align: one numeric rendering for every number carrier
+   (stats, dates, counts, badges) */
 .stat-num, .ver, .size-badge, .chip, .dir-sec-count, .tchip-n, .item-date, .hl-meta {
   font-variant-numeric: tabular-nums;
 }
@@ -184,34 +192,32 @@ body {
 }
 .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .logo {
-  width: 38px; height: 38px; border-radius: var(--r-ctl); flex: none;
-  background: var(--accent); /* v0.23.1 unslop pass — flat brand tile, no gradient */
+  width: 38px; height: 38px; border-radius: 10px; flex: none;
+  background: var(--accent); /* the flat brand tile — one solid ink, no gradient */
   color: #fff; display: grid; place-items: center;
 }
 .brand-txt { display: flex; flex-direction: column; }
-.brand-txt strong { font-size: 16px; font-weight: 700; line-height: 1.4; }
+.brand-txt strong { font-size: 16px; font-weight: 600; line-height: 1.4; }
+/* v0.25 — the version is quiet meta, not a capsule */
 .ver {
-  font-size: 11px; font-weight: 700;
-  color: var(--accent-h); background: var(--accent-soft);
-  border: 1px solid var(--accent-line);
-  padding: 3px 10px; border-radius: 999px;
-  align-self: center; margin-inline-start: 4px;
+  font-size: 11px; font-weight: 500;
+  color: var(--muted);
+  align-self: center; margin-inline-start: 6px;
+  direction: ltr;
 }
 .topbar-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 /* v0.6.3 — ONE explicit action-row height: the text button («کتابچه»), the
    two icon-only buttons and the size badge all share it, so the row reads as
-   one aligned family in every theme and viewport (the badge was visibly
-   shorter before — the owner's aspect-ratio request). .btn keeps its own
+   one aligned family in every theme and viewport. .btn keeps its own
    padding; flex centers the content vertically inside the fixed height. */
 .topbar-actions .btn,
 .topbar-actions .size-badge { height: 40px; }
+/* v0.25 — the stored-size badge is quiet meta: plain text, no capsule */
 .size-badge {
   display: inline-flex; align-items: center;
-  font-size: 12px; font-weight: 700;
+  font-size: 12px; font-weight: 500;
   color: var(--muted);
-  background: var(--hover);
-  border: 1px solid var(--line);
-  padding: 0 12px; border-radius: 999px;
+  padding: 0 4px;
   white-space: nowrap;
 }
 
@@ -221,8 +227,8 @@ body {
   /* the 40px control system: text buttons, icon buttons and inputs are all
      exactly 40px tall (the action-row contract, now literal) — buttons also
      pin line-height 1.5 so the body's 1.8 can't inflate them to 41 */
-  height: 40px; padding: var(--sp-2) var(--sp-4); border-radius: var(--r-ctl);
-  font: inherit; font-weight: 700; font-size: 13px; line-height: 1.5;
+  height: 40px; padding: var(--sp-2) var(--sp-4); border-radius: 10px;
+  font: inherit; font-weight: 500; font-size: 13px; line-height: 1.5;
   cursor: pointer; border: 1px solid transparent;
   transition: background var(--motion), border-color var(--motion), color var(--motion);
 }
@@ -234,23 +240,19 @@ body {
 .btn-danger { background: var(--danger); color: #fff; }
 .btn-danger:hover { background: var(--danger-h); }
 .btn:disabled { opacity: .55; cursor: not-allowed; }
-/* Button in the two-step confirm state */
+/* Button in the two-step confirm state — v0.25: STATIC (the looping pulse is
+   gone; the color swap is the message) */
 .btn.armed {
   background: var(--danger-bg) !important;
   color: var(--danger-h) !important;
   border-color: var(--danger-line) !important;
-  animation: pulse 1.2s ease-in-out infinite;
-}
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, .25); }
-  50% { box-shadow: 0 0 0 5px rgba(220, 38, 38, 0); }
 }
 
 .icon-btn {
   width: 32px; height: 32px; flex: none;
   display: grid; place-items: center;
   border: none; background: transparent;
-  color: var(--muted); border-radius: var(--r-ctl); cursor: pointer;
+  color: var(--muted); border-radius: 10px; cursor: pointer;
   transition: background var(--motion) var(--motion-ease), color var(--motion) var(--motion-ease);
 }
 .icon-btn:hover { background: var(--hover); color: var(--text); }
@@ -258,12 +260,12 @@ body {
 .icon-btn.armed {
   width: auto; padding: 0 10px;
   background: var(--danger-bg); color: var(--danger-h);
-  font-size: 11.5px; font-weight: 700;
+  font-size: 12px; font-weight: 500;
 }
 
-/* Icon-only .btn (v0.6.3) — the topbar's «خروجی پشتیبان» and «تنظیمات»:
-   their names live in aria-label/title (HTML), the square shape here. Same
-   height family as the action row (40px), a 15px icon centered inside. */
+/* Icon-only .btn (v0.6.3) — the topbar's icon buttons: their names live in
+   aria-label/title (HTML), the square shape here. Same height family as the
+   action row (40px), a 15px icon centered inside. */
 .btn-icon { width: 40px; padding-inline: 0; }
 
 /* Press feedback — the VibeFarsi craft rule: controls answer the pointer
@@ -278,43 +280,37 @@ body {
   padding: 20px 16px 44px;
 }
 
-/* ---------- Stats — v0.23.0 «compact & scannable» ----------
-   ONE slim strip instead of four heavy cards: the four stat groups sit
-   inline, separated by hairline dividers (the sibling rule). The ids and
-   the .stat-num/.stat-lbl contract survive — the E2E smokes query #st-*. */
-.stats { margin-bottom: 16px; }
+/* ---------- Stats — v0.25 «the summary line» ----------
+   No card, no dividers: the four figures read as ONE quiet line on the
+   canvas — number (ink, 600) then label (muted), grouped by whitespace.
+   The ids and the .stat-num/.stat-lbl contract survive — the E2E smokes
+   query #st-*. */
+.stats { margin-bottom: 20px; }
 .stats-strip {
-  background: var(--card);
-  border: 1px solid var(--edge, var(--line));
-  border-radius: var(--r-surface);
-  box-shadow: var(--depth-surface);
-  padding: 8px var(--sp-4);
-  display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap;
+  padding: 0 4px;
+  display: flex; align-items: baseline; justify-content: flex-start; flex-wrap: wrap;
+  column-gap: 32px; row-gap: 8px;
 }
 .stat-group {
-  display: flex; flex-direction: column; align-items: center; gap: 0;
-  padding: 4px var(--sp-4);
-  text-align: center; /* the number and its label read centered in the group */
+  display: flex; align-items: baseline; gap: 8px;
+  padding: 0;
 }
-.stat-group + .stat-group { border-inline-start: 1px solid var(--hairline, var(--line)); }
-.stat-num { font-size: 20px; font-weight: 800; color: var(--accent-h); line-height: 1.35; }
+.stat-num { font-size: 20px; font-weight: 600; color: var(--text); line-height: 1.2; }
 .stat-lbl { color: var(--muted); font-size: 12px; line-height: 1.6; }
 
-/* ---------- Filter toolbar ---------- */
+/* ---------- Filter toolbar — v0.25: quiet chrome on the canvas ----------
+   The toolbar stops being a card: search keeps its field, the chip rows sit
+   directly on the paper. */
 .toolbar {
-  background: var(--card);
-  border: 1px solid var(--edge, var(--line));
-  border-radius: var(--r-surface);
-  padding: var(--sp-3) var(--sp-4);
-  box-shadow: var(--depth-surface);
-  display: flex; flex-direction: column; gap: 8px;
-  margin-bottom: 16px;
+  padding: 0;
+  display: flex; flex-direction: column; gap: 10px;
+  margin-bottom: 20px;
 }
 .search-box {
   display: flex; align-items: center; gap: 8px;
-  border: 1px solid var(--edge, var(--line)); border-radius: var(--r-ctl);
+  border: 1px solid var(--edge, var(--line)); border-radius: 10px;
   padding: 0 var(--sp-3); height: 40px;
-  background: color-mix(in srgb, var(--bg) 55%, var(--card));
+  background: var(--card);
   transition: border-color var(--motion) var(--motion-ease);
 }
 .search-box:focus-within { border-color: var(--accent); }
@@ -333,14 +329,14 @@ body {
 .color-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .cchip {
   display: inline-flex; align-items: center; gap: 8px;
-  border: 1px solid var(--line); border-radius: 999px;
+  border: 1px solid var(--line); border-radius: 8px;
   background: var(--card); color: var(--text);
-  padding: 4px 12px;
-  font: inherit; font-size: 12.5px; font-weight: 600;
+  padding: 4px 10px;
+  font: inherit; font-size: 12px; font-weight: 500;
   cursor: pointer;
   transition: border-color var(--motion), background var(--motion);
 }
-.cchip .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.cchip .dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
 .cchip:hover { border-color: var(--accent); }
 .cchip.active {
   border-color: var(--accent);
@@ -358,10 +354,10 @@ body {
 .tag-chips { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .tchip {
   display: inline-flex; align-items: center; gap: 8px;
-  border: 1px solid var(--line); border-radius: 999px;
+  border: 1px solid var(--line); border-radius: 8px;
   background: var(--card); color: var(--text);
-  padding: 4px 12px;
-  font: inherit; font-size: 12px; font-weight: 600;
+  padding: 4px 10px;
+  font: inherit; font-size: 12px; font-weight: 500;
   cursor: pointer;
   transition: border-color var(--motion), background var(--motion), color var(--motion) var(--motion-ease);
 }
@@ -372,11 +368,11 @@ body {
   color: var(--accent-h);
 }
 .tchip-n {
-  font-size: 10.5px; font-weight: 700;
+  font-size: 11px; font-weight: 500;
   color: var(--muted);
   background: var(--hover);
-  border-radius: 999px;
-  padding: 0 7px;
+  border-radius: 6px;
+  padding: 0 6px;
   line-height: 1.7;
 }
 .tchip.active .tchip-n { background: var(--card); color: var(--accent-h); }
@@ -408,20 +404,18 @@ body {
 .switch input:checked ~ .track { background: var(--accent); }
 .switch input:checked ~ .track .knob { inset-inline-start: calc(100% - 21px); }
 .switch input:focus-visible ~ .track { outline: 2px solid var(--accent); outline-offset: 2px; }
-.switch-lbl { font-size: 13px; font-weight: 600; }
+.switch-lbl { font-size: 13px; font-weight: 500; }
 
 /* ---------- Sort segmented control (v0.21.2 redesign) ----------
-   The three sort modes as always-visible segments in the chip family —
-   the old <select> hid the choices and «بر اساس صفحه» read like a mystery.
-   Everything rides the language/tokens: labels via data-i18n, shapes via
-   --r-ctl, colors from the frozen palette. */
+   The three sort modes as always-visible segments — a CONTROL, so it keeps
+   its pill shape; labels ride the language/tokens. */
 .seg { display: inline-flex; align-items: center; gap: 2px; margin-inline-start: auto;
   background: var(--card); border: 1px solid var(--line); border-radius: 999px;
   padding: 3px; }
 .seg-item {
   display: inline-flex; align-items: center;
   padding: 5px 12px; border-radius: 999px;
-  font-size: 12.5px; font-weight: 600; color: var(--muted);
+  font-size: 12px; font-weight: 500; color: var(--muted);
   cursor: pointer; user-select: none;
   transition: background var(--motion), color var(--motion);
 }
@@ -433,7 +427,7 @@ body {
    40px control height */
 .lang-select {
   width: 100%; height: 40px;
-  border: 1px solid var(--line); border-radius: var(--r-ctl);
+  border: 1px solid var(--line); border-radius: 10px;
   background: var(--card); color: var(--text);
   font: inherit; font-size: 13px; line-height: 1.5;
   padding: 0 12px; cursor: pointer;
@@ -444,11 +438,9 @@ body {
 .list-wrap { min-height: 200px; }
 
 /* ---------- List bar — bulk expand/collapse (v0.3.0) ----------
-   One quiet button above the direction sections flips every article card;
-   both modes also load all unloaded highlights (the controller lifts the
-   pagination limit — CSS only presents). The spacing lives on the BUTTON,
-   not the bar: a hidden button (display:none via the global [hidden] rule)
-   leaves zero footprint, so the empty state keeps its exact v0.2.0 geometry. */
+   One quiet button above the direction sections flips every article card.
+   The spacing lives on the BUTTON, not the bar: a hidden button leaves zero
+   footprint, so the empty state keeps its exact geometry. */
 .list-bar {
   display: flex; align-items: center; gap: 10px;
 }
@@ -459,31 +451,22 @@ body {
 
 /* ---------- Direction sections (v0.2.0) ----------
    RTL and LTR articles render in their own labeled sections; the section
-   holding the most recently highlighted article renders FIRST (the data
-   layer's leadDir decides, the controller wires it — CSS only presents).
-   The section takes no dir attribute: the Persian header stays in the
-   document's RTL flow while each card below applies its own v1.2.6 smart
-   direction. Quiet by design — the cards stay the visual protagonists.
-   Collapsible (v0.5.0): the header row is the section's toggle (the
-   group-head contract one level up) — pointer cursor, a rounded whisper
-   of a hover background, and the state chevron that rotates when the
-   section collapses. The whole row stays inside the content column. */
-.dir-sec { margin-top: var(--sp-4); }
+   holding the most recently highlighted article renders FIRST. Quiet by
+   design — the cards stay the visual protagonists. The band hairline runs
+   from the header to the end edge. */
+.dir-sec { margin-top: var(--sp-5); }
 .dir-sec:first-child { margin-top: 0; }
-.dir-sec + .dir-sec { margin-top: var(--sp-4); }
+.dir-sec + .dir-sec { margin-top: var(--sp-5); }
 .dir-sec-head {
   display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
   padding: 4px 8px;
-  margin-bottom: 8px;
-  border-radius: var(--r-ctl);
+  margin-bottom: 10px;
+  border-radius: 10px;
   cursor: pointer; user-select: none;
   transition: background var(--motion) var(--motion-ease);
 }
 .dir-sec-head:hover { background: var(--hover); }
 .dir-sec-head:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-/* v0.23.0 — the band rule: a hairline runs from the header to the end edge,
-   so the direction sections read as bands. Logical margin keeps it correct
-   in the document's RTL flow. */
 .dir-sec-head::after {
   content: "";
   flex: 1;
@@ -491,70 +474,58 @@ body {
   background: var(--hairline, var(--line));
   margin-inline-start: 6px;
 }
-/* State chevron (v0.5.0) — the card chev's quiet sibling; the head always
-   lives in the document's RTL flow, so one rotation rule mirrors the card's
-   (.group.collapsed .chev). */
 .dir-sec-chev { color: var(--muted); flex: none; transition: transform var(--motion) var(--motion-ease); }
 .dir-sec-chev svg { display: block; }
 .dir-sec.collapsed .dir-sec-chev { transform: rotate(90deg); }
-/* The collapsed body hides via the hidden attribute the view sets (the exact
-   .group-items mechanism) — .dir-sec-body carries no display rule of its own,
-   so the UA style stands and the headers keep their geometry untouched. */
+.dir-sec.collapsed .dir-sec-body[hidden] { display: none; }
 .dir-sec-title {
   display: inline-flex; align-items: center; gap: 8px;
   margin: 0;
-  font-size: 13px; font-weight: 700;
+  font-size: 12px; font-weight: 500;
   color: var(--muted);
   letter-spacing: 0;
 }
-.dir-ic { color: var(--accent-h); display: inline-flex; }
+.dir-ic { color: var(--muted); display: inline-flex; }
 .dir-ic svg { display: block; }
-/* v0.23.1 unslop pass — the count is quiet text next to the lead badge
-   (meta reads as text, not another capsule) */
 .dir-sec-count {
-  font-size: 11px; font-weight: 700;
+  font-size: 11px; font-weight: 500;
   color: var(--muted);
   white-space: nowrap;
 }
-/* Lead badge — the section that holds the most recently highlighted article
-   (and therefore renders on top). The dot echoes the accent color registry
-   (a filled accent dot, like the color chips). */
+/* Lead marker — v0.25: the ink-line. The section holding the most recent
+   article is marked by a short amber bar + quiet text; the capsule is gone. */
 .dir-sec-lead {
   display: inline-flex; align-items: center; gap: 6px;
-  font-size: 11px; font-weight: 700;
+  font-size: 11px; font-weight: 500;
   color: var(--accent-h);
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-line);
-  padding: 1px 10px;
-  border-radius: 999px;
   white-space: nowrap;
   cursor: help; /* the title tooltip explains the ordering rule */
 }
 .dir-sec-lead::before {
   content: "";
-  width: 6px; height: 6px; border-radius: 50%;
+  width: 10px; height: 3px; border-radius: 99px;
   background: var(--accent);
   flex: none;
 }
-.dir-sec-lead:hover { background: var(--accent-soft); filter: brightness(.97); }
+.dir-sec-lead:hover { color: var(--accent); }
 
-/* ---------- Library grid (v0.24.0) ----------
-   The section's article cards fill a responsive two-column grid — the
-   library reads as a collection of saved readings. Cards keep their full
-   feature set: the header, tags, the first two highlight rows, and a quiet
-   show-all row that expands the card to the complete list. */
+/* ---------- Library grid (v0.24.0 → v0.25 rhythm) ----------
+   The section's article cards fill a responsive two-column grid. Cards are
+   flat paper: hairline edge, no shadow — the ink-line color bars carry the
+   color. align-items:start + the fit-content group keep a collapsed card
+   from stretching to its row mate's height (the v0.24 stretch defect). */
 .dir-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 16px;
   align-items: start;
 }
-.dir-grid .group { margin-bottom: 0; }
+.dir-grid .group { margin-bottom: 0; align-self: start; }
 .show-all {
   display: block; width: 100%;
   padding: var(--sp-2) var(--sp-4);
   background: transparent; border: none; border-top: 1px dashed var(--line);
-  color: var(--muted); font: inherit; font-size: 12px; font-weight: 700;
+  color: var(--muted); font: inherit; font-size: 12px; font-weight: 500;
   cursor: pointer; text-align: center;
   transition: background var(--motion) var(--motion-ease), color var(--motion);
 }
@@ -564,8 +535,7 @@ body {
   background: var(--card);
   border: 1px solid var(--edge, var(--line));
   border-radius: var(--r-surface);
-  box-shadow: var(--depth-surface);
-  margin-bottom: 12px;
+  margin-bottom: 16px;
   overflow: hidden;
 }
 .group-head {
@@ -576,14 +546,17 @@ body {
 }
 .group-head:hover { background: var(--hover); }
 .group-head:focus-visible { outline-offset: -2px; }
+/* v0.25 — the favicon tile is neutral paper: the marker colors belong to the
+   highlights, not the chrome */
 .fl {
-  width: 42px; height: 42px; border-radius: var(--r-ctl); flex: none;
-  background: var(--accent-soft); color: var(--accent-h);
-  font-weight: 800; font-size: 18px;
+  width: 40px; height: 40px; border-radius: 10px; flex: none;
+  background: var(--bg); color: var(--muted);
+  border: 1px solid var(--hairline, var(--line));
+  font-weight: 500; font-size: 17px;
   display: grid; place-items: center;
   position: relative; overflow: hidden;
 }
-/* Real favicon (Chrome cache) — the first letter stays as placeholder/fallback */
+/* Real favicon (captured from the page) — the first letter stays as placeholder/fallback */
 .fl-img {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   object-fit: contain; padding: 6px; box-sizing: border-box;
@@ -594,23 +567,20 @@ body {
 .fl.has-fav { color: transparent; }
 .group-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .group-title {
-  font-size: 15px; font-weight: 700;
+  font-size: 15px; font-weight: 500; line-height: 1.5;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .group-url {
-  color: var(--muted); font-size: 11.5px;
+  color: var(--muted); font-size: 12px; line-height: 1.6;
   direction: ltr; text-align: right;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.gchips { display: flex; gap: 6px; flex: none; }
-/* Count capsules (v0.6.3): LIGHT BLUE — the owner's requested color, tokened
-   (--info-*) so both themes carry it with the same text/soft/line discipline
-   the amber accent taught (uitheme.test.ts asserts the floors + the wiring).
-   v0.24.0 — the count reads as QUIET TEXT with a small color dot, not a
-   capsule (the unslop details rule: meta stops wearing pills). */
+.gchips { display: flex; gap: 8px; flex: none; }
+/* Count chips (v0.24.0): quiet text with a small color dot — meta stops
+   wearing pills (the de-pill contract; no raw hex, not amber). */
 .chip {
   display: inline-flex; align-items: center; gap: 6px;
-  font-size: 11.5px; font-weight: 700;
+  font-size: 11px; font-weight: 500;
   color: var(--info-h); background: transparent;
   white-space: nowrap;
 }
@@ -623,28 +593,26 @@ body {
 .chev { color: var(--muted); flex: none; transition: transform var(--motion) var(--motion-ease); }
 .group.collapsed .chev { transform: rotate(90deg); }
 
-/* ---------- Item order pill (v0.4.0) ----------
-   The per-card sort toggle — a quiet interactive sibling of the count chips:
-   muted at rest, accent on hover/focus. Same height family as .chip so the
-   header row stays aligned; logical padding keeps it correct in LTR cards. */
+/* ---------- Item order toggle (v0.4.0) — v0.25: quiet text control ----------
+   Muted at rest, accent on hover/focus; the capsule border is gone. Same
+   height family as .chip so the header row stays aligned; logical padding
+   keeps it correct in LTR cards. */
 .order-btn {
   display: inline-flex; align-items: center; gap: 4px; flex: none;
-  font: inherit; font-size: 11.5px; font-weight: 700;
+  font: inherit; font-size: 11px; font-weight: 500;
   color: var(--muted); background: transparent;
-  border: 1px solid var(--line); border-radius: 999px;
-  padding: 2px 10px;
+  border: none; border-radius: 8px;
+  padding: 2px 8px;
   cursor: pointer; white-space: nowrap;
-  transition: color var(--motion), border-color var(--motion), background var(--motion);
+  transition: color var(--motion), background var(--motion);
 }
-.order-btn:hover { color: var(--accent-h); border-color: var(--accent-line); background: var(--accent-soft); }
+.order-btn:hover { color: var(--accent-h); background: var(--accent-soft); }
 .order-btn .order-ic { display: inline-flex; }
 
-/* ---------- Article tags (v1.2.15) ----------
-   Categorization chips for the ARTICLE itself (orthogonal to the highlight
-   colors). The row sits between the header and the items and stays visible
-   when the card is collapsed — tags are article metadata, not content.
-   It lives outside the toggle surface (.group-head), so the collapse
-   machinery is untouched; logical paddings keep it correct in LTR cards. */
+/* ---------- Article tags (v1.2.15 → v0.25) ----------
+   Small paper tags (8px corners, not capsules); the dashed add affordance
+   matches. The row sits between the header and the items and stays visible
+   when the card is collapsed. */
 .group-tags {
   display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
   padding: var(--sp-2) var(--sp-4);
@@ -656,11 +624,11 @@ body {
   border: 1px solid var(--line);
   background: var(--bg);
   color: var(--text);
-  border-radius: 999px;
+  border-radius: 8px;
   padding-block: 2px;
   padding-inline-start: 9px;
   padding-inline-end: 4px;
-  font-size: 11.5px; font-weight: 700;
+  font-size: 12px; font-weight: 400;
   max-width: 240px;
 }
 .atag-t {
@@ -670,7 +638,7 @@ body {
 .atag-x {
   width: 18px; height: 18px; flex: none;
   display: grid; place-items: center;
-  border: none; border-radius: 50%; padding: 0;
+  border: none; border-radius: 6px; padding: 0;
   background: transparent; color: var(--muted);
   cursor: pointer;
   transition: background var(--motion), color var(--motion);
@@ -682,9 +650,9 @@ body {
   border: 1px dashed var(--line);
   background: transparent;
   color: var(--muted);
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 2px 10px;
-  font: inherit; font-size: 11.5px; font-weight: 700;
+  font: inherit; font-size: 12px; font-weight: 400;
   cursor: pointer;
   transition: border-color var(--motion), color var(--motion), background var(--motion) var(--motion-ease);
 }
@@ -692,10 +660,10 @@ body {
 .atag-add svg { display: block; }
 .tag-input {
   border: 1px solid var(--accent);
-  border-radius: 999px;
+  border-radius: 8px;
   background: var(--card);
   color: var(--text);
-  font: inherit; font-size: 11.5px; font-weight: 600;
+  font: inherit; font-size: 12px; font-weight: 400;
   padding: 4px 12px;
   width: 160px; max-width: 100%;
   outline: none;
@@ -708,15 +676,17 @@ body {
 
 /* ---------- LTR article card (v1.2.6 — smart card) ----------
    dir="ltr" sits on the card itself; the rest of the layout flips automatically
-   through the existing logical properties
-   (inset-inline-start / padding-inline-start / text-align:start).
-   Only these two physical rules are needed explicitly: */
+   through the existing logical properties. Only these two physical rules
+   are needed explicitly: */
 .group[dir="ltr"] .group-url { text-align: left; }        /* URL is always LTR — left-aligned in an LTR card */
 .group[dir="ltr"].collapsed .chev { transform: rotate(-90deg); } /* collapsed chev should point right in LTR */
 
+/* ---------- Highlight rows — the ink-line is the protagonist ----------
+   Each row carries its marker color ONLY through the 3px ink-line at the
+   reading start edge; everything else stays paper. */
 .item {
   position: relative;
-  padding: 8px var(--sp-4); /* v0.23.0 — tighter vertical rhythm, on the 4px grid (v0.23.1) */
+  padding: 12px var(--sp-4);
   padding-inline-start: 20px;
   border-bottom: 1px solid var(--line);
   transition: background var(--motion) var(--motion-ease);
@@ -725,22 +695,23 @@ body {
 .item:hover { background: var(--hover); } /* background change only — no stroke (uitheme.test contract) */
 .cbar {
   position: absolute; inset-inline-start: 4px;
-  top: 8px; bottom: 8px; width: 4px;
+  top: 12px; bottom: 12px; width: 3px;
   border-radius: 99px;
 }
 .item-text {
   margin: 0;
   font-size: 14px;
+  line-height: 1.8;
   word-break: break-word; overflow-wrap: anywhere;
 }
 /* Preview affordance (v0.6.1) — the card excerpts; the full text is one
    click away. .peek marks the quote (and the note row) as that click
-   surface: pointer + a subtle inset ring on hover/keyboard focus, the same
-   --hover ground the item row already paints (no stroke — uitheme.test). */
+   surface: pointer + the same --hover ground the item row already paints
+   (no stroke — uitheme.test). */
 .item-text.peek,
 .note.peek {
   cursor: pointer;
-  border-radius: var(--r-ctl);
+  border-radius: 10px;
 }
 .item-text.peek:hover,
 .note.peek:hover {
@@ -750,23 +721,31 @@ body {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
+/* ---------- Notes — v0.25: the margin-note ----------
+   A note is writing in the margin, not a success callout: no green box —
+   the note's marker is a 3px green ink-line at the reading start edge
+   (the same motif as the highlights), text set in the primary ink. The
+   semantic tokens keep their floors (uitheme.test.ts) and stay in service
+   where green MEANS something. */
 .note {
   display: flex; align-items: flex-start; gap: 8px;
   margin-top: var(--sp-2);
-  background: var(--ok-bg);
-  border: 1px solid var(--ok-line);
-  color: var(--ok-text);
-  border-radius: var(--r-ctl);
-  padding: var(--sp-2) var(--sp-3);
+  background: transparent;
+  border: none;
+  border-inline-start: 3px solid var(--ok-text);
+  color: var(--text);
+  padding: 2px 0 2px 0;
+  padding-inline-start: 12px;
   font-size: 13px;
+  line-height: 1.8;
 }
-.note-ic { flex: none; margin-top: 3px; display: inline-flex; }
+.note-ic { flex: none; margin-top: 4px; display: inline-flex; color: var(--muted); }
 .note-text { word-break: break-word; overflow-wrap: anywhere; }
 .item-meta {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   margin-top: 8px; flex-wrap: wrap;
 }
-.item-date { color: var(--muted); font-size: 11.5px; }
+.item-date { color: var(--muted); font-size: 12px; }
 .item-actions { display: flex; align-items: center; gap: 2px; }
 
 .item-more {
@@ -784,7 +763,7 @@ body {
 /* ---------- Empty state ---------- */
 .empty { text-align: center; padding: 64px 16px; }
 .empty-ic { color: var(--muted); margin-bottom: 8px; }
-.empty-t { margin: 0 0 4px; font-weight: 700; font-size: 16px; }
+.empty-t { margin: 0 0 4px; font-weight: 600; font-size: 16px; }
 .empty .muted { margin: 0; }
 
 /* ---------- Footer ---------- */
@@ -800,7 +779,7 @@ body {
 /* ---------- Settings panel (drawer) ---------- */
 .overlay {
   position: fixed; inset: 0;
-  background: rgba(17, 24, 39, .45);
+  background: rgba(28, 25, 18, .45);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   z-index: 110;
@@ -831,7 +810,7 @@ body {
   padding: var(--sp-4);
   border-bottom: 1px solid var(--line);
 }
-.drawer-head strong { font-size: 15px; font-weight: 700; }
+.drawer-head strong { font-size: 15px; font-weight: 600; }
 .drawer-body {
   flex: 1; min-height: 0;
   overflow-y: auto;
@@ -840,26 +819,23 @@ body {
 }
 
 .set-sec { display: flex; flex-direction: column; gap: 10px; }
-/* v0.23.0 «grouped & quieter» — section titles go NEUTRAL: amber is reserved
-   for active/selected states; the danger zone keeps its red (its own rule).
-   v0.23.1 — one weight notch quieter (700). */
+/* v0.23.0 «grouped & quieter» — section titles stay neutral; v0.25 — weight
+   500, hierarchy from size. The danger zone keeps its red (its own rule). */
 .set-sec h3 {
   margin: 0;
-  font-size: 13.5px; font-weight: 700;
+  font-size: 13px; font-weight: 500;
   display: flex; align-items: center; gap: 8px;
   color: var(--text);
 }
 .set-sec .muted { margin: 0; }
 .set-sec .switch-box + .switch-box { margin-top: 2px; }
 
-/* ---------- v0.23.0 «grouped & quieter» — drawer groups ----------
-   The flat section list is organized into three labeled groups: a quiet
-   muted title with a hairline rule running to the end edge, then the
-   group's sections. The region hosts inside keep their pinned contracts. */
+/* v0.23.0 «grouped & quieter» — drawer groups: a quiet muted title with a
+   hairline rule running to the end edge, then the group's sections. */
 .drawer-group-title {
   display: flex; align-items: center; gap: 8px;
   margin: 0;
-  font-size: 11.5px; font-weight: 700;
+  font-size: 12px; font-weight: 500;
   color: var(--muted);
   letter-spacing: 0;
 }
@@ -871,12 +847,11 @@ body {
 }
 .drawer-group { display: flex; flex-direction: column; gap: 10px; }
 
-/* Theme picker — v0.23.0: a ONE-ROW family of preview mini-cards (the old
-   vertical .radio list). The checked card keeps the .radio visual contract:
-   amber border + soft amber fill. The mini canvases depict BOTH themes
-   regardless of the ACTIVE theme, so their colors mirror the frozen palette
-   VALUES (uitheme.test.ts owns the tokens — these are illustrations of the
-   exact frozen values, not new colors; do not drift). */
+/* Theme picker — a ONE-ROW family of preview mini-cards. The checked card
+   keeps the accent selection treatment. The mini canvases depict BOTH themes
+   regardless of the ACTIVE theme: light illustrates the paper ramp, dark
+   mirrors the frozen palette VALUES (uitheme.test.ts owns the tokens —
+   do not drift). */
 .theme-cards { display: flex; gap: 8px; }
 .tcard {
   position: relative;
@@ -892,23 +867,23 @@ body {
 .tcard:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
 .tcard:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 2px; }
 .tcard-txt { display: flex; align-items: center; }
-.tcard-txt strong { font-size: 13px; }
+.tcard-txt strong { font-size: 13px; font-weight: 500; }
 .tcard-prev {
   display: flex; flex-direction: column; gap: 3px;
   height: 44px;
-  border-radius: var(--r-ctl);
+  border-radius: 10px;
   padding: 6px;
 }
 .tp-bar { height: 5px; width: 55%; border-radius: 99px; }
 .tp-line { height: 3px; width: 85%; border-radius: 99px; }
 .tp-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: auto; }
-.tcard-prev-light { background: #fff; border: 1px solid #d1d5db; }   /* --card / --line (light) */
-.tcard-prev-light .tp-bar, .tcard-prev-light .tp-line { background: #d1d5db; }
-.tcard-prev-light .tp-dot { background: #d97706; }                   /* --accent (light) */
-.tcard-prev-dark { background: #1a1d24; border: 1px solid #2a2f3a; } /* --card / --line (dark) */
+.tcard-prev-light { background: #fffdf9; border: 1px solid #d5d0c2; }  /* --card / --line (light, paper) */
+.tcard-prev-light .tp-bar, .tcard-prev-light .tp-line { background: #d5d0c2; }
+.tcard-prev-light .tp-dot { background: #d97706; }                     /* --accent (light) */
+.tcard-prev-dark { background: #1a1d24; border: 1px solid #2a2f3a; }   /* --card / --line (dark, frozen) */
 .tcard-prev-dark .tp-bar, .tcard-prev-dark .tp-line { background: #2a2f3a; }
-.tcard-prev-dark .tp-dot { background: #f59e0b; }                   /* --accent (dark) */
-.tcard-prev-auto { background: linear-gradient(90deg, #fff 50%, #1a1d24 50%); border: 1px solid var(--line); }
+.tcard-prev-dark .tp-dot { background: #f59e0b; }                      /* --accent (dark, frozen) */
+.tcard-prev-auto { background: linear-gradient(90deg, #fffdf9 50%, #1a1d24 50%); border: 1px solid var(--line); }
 .tcard-prev-auto .tp-bar, .tcard-prev-auto .tp-line { background: var(--muted); }
 .tcard-prev-auto .tp-dot { background: var(--accent); }
 
@@ -923,8 +898,7 @@ body {
 /* Theme radios (settings) — same pattern as the restore-modal radios */
 .set-sec .radio-list { margin-bottom: 0; }
 
-/* v0.8.2 — the dots ride ONE flex row (the section-level React mount used to
-   erase this wrapper and stack them); padding keeps focus rings unclipped. */
+/* v0.8.2 — the dots ride ONE flex row; padding keeps focus rings unclipped. */
 .color-dots { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 3px 2px; }
 .cdot {
   width: 34px; height: 34px;
@@ -953,37 +927,39 @@ body {
   top: 50%; left: 50%;
   transform: translate(-50%, -52%);
   color: #fff;
-  font-size: 13px; font-weight: 800;
+  font-size: 13px; font-weight: 600;
   text-shadow: 0 0 4px rgba(0, 0, 0, .55);
 }
 
 .host-chips { display: flex; gap: 6px; flex-wrap: wrap; }
+/* v0.25 — disabled hosts are quiet paper tags; the removal affordance warms
+   to danger only on hover */
 .hchip {
   display: inline-flex; align-items: center; gap: 6px;
-  background: var(--accent-soft);
-  color: var(--accent-h);
-  border: 1px solid var(--accent-line);
-  border-radius: 999px;
+  background: var(--bg);
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 8px;
   padding: 2px 6px 2px 10px;
-  font-size: 12.5px; font-weight: 700;
+  font-size: 12px; font-weight: 400;
   direction: ltr;
 }
 .hchip-x {
   width: 20px; height: 20px;
   display: grid; place-items: center;
-  border: none; border-radius: 50%;
+  border: none; border-radius: 6px;
   background: transparent; color: inherit;
   cursor: pointer;
 }
-.hchip-x:hover { background: rgba(220, 38, 38, .15); color: var(--danger-h); }
+.hchip-x:hover { background: var(--danger-bg); color: var(--danger-h); }
 .hchip-x svg { display: block; }
 
 .host-add { display: flex; gap: 6px; }
 .host-add input {
   flex: 1; min-width: 0;
   height: 40px; padding: 0 12px;
-  border: 1px solid var(--line); border-radius: var(--r-ctl);
-  background: var(--bg); color: var(--text);
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--card); color: var(--text);
   font: inherit; font-size: 13px; line-height: 1.5;
   direction: ltr; text-align: left;
 }
@@ -1003,7 +979,7 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
 .danger-confirm { display: flex; gap: 6px; flex-wrap: wrap; }
 .danger-confirm input {
   flex: 1; min-width: 160px;
-  border: 1px solid var(--danger-line); border-radius: var(--r-ctl);
+  border: 1px solid var(--danger-line); border-radius: 10px;
   background: var(--card); color: var(--text);
   font: inherit; font-size: 13px;
   padding: 8px 12px;
@@ -1012,16 +988,13 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
 
 /* ---------- Modal ---------- */
 /* Centering via margin:auto (not place-items) + overflow-y:auto: a card taller
-   than the viewport SCROLLS fully — top and bottom stay reachable. The v0.6.0
-   export modal (summary + two format sections) exceeds short viewports; with
-   place-items:center the grid would clip the overflowing ends (unreachable
-   buttons). Same visual centering for small cards (restore modal) — LSP kept. */
+   than the viewport SCROLLS fully — top and bottom stay reachable. */
 .modal {
   position: fixed; inset: 0;
   z-index: 130;
   display: grid;
   padding: 16px;
-  background: rgba(17, 24, 39, .5);
+  background: rgba(28, 25, 18, .5);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
   overflow-y: auto;
@@ -1041,7 +1014,7 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
   from { transform: scale(.96); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
-.modal-card h2 { margin: 0 0 12px; font-size: 17px; font-weight: 700; }
+.modal-card h2 { margin: 0 0 12px; font-size: 16px; font-weight: 600; }
 .modal-summary { display: flex; flex-direction: column; margin-bottom: var(--sp-4); }
 .sum-row {
   display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
@@ -1049,7 +1022,7 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
   border-bottom: 1px dashed var(--line);
 }
 .sum-row:last-child { border-bottom: none; }
-.sum-row strong { font-size: 13.5px; }
+.sum-row strong { font-size: 13px; font-weight: 500; }
 
 .radio-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
 .radio {
@@ -1063,7 +1036,7 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
 .radio:has(input:checked) { border-color: var(--accent); background: var(--accent-soft); }
 .radio input { margin-top: 5px; accent-color: var(--accent); flex: none; }
 .radio-txt { display: flex; flex-direction: column; }
-.radio-txt strong { font-size: 13.5px; }
+.radio-txt strong { font-size: 13px; font-weight: 500; }
 .radio-txt .small { line-height: 1.6; }
 .radio-danger:has(input:checked) { border-color: var(--danger); background: var(--danger-bg); }
 .radio-danger input { accent-color: var(--danger); }
@@ -1071,25 +1044,19 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; }
 
 /* ---------- Export modal sections (v0.6.0 — «کتابچه و Markdown») ---------- */
-/* Two format sections inside the modal-card, separated the same way the
-   settings drawer's .set-sec sections are (one visual family). */
 .exp-sec {
   border-top: 1px dashed var(--line);
   padding: var(--sp-4) 0;
   margin-top: 2px;
 }
 .exp-sec:first-of-type { border-top: none; }
-.exp-sec h3 { margin: 0 0 4px; font-size: 14.5px; font-weight: 700; }
+.exp-sec h3 { margin: 0 0 4px; font-size: 14px; font-weight: 500; }
 .exp-sec .muted { margin: 0 0 12px; }
 .exp-sec .btn { width: 100%; justify-content: center; }
 .exp-sec + .exp-sec { margin-top: 2px; }
 .exp-sec .radio-list { margin-bottom: 12px; }
 
 /* ---------- Selective backup modal («بک‌آپ انتخابی») ---------- */
-/* Three checkbox pickers (sites / articles / tags) as scrollable bordered
-   lists — the .radio visual family compacted to one-line rows; the checked
-   row gets the same accent treatment. .sel-status is the live count line
-   (role=status) above the actions. */
 .sel-list {
   display: flex;
   flex-direction: column;
@@ -1104,7 +1071,7 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
   display: flex;
   align-items: center;
   gap: 10px;
-  border-radius: var(--r-ctl);
+  border-radius: 10px;
   padding: 6px 8px;
   cursor: pointer;
   transition: background var(--motion) var(--motion-ease);
@@ -1119,34 +1086,25 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 400;
 }
 .sel-item .small { flex: none; }
 .sel-side { max-width: 30%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sel-none { margin: 0; }
 .sel-status { margin: 12px 0 0; }
-.sel-status strong { color: var(--text); }
+.sel-status strong { color: var(--text); font-weight: 500; }
 
-/* ---------- Highlight preview modal (v0.6.1 — «متن کامل هایلایت») ---------- */
-/* A floating window over the same .modal overlay family as the restore and
-   export modals — but sized for READING: the card is capped to the viewport
-   and only the BODY scrolls, so the title row stays pinned while a long
-   highlight scrolls. The quote/note visuals are the card's own
-   (.cbar / .note) — one content look across surfaces.
-   v0.6.4 — the fully-smart window: the frame's dir is filled per record
-   (fillHighlightDir — LTR window for an English highlight, RTL for Persian),
-   the title aligns at ITS OWN reading start (the pinned RTL edge is gone),
-   and the meta row follows the frame's flow with the fa date as an inline
-   RTL island (.hl-meta > .hl-meta-t). The X button is gone — the overlay
-   click and Escape close; the card is the programmatic focus anchor. */
+/* ---------- Highlight preview modal (v0.6.1 — «متن کامل هایلایت») ----------
+   Sized for READING: the card is capped to the viewport and only the BODY
+   scrolls. The quote keeps its ink-line; the frame's dir is filled per
+   record; the meta row follows the frame's flow. */
 .hl-card {
   display: flex;
   flex-direction: column;
   max-height: calc(100vh - 64px); /* overlay padding 16×2 + breathing room */
 }
 /* The focus anchor (tabindex="-1", focused on every open): programmatic
-   only — the dialog's appearance IS the focus feedback, so no ring is drawn
-   on the container (there is nothing tabbable inside to cycle to). */
+   only — the dialog's appearance IS the focus feedback. */
 .hl-card:focus {
   outline: none;
 }
@@ -1154,13 +1112,9 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
   margin-bottom: 12px;
 }
 .hl-head h2 {
-  margin: 0; font-size: 15px; font-weight: 700; /* v0.6.4 — a notch smaller (the owner's ask) */
-  /* v0.6.4 — the article's own title, FULLY direction-smart: one line with
-     ellipsis as the backstop (the view excerpts at 60 — same policy as the
-     card header), and NO pinned alignment — text-align: start resolves
-     against the title's own dir, so an English title heads the window from
-     the left edge and a Persian one from the right; the full title rides the
-     element's title attribute. */
+  margin: 0; font-size: 15px; font-weight: 500; /* v0.6.4 — a notch smaller (the owner's ask) */
+  /* the article's own title, FULLY direction-smart: NO pinned alignment —
+     text-align: start resolves against the title's own dir */
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .hl-body {
@@ -1184,7 +1138,7 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
 .hl-meta {
   margin-top: 12px;
   color: var(--muted);
-  font-size: 11.5px;
+  font-size: 12px;
 }
 
 /* ---------- Toasts ---------- */
@@ -1200,8 +1154,8 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
 }
 .toast {
   background: #047857; color: #fff;
-  padding: var(--sp-3) var(--sp-4); border-radius: var(--r-ctl);
-  font-size: 13px; font-weight: 700;
+  padding: var(--sp-3) var(--sp-4); border-radius: 10px;
+  font-size: 13px; font-weight: 500;
   box-shadow: var(--depth-overlay);
   max-width: 92vw;
   opacity: 0; transform: translateY(8px);
@@ -1217,21 +1171,23 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
   .container { padding: 16px 12px 36px; }
   .topbar-in { padding: 10px 12px; }
   .seg { margin-inline-start: 0; }
-  .dir-grid { grid-template-columns: 1fr; }
+  .dir-grid { grid-template-columns: 1fr; gap: 12px; }
+  .group { margin-bottom: 0; }
   .group-head { flex-wrap: wrap; gap: 10px; }
   .group-txt { flex-basis: calc(100% - 110px); }
   .gchips { order: 3; flex-basis: 100%; }
   .group-tags { padding: 8px 12px; }
   .item-meta { flex-direction: column; align-items: flex-start; gap: 4px; }
   .stat-num { font-size: 18px; }
+  .stats-strip { column-gap: 24px; }
   .modal-card { padding: 16px; }
 }
 
 @media (max-width: 480px) {
-  .stats-strip { padding: 8px var(--sp-3); }
-  .stat-group { padding: 4px var(--sp-3); }
-  .btn { padding: 8px 12px; font-size: 12.5px; }
+  .stats-strip { padding: 0 2px; }
+  .stat-group { gap: 6px; }
+  .btn { padding: 8px 12px; font-size: 12px; }
   .ver { display: none; }
-  .fl { width: 32px; height: 32px; font-size: 15px; border-radius: var(--r-ctl); }
-  .filter-row { gap: 10px; }
+  .fl { width: 32px; height: 32px; font-size: 15px; border-radius: 8px; }
+  .filter-row { gap: 8px; }
 }

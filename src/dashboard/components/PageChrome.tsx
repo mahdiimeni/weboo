@@ -43,7 +43,7 @@ export function TopbarActionsRegion() {
       </button>
       <button
         type="button"
-        className="btn btn-primary btn-icon"
+        className="btn btn-ghost btn-icon" /* v0.25 — the topbar is quiet chrome: one button family (the primary action lives inside the flows) */
         id="btn-export"
         aria-label={t("tb.backup")}
         title={t("tb.backupTitle")}

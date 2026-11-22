@@ -1,25 +1,28 @@
 /* Weboo — popup styles (width 370px, RTL)
    Theme: auto = follow the system (default); light/dark = user's forced choice (data-theme).
-   ⚠️ The «:root[data-theme="dark"]» block must stay in sync with the dark palette inside the media query. */
+   ⚠️ The «:root[data-theme="dark"]» block must stay in sync with the dark palette inside the media query.
+
+   v0.25 design round («the reading desk»): the popup speaks the dashboard's
+   paper language — warm neutrals in light (floors per uitheme.test.ts), the
+   frozen ink palette in dark, weights 400–600, no pill inflation. */
 
 :root {
   color-scheme: light dark;
-  /* Light palette (v1.2.2): tonal steps one notch deeper than the base gray/amber so
-     cards/borders/hovers get past the lightness-contrast threshold — the contract
-     tested in uitheme.test.ts. */
-  --bg: #f3f4f6;
-  --card: #fff;
-  --text: #1f2937;
-  --muted: #4b5563;
-  --line: #d1d5db;
+  /* Light palette — the paper ramp (v0.25), the dashboard's exact values:
+     warm neutrals with contrast floors per uitheme.test.ts. */
+  --bg: #f7f5f0;
+  --card: #fffdf9;
+  --text: #26231c;
+  --muted: #5d584c;
+  --line: #d5d0c2;
   --accent: #d97706;
   --accent-h: #b45309;
   --accent-soft: #fef3c7;
   --accent-line: rgba(217, 119, 6, .45);
-  --hover: #e5e7eb;
-  --toggle: #d1d5db;
+  --hover: #eceade;
+  --toggle: #c9c3b4;
   --ok-text: #047857;
-  --shadow: 0 1px 3px rgba(17, 24, 39, .1);
+  --shadow: 0 1px 3px rgba(41, 36, 26, .08);
   /* v0.24.0 — flat canvas: the Air washes retired (the unslop round). */
   --glass: color-mix(in srgb, var(--card) 76%, transparent);
   --hairline: color-mix(in srgb, var(--line) 55%, transparent);
@@ -95,9 +98,8 @@ body {
   background: var(--bg);
   color: var(--text);
   font-family: Dastkhat, Vazirmatn, 'Segoe UI', Tahoma, sans-serif;
-/* English UI (v0.14.0): Latin-first stack — no new fonts, just the order. */
-/* one font stack for EVERY UI language — Vazirmatn first (its Latin
-   glyphs cover the Latin-language UIs; other scripts fall back per-glyph) */
+/* one font stack for EVERY UI language — Dastkhat first since v0.24.0 (its
+   Latin glyphs come from Roboto; Vazirmatn stays the per-glyph fallback) */
   font-size: 13px;
   line-height: 1.8;
 }
@@ -124,27 +126,26 @@ body {
 }
 .brand { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
 .logo {
-  width: 32px; height: 32px; border-radius: var(--r-ctl); flex: none;
-  background: var(--accent); /* v0.23.1 unslop pass — flat brand tile, no gradient */
+  width: 32px; height: 32px; border-radius: 10px; flex: none;
+  background: var(--accent); /* the flat brand tile — one solid ink, no gradient */
   color: #fff; display: grid; place-items: center;
 }
 .brand-txt { display: flex; flex-direction: column; min-width: 0; }
-.brand-name { font-size: 14px; font-weight: 700; line-height: 1.4; }
-.brand-sub { font-size: 10.5px; color: var(--muted); line-height: 1.4; }
+.brand-name { font-size: 14px; font-weight: 600; line-height: 1.4; }
+.brand-sub { font-size: 11px; color: var(--muted); line-height: 1.4; }
+/* v0.25 — the version is quiet meta, not a capsule */
 .ver {
   flex: none;
-  font-size: 10.5px; font-weight: 700;
-  color: var(--accent-h);
-  background: var(--accent-soft);
-  border: 1px solid var(--accent-line);
-  padding: 1px 8px; border-radius: 999px;
+  font-size: 11px; font-weight: 500;
+  color: var(--muted);
+  direction: ltr;
 }
 
 .icon-btn {
   width: 30px; height: 30px; flex: none;
   display: grid; place-items: center;
   border: none; background: transparent;
-  color: var(--muted); border-radius: var(--r-ctl); cursor: pointer;
+  color: var(--muted); border-radius: 10px; cursor: pointer;
   transition: background var(--motion), color var(--motion) var(--motion-ease);
 }
 .icon-btn:hover { background: var(--hover); color: var(--text); }
@@ -165,11 +166,10 @@ body {
 .body::-webkit-scrollbar-thumb:hover { background: var(--muted); }
 
 .muted { color: var(--muted); }
-.small { font-size: 11.5px; }
+.small { font-size: 12px; }
 .tiny { font-size: 11px; margin: 4px 0 0; }
 
-/* v0.23.1 unslop pass — figures align: one numeric rendering for every
-   number carrier */
+/* v0.23.1 — figures align: one numeric rendering for every number carrier */
 .gstat-num, .ver, .chip, .hl-meta .date {
   font-variant-numeric: tabular-nums;
 }
@@ -179,31 +179,33 @@ body {
   border: 1px solid var(--hairline, var(--line));
   border-radius: var(--r-surface);
   padding: 12px;
-  box-shadow: var(--depth-surface);
 }
 
 /* ---------- Unsupported page ---------- */
 .unsupp { text-align: center; padding: 24px 16px; }
 .unsupp-ic { color: var(--muted); margin-bottom: 4px; }
-.unsupp-t { margin: 0 0 2px; font-weight: 700; font-size: 14px; }
+.unsupp-t { margin: 0 0 2px; font-weight: 500; font-size: 14px; }
 .unsupp .muted { margin: 0 0 12px; }
 
 /* ---------- Generic mode ---------- */
 .generic { text-align: center; padding: 20px 12px; }
 .gstat { display: flex; flex-direction: column; gap: 2px; }
-.gstat-num { font-size: 30px; font-weight: 800; color: var(--accent-h); line-height: 1.3; }
+.gstat-num { font-size: 30px; font-weight: 600; color: var(--text); line-height: 1.3; }
 .gstat-lbl { color: var(--muted); font-size: 12px; }
 
 /* ---------- Current page card ---------- */
 .page-info { display: flex; align-items: center; gap: 8px; }
+/* v0.25 — the favicon tile is neutral paper (the marker colors belong to the
+   highlights, not the chrome) */
 .fl {
-  width: 36px; height: 36px; border-radius: var(--r-ctl); flex: none;
-  background: var(--accent-soft); color: var(--accent-h);
-  font-weight: 800; font-size: 17px;
+  width: 36px; height: 36px; border-radius: 10px; flex: none;
+  background: var(--bg); color: var(--muted);
+  border: 1px solid var(--hairline, var(--line));
+  font-weight: 500; font-size: 16px;
   display: grid; place-items: center;
   position: relative; overflow: hidden;
 }
-/* Real favicon (Chrome cache) — the first letter stays as placeholder/fallback */
+/* Real favicon (captured from the page) — the first letter stays as placeholder/fallback */
 .fl-img {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   object-fit: contain; padding: 6px; box-sizing: border-box;
@@ -214,11 +216,11 @@ body {
 .fl.has-fav { color: transparent; }
 .page-txt { display: flex; flex-direction: column; min-width: 0; }
 .page-title {
-  font-size: 13px; font-weight: 700; line-height: 1.5;
+  font-size: 13px; font-weight: 500; line-height: 1.5;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .page-host {
-  color: var(--muted); font-size: 11.5px;
+  color: var(--muted); font-size: 12px;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   direction: ltr; text-align: right;
 }
@@ -231,11 +233,11 @@ body {
    host name follows the popup's direction, not the card's, in en mode. */
 html[dir="ltr"] .page-host { text-align: left; }
 html[dir="ltr"] .toggle-txt .small { text-align: left; }
-.chips { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+.chips { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
 /* v0.24.0 — the page's highlight count reads as quiet text with a dot */
 .chip {
   display: inline-flex; align-items: center; gap: 6px;
-  font-size: 11.5px; font-weight: 700;
+  font-size: 11px; font-weight: 500;
   color: var(--accent-h); background: transparent;
 }
 .chip::before {
@@ -248,7 +250,7 @@ html[dir="ltr"] .toggle-txt .small { text-align: left; }
 /* ---------- Site toggle ---------- */
 .toggle-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .toggle-txt { display: flex; flex-direction: column; min-width: 0; }
-.toggle-txt strong { font-size: 13px; }
+.toggle-txt strong { font-size: 13px; font-weight: 500; }
 .toggle-txt .small { direction: ltr; text-align: right; }
 .switch {
   position: relative; width: 44px; height: 24px; flex: none;
@@ -265,7 +267,7 @@ html[dir="ltr"] .toggle-txt .small { text-align: left; }
 .switch[aria-checked="true"] { background: var(--accent); }
 .switch[aria-checked="true"] .knob { inset-inline-start: calc(100% - 21px); }
 .switch:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.toggle-msg { margin: 6px 0 0; font-size: 12px; font-weight: 700; color: var(--ok-text); }
+.toggle-msg { margin: 6px 0 0; font-size: 12px; font-weight: 500; color: var(--ok-text); }
 
 /* ---------- Highlights list ---------- */
 .list-sec {
@@ -273,16 +275,16 @@ html[dir="ltr"] .toggle-txt .small { text-align: left; }
   border: 1px solid var(--hairline, var(--line));
   border-radius: var(--r-surface);
   padding: 12px;
-  box-shadow: var(--depth-surface);
 }
 .list-head {
   display: flex; align-items: baseline; justify-content: space-between; gap: 8px;
   padding: 4px 10px 8px;
 }
+.list-head strong { font-weight: 500; }
 .hl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .hl-item {
   display: flex; align-items: flex-start; gap: 8px;
-  padding: 8px 10px; border-radius: var(--r-ctl);
+  padding: 8px 10px; border-radius: 10px;
   border: 1px solid transparent; cursor: pointer;
   transition: background var(--motion), border-color var(--motion);
 }
@@ -291,7 +293,7 @@ html[dir="ltr"] .toggle-txt .small { text-align: left; }
 .hl-item .dot { width: 10px; height: 10px; border-radius: 50%; flex: none; margin-top: 5px; }
 .hl-item .txt { flex: 1; min-width: 0; }
 .hl-text {
-  margin: 0; font-size: 12.5px;
+  margin: 0; font-size: 13px;
   word-break: break-word; overflow-wrap: anywhere;
 }
 .hl-meta { display: flex; align-items: center; gap: 8px; margin-top: 2px; }
@@ -301,7 +303,7 @@ html[dir="ltr"] .toggle-txt .small { text-align: left; }
 /* ---------- Empty state ---------- */
 .empty { text-align: center; padding: 24px 12px; }
 .empty-ic { color: var(--muted); margin-bottom: 4px; }
-.empty-t { margin: 0 0 2px; font-weight: 700; font-size: 13.5px; }
+.empty-t { margin: 0 0 2px; font-weight: 500; font-size: 13px; }
 .empty .muted { margin: 0; }
 
 /* ---------- Footer ---------- */
@@ -318,8 +320,8 @@ html[dir="ltr"] .toggle-txt .small { text-align: left; }
 /* ---------- Buttons ---------- */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  height: 40px; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-ctl);
-  font: inherit; font-weight: 700; font-size: 12.5px; line-height: 1.5;
+  height: 40px; padding: var(--sp-2) var(--sp-3); border-radius: 10px;
+  font: inherit; font-weight: 500; font-size: 12.5px; line-height: 1.5;
   cursor: pointer; border: 1px solid transparent;
   transition: background var(--motion), border-color var(--motion), color var(--motion);
 }
@@ -336,8 +338,8 @@ html[dir="ltr"] .toggle-txt .small { text-align: left; }
   position: fixed; bottom: 14px; left: 50%;
   transform: translate(-50%, 8px);
   background: #047857; color: #fff;
-  padding: 8px 16px; border-radius: var(--r-ctl);
-  font-size: 12.5px; font-weight: 700; white-space: nowrap;
+  padding: 8px 16px; border-radius: 10px;
+  font-size: 12.5px; font-weight: 500; white-space: nowrap;
   opacity: 0; pointer-events: none; z-index: 99;
   box-shadow: 0 4px 14px rgba(0, 0, 0, .3);
   transition: opacity .2s, transform .2s;
