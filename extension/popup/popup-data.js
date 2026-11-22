@@ -1,5 +1,5 @@
 /**
- * Weboo — popup data layer (pure functions, no DOM, no storage)
+ * Weboo — popup data layer (storage-free and DOM-free; language-aware through the i18n singleton — see docs/architecture.md, the R6 decision record)
  *
  * SRP/MVC (the same trio the dashboard uses since v1.1.0): the popup's policy —
  * supported-site check, theme validation, page summary counts, the smart

@@ -164,7 +164,9 @@ const DICTS: Partial<Record<Language, Record<TranslationKey, DictValue>>> = { en
 const DEFAULT_LANG: Language = 'en';
 
 /* Module-scoped state with explicit ownership: composition roots set it
-   (content.js / popup.js / data.ts / the SW); everything else reads. */
+   (content.js / popup.js / data.ts / the SW); everything else reads.
+   This singleton is the SANCTIONED shared-context dependency (audit R6 —
+   the decision record lives in docs/architecture.md). */
 let current: Language = DEFAULT_LANG;
 const subscribers = new Set<() => void>();
 

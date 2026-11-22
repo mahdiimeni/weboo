@@ -1,8 +1,11 @@
 /**
  * Weboo — display formats (SRP: data → display-string conversion)
  *
- * Pure, DOM-free functions; consumers: the core popover (ui/popover),
- * the popup, the dashboard (via HL.dash) and tests.
+ * Storage-free, DOM-free functions — language-aware through the i18n singleton
+ * (the sanctioned shared-context dependency; see docs/architecture.md, the R6
+ * decision record — not fully "pure", by design).
+ * Consumers: the core popover (ui/popover), the popup, the dashboard
+ * (via HL.dash) and tests.
  *
  * Language-awareness (v0.14.0): user-visible rendering follows the ACTIVE
  * UI language (shared/i18n.js): fa → Persian digits + Jalali calendar +

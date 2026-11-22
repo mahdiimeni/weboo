@@ -129,7 +129,9 @@ export const DATE_LOCALES = {
 const DICTS = { en: en };
 const DEFAULT_LANG = 'en';
 /* Module-scoped state with explicit ownership: composition roots set it
-   (content.js / popup.js / data.ts / the SW); everything else reads. */
+   (content.js / popup.js / data.ts / the SW); everything else reads.
+   This singleton is the SANCTIONED shared-context dependency (audit R6 —
+   the decision record lives in docs/architecture.md). */
 let current = DEFAULT_LANG;
 const subscribers = new Set();
 /** Validates raw storage values — anything unknown degrades to the default

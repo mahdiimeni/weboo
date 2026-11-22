@@ -1,5 +1,5 @@
 /**
- * Weboo — dashboard data layer (pure functions, no DOM, no storage)
+ * Weboo — dashboard data layer (storage-free and DOM-free; language-aware through the i18n singleton — see docs/architecture.md, the R6 decision record)
  *
  * SRP: filtering/grouping/stats/domain validation are split out here so they
  * are testable without a browser and the controller stays "orchestration" only.

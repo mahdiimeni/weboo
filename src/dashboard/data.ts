@@ -2,6 +2,11 @@
  * Phase 8 Task 4 — the React era's data + action layer: an external store the
  * region roots read via useSyncExternalStore (React-free module, one instance).
  *
+ * Audit R6 decision record: docs/architecture.md — the i18n language
+ * singleton is the sanctioned shared-context dependency; layers that read it
+ * (this file's t()/count()/dash.num via format) are storage-free and
+ * DOM-free, not fully pure, by design.
+ *
  * Owns the SECOND store instance (same DI-at-composition-root pattern as
  * content.js/popup.js/dashboard.js since 7c-4) and follows chrome.storage:
  *

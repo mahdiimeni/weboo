@@ -65,6 +65,33 @@ docs/                 this file, benchmarks, migration-baseline
 `domwrap` (DOM primitives), `anchor` (the resolver pipeline), `ui/*` (Shadow
 DOM widgets) and an injected store — see `docs/anchor-engine.md`.
 
+## Decision record: the i18n language singleton (audit R6)
+
+The i18n layer keeps ONE module-scoped language state (`current` in
+`src/shared/i18n.ts`), set explicitly by each composition root
+(content.js / popup.js / dashboard data.ts / the SW) and read by layers
+whose headers historically claimed to be "pure" — `format.ts`
+(`num`/`fmtDate`), `popup-data.js` (`countLabel`), `dashboard-data.js`
+(the `page` sort's locale). **Decision (2026-11-22, audit R6): option (a) —
+the singleton is the sanctioned shared-context dependency**, and those
+layers are described honestly as *storage-free and DOM-free* (not
+fully pure): their outputs depend on the active UI language by design —
+every one of their consumers renders user-visible, language-specific
+strings anyway.
+
+Why not (b) (threading a `LangSnapshot` through the pure layers):
+- No server-side or i18n-frozen rendering exists or is planned — four
+  contexts, each of which sets the language BEFORE its first render; there
+  is no second language to render simultaneously in any context.
+- The threading would touch every call site of `format`/`t`/`count` for
+  zero behavioral gain, against the repo's behavior-preserving discipline.
+- Tests already control the language explicitly per world
+  (`ui.setLang` / `setLanguage` — the same composition-root ownership).
+
+Revisit trigger: server-side rendering, or a real requirement to render
+two languages simultaneously in one context — then thread a snapshot with
+the singleton as the composition-root provider.
+
 ## Testing
 
 - `bun run test` — the full unit test suite over bun:test + happy-dom (strict + noImplicitAny across both tsconfigs). The harness
