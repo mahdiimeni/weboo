@@ -510,13 +510,13 @@ body {
 .dir-sec-lead:hover { color: var(--accent); }
 
 /* ---------- Library grid (v0.24.0 → v0.25 rhythm) ----------
-   The section's article cards fill a responsive two-column grid. Cards are
-   flat paper: hairline edge, no shadow — the ink-line color bars carry the
-   color. align-items:start + the fit-content group keep a collapsed card
-   from stretching to its row mate's height (the v0.24 stretch defect). */
+   The section's article cards stack in ONE vertical column (the owner's
+   request — the list reads top to bottom, one catalog card per row). Cards
+   are flat paper: hairline edge, no shadow — the ink-line color bars carry
+   the color. align-items:start keeps each card at its own content height. */
 .dir-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 16px;
   align-items: start;
 }
@@ -1171,7 +1171,7 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
   .container { padding: 16px 12px 36px; }
   .topbar-in { padding: 10px 12px; }
   .seg { margin-inline-start: 0; }
-  .dir-grid { grid-template-columns: 1fr; gap: 12px; }
+  .dir-grid { gap: 12px; } /* single column is the base rule since the one-column request — mobile only tightens the gap */
   .group { margin-bottom: 0; }
   .group-head { flex-wrap: wrap; gap: 10px; }
   .group-txt { flex-basis: calc(100% - 110px); }
