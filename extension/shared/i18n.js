@@ -31,6 +31,15 @@
  * + every page/entry import); format.js consumes it for language-aware
  * number/date rendering.
  */
+/**
+ * The language registry data — the ONE source both the `Language` union and
+ * the exported LANG_KEYS array derive from (drift tripwire: adding/removing
+ * a language here fails tsc on every `Record<Language, …>` registry below —
+ * LANGUAGES/LOCALES/DATE_LOCALES — until each carries the key; the type
+ * mirror in src/types/settings.ts re-exports this derived union, so it can
+ * no longer drift at all).
+ */
+const LANG_KEYS_DATA = ['fa', 'en', 'de', 'es', 'ru', 'it', 'fr', 'tr', 'zh', 'ja', 'ko', 'ar'];
 /* ------------------------------------------------------------------ */
 /* English — the canonical key set                                     */
 /* ------------------------------------------------------------------ */
@@ -3706,8 +3715,8 @@ const ar = {
 /**
  * The language registry — order is the selector's display order; `dir` is
  * THE UI-direction policy (a language property, independent of content
- * direction — see shared/detect-dir.js). A new language = one entry here,
- * one dictionary below, and the union/type mirror in src/types/settings.ts.
+ * direction — see shared/detect-dir.js). A new language = one entry in
+ * LANG_KEYS_DATA above, one entry here, and its dictionary.
  */
 export const LANGUAGES = {
     fa: { label: 'lang.fa', dir: 'rtl' },
@@ -3723,7 +3732,7 @@ export const LANGUAGES = {
     ko: { label: 'lang.ko', dir: 'ltr' },
     ar: { label: 'lang.ar', dir: 'rtl' }
 };
-export const LANG_KEYS = ['fa', 'en', 'de', 'es', 'ru', 'it', 'fr', 'tr', 'zh', 'ja', 'ko', 'ar'];
+export const LANG_KEYS = [...LANG_KEYS_DATA];
 /**
  * The BCP-47 locale each language renders numbers and dates with — the ONE
  * home of that mapping (format.js consumes it; no scattered conditionals).
