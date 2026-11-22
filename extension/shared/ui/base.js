@@ -26,7 +26,7 @@ import { setLanguage, getLanguage, dirOf, validLanguage } from "../i18n.js";
 import { domkit } from "../domkit.js";
 
 
-  var FONT = "Dastkhat, Vazirmatn, 'Segoe UI', Tahoma, sans-serif"; /* v0.24.0 — bundled Dastkhat first (see globals.css @font-face) */
+  var FONT = "Vazirmatn, 'Segoe UI', Tahoma, sans-serif"; /* v0.25.1 — bundled Vazirmatn first (see globals.css / mark-style.css @font-face); every Shadow-DOM widget reads this const */
 
   /* ---------- Content widget theming (aligned with the extension UI theme) ---------- */
 

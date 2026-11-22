@@ -145,12 +145,13 @@ body {
   flex-direction: column;
   background: var(--bg) fixed; /* v0.24.0 — flat canvas (the Air washes retired) */
   color: var(--text);
-  font-family: Dastkhat, Vazirmatn, 'Segoe UI', Tahoma, sans-serif;
+  font-family: Vazirmatn, 'Segoe UI', Tahoma, sans-serif;
   font-size: 14px;
   line-height: 1.8;
 }
-/* one font stack for EVERY UI language — Dastkhat first since v0.24.0 (its
-   Latin glyphs come from Roboto; Vazirmatn stays the per-glyph fallback) */
+/* one font stack for EVERY UI language — the bundled Vazirmatn variable
+   first (v0.25.1; the Dastkhat bundle is retired); the Latin glyphs are
+   Vazirmatn's own */
 
 .muted { color: var(--muted); }
 .small { font-size: 12px; }

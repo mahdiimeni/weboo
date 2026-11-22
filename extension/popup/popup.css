@@ -97,9 +97,9 @@ html, body { width: 370px; margin: 0; padding: 0; }
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: Dastkhat, Vazirmatn, 'Segoe UI', Tahoma, sans-serif;
-/* one font stack for EVERY UI language — Dastkhat first since v0.24.0 (its
-   Latin glyphs come from Roboto; Vazirmatn stays the per-glyph fallback) */
+  font-family: Vazirmatn, 'Segoe UI', Tahoma, sans-serif;
+/* one font stack for EVERY UI language — the bundled Vazirmatn variable
+   first (v0.25.1; the Dastkhat bundle is retired) */
   font-size: 13px;
   line-height: 1.8;
 }

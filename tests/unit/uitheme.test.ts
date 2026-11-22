@@ -293,29 +293,30 @@ function pageVars(rel: string[], which: "light" | "media-dark" | "forced-dark"):
   return varMap(m[1]);
 }
 
-/* ---------- font stack contract (v0.24.0) ----------
-   ONE font stack for every UI language: the bundled Dastkhat variable font
-   first (built on Vazirmatn, Latin from Roboto; SIL OFL 1.1 — the license
-   file ships beside it), Vazirmatn as the per-glyph fallback. The @font-face
-   lives in globals.css (pages) and mark-style.css (content widgets); the
-   woff2 is BUNDLED — no remote font URL anywhere (the offline rule). */
-describe("قرارداد فونت — یک پشته برای همه‌ی زبان‌ها (v0.24.0)", () => {
+/* ---------- font stack contract (v0.24.0 → v0.25.1) ----------
+   ONE font stack for every UI language: the bundled Vazirmatn variable font
+   first (rastikerdar/vazirmatn v33.003; SIL OFL 1.1 — the license file
+   ships beside it), then the system fallbacks. The @font-face lives in
+   globals.css (pages) and mark-style.css (content widgets); the woff2 is
+   BUNDLED — no remote font URL anywhere (the offline rule). The v0.24
+   Dastkhat bundle is retired. */
+describe("قرارداد فونت — یک پشته برای همه‌ی زبان‌ها (v0.25.1)", () => {
   const bodyFont = (rel: string[]) =>
     readFile(ext(...rel)).match(/(?:^|\n)\s*body \{[^}]*font-family: ([^;]+);/)?.[1];
 
-  test("داشبورد و پاپ‌آپ: Dastkhat اول است", () => {
+  test("داشبورد و پاپ‌آپ: Vazirmatn اول است", () => {
     for (const rel of [["dashboard", "dashboard.css"], ["popup", "popup.css"]]) {
       const font = bodyFont(rel);
-      expect(font?.startsWith("Dastkhat")).toBe(true);
+      expect(font?.startsWith("Vazirmatn")).toBe(true);
     }
   });
 
   test("فونت باندل شده: فایل در extension/fonts هست و @font-face در هر دو لایه", () => {
-    expect(existsSync(ext("fonts", "Dastkhat-Variable.woff2"))).toBe(true);
-    expect(existsSync(ext("fonts", "Dastkhat-OFL.txt"))).toBe(true); /* OFL 1.1 — همراه فایل */
+    expect(existsSync(ext("fonts", "Vazirmatn-Variable.woff2"))).toBe(true);
+    expect(existsSync(ext("fonts", "Vazirmatn-OFL.txt"))).toBe(true); /* OFL 1.1 — همراه فایل */
     for (const rel of [["globals.css"], ["content", "mark-style.css"]]) {
       const css = readFile(ext(...rel));
-      expect(css).toMatch(/@font-face\s*\{[^}]*font-family: ?"Dastkhat"/);
+      expect(css).toMatch(/@font-face\s*\{[^}]*font-family: ?"Vazirmatn"/);
     }
   });
 

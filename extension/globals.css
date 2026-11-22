@@ -17,16 +17,16 @@
    shadows instead of hairline-inset depth. The frozen palettes (uitheme.test.ts)
    are untouched. */
 
-/* ---------- UI font (v0.24.0) — bundled, offline, CSP-safe ----------
-   Dastkhat (built on Vazirmatn, Latin from Roboto; SIL OFL 1.1 — the license
-   file ships next to the font). ONE variable file carries weights 100–900.
+/* ---------- UI font (v0.25.1) — bundled, offline, CSP-safe ----------
+   Vazirmatn (rastikerdar/vazirmatn v33.003; SIL OFL 1.1 — the license file
+   ships next to the font). ONE variable file carries weights 100–900.
    The @font-face lives here so BOTH pages load it; the content side repeats
    it in mark-style.css (injected into web pages) + manifest
    web_accessible_resources. No remote font URL anywhere — the offline rule. */
 @font-face {
-  font-family: "Dastkhat";
-  src: url("/fonts/Dastkhat-Variable.woff2") format("woff2-variations"),
-       url("/fonts/Dastkhat-Variable.woff2") format("woff2");
+  font-family: "Vazirmatn";
+  src: url("/fonts/Vazirmatn-Variable.woff2") format("woff2-variations"),
+       url("/fonts/Vazirmatn-Variable.woff2") format("woff2");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;

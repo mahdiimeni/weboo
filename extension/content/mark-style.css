@@ -10,10 +10,12 @@
  *
  * v0.24.0 — the UI font loads here for the Shadow-DOM widgets: this
  * stylesheet is injected into every web page (manifest css), so the
- * @font-face loads the bundled Dastkhat document-wide and the widget
+ * @font-face loads the bundled UI font document-wide and the widget
  * hosts resolve it (uiBase.FONT). The file ships from the extension
  * origin — web_accessible_resources exposes fonts/*.woff2 to
  * http(s)/file pages. No remote font URL — the offline rule.
+ * v0.25.1 — the bundled face is Vazirmatn (rastikerdar/vazirmatn v33.003,
+ * SIL OFL 1.1 beside the file) — the Dastkhat bundle is retired.
  * v0.24.2 — ⚠️ the url MUST stay root-absolute (/fonts/): this file is
  * ALSO imported by entrypoints/content.ts, and a relative url would be
  * resolved by Vite's CSS pipeline and inlined twice as base64 into
@@ -22,9 +24,9 @@
  * the extension origin where web_accessible_resources serves it.
  */
 @font-face {
-  font-family: "Dastkhat";
-  src: url("/fonts/Dastkhat-Variable.woff2") format("woff2-variations"),
-       url("/fonts/Dastkhat-Variable.woff2") format("woff2");
+  font-family: "Vazirmatn";
+  src: url("/fonts/Vazirmatn-Variable.woff2") format("woff2-variations"),
+       url("/fonts/Vazirmatn-Variable.woff2") format("woff2");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;

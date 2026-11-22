@@ -34,10 +34,12 @@ every file you touch, without being reminded.
 - "Next"/"submit" arrows point left; the drawer opens from the start edge.
 
 ### Typography
-- Font: the **Vazir/Vazirmatn local stack** (already declared in the
-  stylesheets and the booklet's font registry). Weboo deliberately bundles no
-  webfont and imports none — the extension is offline and CSP-safe; never add
-  external font imports.
+- Font: the **Vazirmatn local stack** — the variable woff2 is BUNDLED at
+  `extension/fonts/` (declared in `globals.css` for the pages and
+  `mark-style.css` for the content widgets, served via
+  `web_accessible_resources`; SIL OFL 1.1 beside the file; the v0.24
+  Dastkhat bundle is retired). The extension is offline and CSP-safe;
+  never add external/remote font imports.
 - `letter-spacing: 0` on Persian; no `text-transform: uppercase`.
 - Body line-height 1.8; headings ≥ 1.2; buttons/labels 1.5 (the control
   system: buttons and inputs are exactly 40px tall).
