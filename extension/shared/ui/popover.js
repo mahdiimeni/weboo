@@ -140,11 +140,17 @@ import { t, dirOf } from "../i18n.js"; /* v0.14.0 — labels follow the UI langu
     '.hlx-po .x { width: 26px; height: 26px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--po-ic); }',
     '.hlx-po .x:hover { background: var(--po-hov-bg); color: var(--po-hov-fg); }',
     '.hlx-po .q { margin: 2px 12px 10px; padding: 8px 11px; background: var(--po-q-bg); border-inline-start: 3px solid #f59e0b;',
-    '  border-radius: 9px; color: var(--po-q-fg); line-height: 2; font-size: 12.5px; max-height: 92px; overflow: auto;',
+    '  border-radius: 9px; color: var(--po-q-fg); line-height: 2; font-size: 12.5px; max-height: 92px; overflow: hidden auto;',
     '  white-space: pre-wrap; word-break: break-word; }',
+    /* v0.24.2 — thin scrollbars on the popover's scroll containers (the
+       default chunky scrollbar read as noise inside the card) */
+    '.hlx-po .q, .hlx-po .note-text, .hlx-po textarea { scrollbar-width: thin; scrollbar-color: var(--po-muted) transparent; }',
+    '.hlx-po .q::-webkit-scrollbar, .hlx-po .note-text::-webkit-scrollbar, .hlx-po textarea::-webkit-scrollbar { width: 8px; }',
+    '.hlx-po .q::-webkit-scrollbar-thumb, .hlx-po .note-text::-webkit-scrollbar-thumb, .hlx-po textarea::-webkit-scrollbar-thumb { background: var(--po-muted); border-radius: 99px; }',
+    '.hlx-po .q::-webkit-scrollbar-track, .hlx-po .note-text::-webkit-scrollbar-track, .hlx-po textarea::-webkit-scrollbar-track { background: transparent; }',
     '.hlx-po .note-box { margin: 0 12px 10px; padding: 10px 12px; border: 1.5px dashed var(--po-nb-bd); border-radius: 11px; color: var(--po-muted); display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }',
     '.hlx-po .note-box.has { border: 1.5px solid var(--po-nbh-bd); background: var(--po-nbh-bg); color: var(--po-nbh-fg); }',
-    '.hlx-po .note-text { white-space: pre-wrap; word-break: break-word; line-height: 2; color: var(--po-note-fg); width: 100%; max-height: 180px; overflow: auto; }',
+    '.hlx-po .note-text { white-space: pre-wrap; word-break: break-word; line-height: 2; color: var(--po-note-fg); width: 100%; max-height: 180px; overflow: hidden auto; }',
     '.hlx-po .note-text:empty::before { content: "—"; opacity: .4; }',
     /* v0.5.1 — the add-state CTA: a centered pill (the .btn-p primary look,
        radius 999px) carrying the plus glyph + label; align-self centers it in
@@ -166,7 +172,7 @@ import { t, dirOf } from "../i18n.js"; /* v0.14.0 — labels follow the UI langu
     '.hlx-po .btn-g { background: var(--po-g-bg); color: var(--po-g-fg); border-radius: 9px; padding: 7px 16px; font-weight: 600; font-size: 12.5px; }',
     '.hlx-po .btn-g:hover { background: var(--po-g-h-bg); }',
     '.hlx-po .foot { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px 10px; border-top: 1px solid var(--po-foot-bd); }',
-    '.hlx-po .date { color: var(--po-muted); font-size: 11.5px; }',
+    '.hlx-po .date { color: var(--po-muted); font-size: 11.5px; font-variant-numeric: tabular-nums; }',
     '.hlx-po .act { display: flex; gap: 2px; }',
     '.hlx-po .ib { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: var(--po-ic); }',
     '.hlx-po .ib:hover { background: var(--po-hov-bg); color: var(--po-hov-fg); }',

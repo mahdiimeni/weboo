@@ -14,6 +14,12 @@
  * hosts resolve it (uiBase.FONT). The file ships from the extension
  * origin — web_accessible_resources exposes fonts/*.woff2 to
  * http(s)/file pages. No remote font URL — the offline rule.
+ * v0.24.2 — ⚠️ the url MUST stay root-absolute (/fonts/): this file is
+ * ALSO imported by entrypoints/content.ts, and a relative url would be
+ * resolved by Vite's CSS pipeline and inlined twice as base64 into
+ * content-scripts/content.css (+300 KB injected into every web page).
+ * The absolute form is left verbatim by the bundler and resolves to
+ * the extension origin where web_accessible_resources serves it.
  */
 @font-face {
   font-family: "Dastkhat";
