@@ -16,7 +16,6 @@
     "harness": "node tests/e2e/build-popup-harness.mjs"
   },
   "devDependencies": {
-    "@astryxdesign/cli": "^0.7.17",
     "@eslint/js": "^9.39.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
@@ -30,9 +29,6 @@
     "wxt": "^0.21.4"
   },
   "dependencies": {
-    "@astryxdesign/core": "^0.7.17",
-    "@astryxdesign/theme-neutral": "^0.7.17",
-    "@stylexjs/stylex": "^0.19.2",
     "lucide-react": "^1.61.0",
     "react": "19",
     "react-dom": "19"
