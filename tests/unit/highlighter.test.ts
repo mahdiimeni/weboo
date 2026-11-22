@@ -17,12 +17,60 @@ let events: Array<[string, any]>;
 
 const PAGE = { url: "u", norm: "u", site: "s", host: "test.local", title: "عنوان صفحه" };
 
+/* Widget doubles (audit R3 — seam completion): the engine tests exercise the
+   ORCHESTRATOR's decisions (when to present/dismiss/rerender), so the widgets
+   are injected via cfg.toolbarFactory/cfg.popoverFactory — the suite runs
+   without mounting a single Shadow-DOM host (makeHost/attachShadow never
+   fires). Fidelity contract: the exact surface createHighlighter touches —
+   present/dismiss/render/position/refreshLabels/currentId/updateNote/mode/h. */
+function makeToolbarDouble(opts: any = {}) {
+  return {
+    visible: false,
+    ctx: null as any,
+    /* the handler opts the orchestrator passes — tests invoke them directly */
+    onColor: opts.onColor || (() => {}),
+    onNote: opts.onNote || (() => {}),
+    onCopy: opts.onCopy || (() => {}),
+    refreshLabels() { /* labels are the real widget's concern */ },
+    present(ctx: any) { this.ctx = ctx; this.visible = true; },
+    position() { /* noop — positioning is the real widget's concern */ },
+    dismiss() { this.visible = false; this.ctx = null; },
+  };
+}
+function makePopoverDouble(opts: any = {}) {
+  const h = { onClose: opts.onClose || (() => {}) };
+  return {
+    visible: false,
+    mode: "view",
+    data: null as any,
+    h,
+    present(o: any) {
+      this.data = o;
+      this.mode = o && o.editNow ? "edit" : "view";
+      this.visible = true;
+    },
+    render(mode: string) { this.mode = mode; },
+    position() { /* noop */ },
+    focusTextarea() { /* noop */ },
+    currentId() { return this.data ? this.data.id : null; },
+    updateNote(note: string) { if (this.data) this.data.note = note; },
+    dismiss() {
+      if (!this.visible) return; /* the real widget's no-op-when-hidden contract */
+      this.visible = false;
+      this.data = null;
+      h.onClose();
+    },
+  };
+}
+
 function makeController(hooks: any = {}) {
   return HL.createHighlighter({
     page: PAGE,
     scope: art,
     eventRoot: art,
     store,
+    toolbarFactory: (opts: any) => makeToolbarDouble(opts),
+    popoverFactory: (opts: any) => makePopoverDouble(opts),
     hooks: {
       onCount: (n: number) => events.push(["count", n]),
       onSaved: (r: any) => events.push(["saved", r ? r.id : null]),
@@ -618,5 +666,31 @@ describe("visibility — کپیِ مخفیِ متن (v0.6.7)", () => {
     expect(hl.reconcile()).toEqual([]);
     expect(d.querySelectorAll("#ph mark.hlx-marker").length).toBe(1);
     expect(HL.dom.marksOf(rec.id).length).toBeLessThanOrEqual(2);
+  });
+});
+
+/* ---------- widget-factory seam (audit R3 — seam completion) ---------- */
+describe("کارخانه‌های ویجت (factory injection)", () => {
+  test("با تزریق دوبل‌ها هیچ میزبان Shadow-DOM ساخته نمی‌شود (DOM-light)", () => {
+    const before = win.document.querySelectorAll("[data-hlx-ui]").length;
+    makeController();
+    /* makeHost marks every widget host with data-hlx-ui — zero new hosts means
+       the engine ran its full orchestrator surface without mounting widgets */
+    expect(win.document.querySelectorAll("[data-hlx-ui]").length).toBe(before);
+  });
+
+  test("کارخانه‌های پیش‌فرض همان ویجت‌های واقعی‌اند (رفتار بدون تزریق دست‌نخورده)", () => {
+    const hl = HL.createHighlighter({
+      page: PAGE,
+      scope: art,
+      eventRoot: art,
+      store,
+    });
+    expect(hl.toolbar.host).toBeTruthy();
+    expect(hl.toolbar.host.getAttribute("data-hlx-ui")).toBe("1");
+    expect(hl.popover.host).toBeTruthy();
+    expect(typeof hl.toolbar.present).toBe("function");
+    expect(typeof hl.popover.present).toBe("function");
+    hl.dispose();
   });
 });

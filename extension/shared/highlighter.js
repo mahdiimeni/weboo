@@ -15,6 +15,11 @@
  *   cfg.scope     root element (document.body or any scoped container)
  *   cfg.eventRoot event root (document or the same scope)
  *   cfg.store     an HL.createStore instance (required — composition root injects)
+ *   cfg.toolbarFactory (opts) → FloatingToolbar-like widget (optional — audit R3:
+ *                 seam completion; default is the real ui.FloatingToolbar, so
+ *                 engine tests can inject doubles and run without mounting
+ *                 Shadow-DOM widgets, and a widget rewrite is a factory swap)
+ *   cfg.popoverFactory (opts) → NotePopover-like widget   (optional — same contract)
  *   cfg.hooks     optional hooks:
  *     canShowToolbar() → bool    (content: settings/site disabled; default: always true)
  *     defaultColor()   → key     (content: user setting; default: 'yellow')
@@ -366,8 +371,15 @@ import { t } from "./i18n.js"; /* v0.14.0 — user-facing strings follow the UI 
 
     /* ---------- Toolbar + popover ---------- */
 
+    /* Widget factories (audit R3 — seam completion): injectable exactly like
+       cfg.store, so engine tests mount test doubles instead of Shadow-DOM
+       widgets and a future widget rewrite is a factory swap. The defaults
+       ARE the real widgets — behavior is identical when nothing is injected. */
+    var toolbarFactory = cfg.toolbarFactory || function (opts) { return new ui.FloatingToolbar(opts); };
+    var popoverFactory = cfg.popoverFactory || function (opts) { return new ui.NotePopover(opts); };
+
     var popoverOpen = false;
-    var popover = new ui.NotePopover({
+    var popover = popoverFactory({
       onColorChange: function (id, color) { setRecordColor(id, color); },
       onSaveNote: function (id, note) { setRecordNote(id, note); },
       onDelete: function (id) { removeHighlight(id); },
@@ -378,7 +390,7 @@ import { t } from "./i18n.js"; /* v0.14.0 — user-facing strings follow the UI 
     });
     popover.h.onClose = function () { popoverOpen = false; };
 
-    var toolbar = new ui.FloatingToolbar({
+    var toolbar = toolbarFactory({
       onColor: function (color, ctx) {
         toolbar.dismiss();
         createFromCtx(ctx, color, false);
