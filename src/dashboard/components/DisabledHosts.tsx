@@ -26,8 +26,8 @@ import { toast } from "../toast";
 import { t } from "../../../extension/shared/i18n.js";
 
 const XIcon = () => (
-  /* dashView.ICONS.x — width 12, stroke-width 2.4, no linejoin (byte-equal) */
-  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+  /* dashView.ICONS.x — width 12, stroke-width 2 (v0.23.1 unslop pass — one stroke across the set), no linejoin */
+  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
     <line x1="18" y1="6" x2="6" y2="18" />
     <line x1="6" y1="6" x2="18" y2="18" />
   </svg>

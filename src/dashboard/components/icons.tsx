@@ -3,12 +3,14 @@
  *
  * Byte-equal re-expression of dashView.ICONS (the only innerHTML sites in the
  * old view) + the template's search glyph. Geometry is load-bearing (CSS sizes
- * the buttons; the smokes probe structures) — stroke widths/caps stay exact.
+ * the buttons; the smokes probe structures). v0.23.1 unslop pass — ONE stroke
+ * width across the set: every interface icon renders at stroke 2 (caps/joins
+ * unchanged).
  * The view's copy retires with dashboard-view.js (Task 5).
  */
 
 export const IconX = () => (
-  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round">
+  <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
     <line x1="18" y1="6" x2="6" y2="18" />
     <line x1="6" y1="6" x2="18" y2="18" />
   </svg>
@@ -50,7 +52,7 @@ export const IconQuote = () => (
 );
 
 export const IconPlus = () => (
-  <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
+  <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
     <line x1="12" y1="5" x2="12" y2="19" />
     <line x1="5" y1="12" x2="19" y2="12" />
   </svg>
@@ -58,14 +60,14 @@ export const IconPlus = () => (
 
 /* Direction arrows (v0.2.0) — the reading direction of a section's articles */
 export const IconArrowLtr = () => (
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="4" y1="12" x2="20" y2="12" />
     <polyline points="14 6 20 12 14 18" />
   </svg>
 );
 
 export const IconArrowRtl = () => (
-  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="20" y1="12" x2="4" y2="12" />
     <polyline points="10 6 4 12 10 18" />
   </svg>

@@ -130,7 +130,7 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px 12px;
+  padding: 8px 12px;
   background: var(--glass, var(--card));
   -webkit-backdrop-filter: blur(14px) saturate(1.5);
   backdrop-filter: blur(14px) saturate(1.5);
@@ -140,11 +140,11 @@ body {
 .brand { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
 .logo {
   width: 32px; height: 32px; border-radius: var(--r-ctl); flex: none;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: var(--accent); /* v0.23.1 unslop pass — flat brand tile, no gradient */
   color: #fff; display: grid; place-items: center;
 }
 .brand-txt { display: flex; flex-direction: column; min-width: 0; }
-.brand-name { font-size: 14px; font-weight: 800; line-height: 1.4; }
+.brand-name { font-size: 14px; font-weight: 700; line-height: 1.4; }
 .brand-sub { font-size: 10.5px; color: var(--muted); line-height: 1.4; }
 .ver {
   flex: none;
@@ -169,8 +169,8 @@ body {
 .body {
   flex: 1; min-height: 0;
   overflow-y: auto;
-  padding: 10px;
-  display: flex; flex-direction: column; gap: 10px;
+  padding: 8px;
+  display: flex; flex-direction: column; gap: 8px;
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
 }
@@ -183,6 +183,12 @@ body {
 .small { font-size: 11.5px; }
 .tiny { font-size: 11px; margin: 4px 0 0; }
 
+/* v0.23.1 unslop pass — figures align: one numeric rendering for every
+   number carrier */
+.gstat-num, .ver, .chip, .hl-meta .date {
+  font-variant-numeric: tabular-nums;
+}
+
 .card {
   background: var(--card);
   border: 1px solid var(--hairline, var(--line));
@@ -194,7 +200,7 @@ body {
 /* ---------- Unsupported page ---------- */
 .unsupp { text-align: center; padding: 24px 16px; }
 .unsupp-ic { color: var(--muted); margin-bottom: 4px; }
-.unsupp-t { margin: 0 0 2px; font-weight: 800; font-size: 14px; }
+.unsupp-t { margin: 0 0 2px; font-weight: 700; font-size: 14px; }
 .unsupp .muted { margin: 0 0 12px; }
 
 /* ---------- Generic mode ---------- */
@@ -204,7 +210,7 @@ body {
 .gstat-lbl { color: var(--muted); font-size: 12px; }
 
 /* ---------- Current page card ---------- */
-.page-info { display: flex; align-items: center; gap: 10px; }
+.page-info { display: flex; align-items: center; gap: 8px; }
 .fl {
   width: 36px; height: 36px; border-radius: var(--r-ctl); flex: none;
   background: var(--accent-soft); color: var(--accent-h);
@@ -240,7 +246,7 @@ body {
    host name follows the popup's direction, not the card's, in en mode. */
 html[dir="ltr"] .page-host { text-align: left; }
 html[dir="ltr"] .toggle-txt .small { text-align: left; }
-.chips { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.chips { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
 .chip {
   font-size: 11.5px; font-weight: 700;
   color: var(--accent-h); background: var(--accent-soft);
@@ -275,7 +281,7 @@ html[dir="ltr"] .toggle-txt .small { text-align: left; }
   background: var(--card);
   border: 1px solid var(--hairline, var(--line));
   border-radius: var(--r-surface);
-  padding: 10px;
+  padding: 12px;
   box-shadow: var(--depth-surface);
 }
 .list-head {
@@ -284,7 +290,7 @@ html[dir="ltr"] .toggle-txt .small { text-align: left; }
 }
 .hl-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
 .hl-item {
-  display: flex; align-items: flex-start; gap: 9px;
+  display: flex; align-items: flex-start; gap: 8px;
   padding: 8px 10px; border-radius: var(--r-ctl);
   border: 1px solid transparent; cursor: pointer;
   transition: background var(--motion), border-color var(--motion);
@@ -304,14 +310,14 @@ html[dir="ltr"] .toggle-txt .small { text-align: left; }
 /* ---------- Empty state ---------- */
 .empty { text-align: center; padding: 24px 12px; }
 .empty-ic { color: var(--muted); margin-bottom: 4px; }
-.empty-t { margin: 0 0 2px; font-weight: 800; font-size: 13.5px; }
+.empty-t { margin: 0 0 2px; font-weight: 700; font-size: 13.5px; }
 .empty .muted { margin: 0; }
 
 /* ---------- Footer ---------- */
 .foot {
   flex: none;
   display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-  padding: 10px 12px;
+  padding: 8px 12px;
   background: var(--glass, var(--card));
   -webkit-backdrop-filter: blur(14px) saturate(1.5);
   backdrop-filter: blur(14px) saturate(1.5);

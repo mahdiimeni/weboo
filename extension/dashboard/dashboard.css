@@ -164,6 +164,12 @@ body {
 .small { font-size: 12px; }
 .warn { color: var(--danger-h); font-weight: 700; }
 
+/* v0.23.1 unslop pass — figures align: one numeric rendering for every
+   number carrier (stats, dates, counts, badges) */
+.stat-num, .ver, .size-badge, .chip, .dir-sec-count, .tchip-n, .item-date, .hl-meta {
+  font-variant-numeric: tabular-nums;
+}
+
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 99px; }
@@ -195,11 +201,11 @@ body {
 .brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .logo {
   width: 38px; height: 38px; border-radius: var(--r-ctl); flex: none;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: var(--accent); /* v0.23.1 unslop pass — flat brand tile, no gradient */
   color: #fff; display: grid; place-items: center;
 }
 .brand-txt { display: flex; flex-direction: column; }
-.brand-txt strong { font-size: 16px; font-weight: 800; line-height: 1.4; }
+.brand-txt strong { font-size: 16px; font-weight: 700; line-height: 1.4; }
 .ver {
   font-size: 11px; font-weight: 700;
   color: var(--accent-h); background: var(--accent-soft);
@@ -268,7 +274,7 @@ body {
 .icon-btn.armed {
   width: auto; padding: 0 10px;
   background: var(--danger-bg); color: var(--danger-h);
-  font-size: 11.5px; font-weight: 800;
+  font-size: 11.5px; font-weight: 700;
 }
 
 /* Icon-only .btn (v0.6.3) — the topbar's «خروجی پشتیبان» and «تنظیمات»:
@@ -298,7 +304,7 @@ body {
   border: 1px solid var(--edge, var(--line));
   border-radius: var(--r-surface);
   box-shadow: var(--depth-surface);
-  padding: 10px var(--sp-4);
+  padding: 8px var(--sp-4);
   display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap;
 }
 .stat-group {
@@ -382,7 +388,7 @@ body {
   color: var(--accent-h);
 }
 .tchip-n {
-  font-size: 10.5px; font-weight: 800;
+  font-size: 10.5px; font-weight: 700;
   color: var(--muted);
   background: var(--hover);
   border-radius: 999px;
@@ -513,19 +519,17 @@ body {
 .dir-sec-title {
   display: inline-flex; align-items: center; gap: 8px;
   margin: 0;
-  font-size: 13px; font-weight: 800;
+  font-size: 13px; font-weight: 700;
   color: var(--muted);
   letter-spacing: 0;
 }
 .dir-ic { color: var(--accent-h); display: inline-flex; }
 .dir-ic svg { display: block; }
+/* v0.23.1 unslop pass — the count is quiet text next to the lead badge
+   (meta reads as text, not another capsule) */
 .dir-sec-count {
   font-size: 11px; font-weight: 700;
   color: var(--muted);
-  background: var(--card);
-  border: 1px solid var(--line);
-  padding: 2px 10px;
-  border-radius: 999px;
   white-space: nowrap;
 }
 /* Lead badge — the section that holds the most recently highlighted article
@@ -533,7 +537,7 @@ body {
    (a filled accent dot, like the color chips). */
 .dir-sec-lead {
   display: inline-flex; align-items: center; gap: 6px;
-  font-size: 11px; font-weight: 800;
+  font-size: 11px; font-weight: 700;
   color: var(--accent-h);
   background: var(--accent-soft);
   border: 1px solid var(--accent-line);
@@ -702,7 +706,7 @@ body {
 
 .item {
   position: relative;
-  padding: 10px var(--sp-4); /* v0.23.0 — tighter vertical rhythm */
+  padding: 8px var(--sp-4); /* v0.23.0 — tighter vertical rhythm, on the 4px grid (v0.23.1) */
   padding-inline-start: 20px;
   border-bottom: 1px solid var(--line);
   transition: background var(--motion) var(--motion-ease);
@@ -711,7 +715,7 @@ body {
 .item:hover { background: var(--hover); } /* background change only — no stroke (uitheme.test contract) */
 .cbar {
   position: absolute; inset-inline-start: 4px;
-  top: 12px; bottom: 12px; width: 4px;
+  top: 8px; bottom: 8px; width: 4px;
   border-radius: 99px;
 }
 .item-text {
@@ -770,7 +774,7 @@ body {
 /* ---------- Empty state ---------- */
 .empty { text-align: center; padding: 64px 16px; }
 .empty-ic { color: var(--muted); margin-bottom: 8px; }
-.empty-t { margin: 0 0 4px; font-weight: 800; font-size: 16px; }
+.empty-t { margin: 0 0 4px; font-weight: 700; font-size: 16px; }
 .empty .muted { margin: 0; }
 
 /* ---------- Footer ---------- */
@@ -817,7 +821,7 @@ body {
   padding: var(--sp-4);
   border-bottom: 1px solid var(--line);
 }
-.drawer-head strong { font-size: 15px; font-weight: 800; }
+.drawer-head strong { font-size: 15px; font-weight: 700; }
 .drawer-body {
   flex: 1; min-height: 0;
   overflow-y: auto;
@@ -827,10 +831,11 @@ body {
 
 .set-sec { display: flex; flex-direction: column; gap: 10px; }
 /* v0.23.0 «grouped & quieter» — section titles go NEUTRAL: amber is reserved
-   for active/selected states; the danger zone keeps its red (its own rule). */
+   for active/selected states; the danger zone keeps its red (its own rule).
+   v0.23.1 — one weight notch quieter (700). */
 .set-sec h3 {
   margin: 0;
-  font-size: 13.5px; font-weight: 800;
+  font-size: 13.5px; font-weight: 700;
   display: flex; align-items: center; gap: 8px;
   color: var(--text);
 }
@@ -844,7 +849,7 @@ body {
 .drawer-group-title {
   display: flex; align-items: center; gap: 8px;
   margin: 0;
-  font-size: 11.5px; font-weight: 800;
+  font-size: 11.5px; font-weight: 700;
   color: var(--muted);
   letter-spacing: 0;
 }
@@ -949,7 +954,7 @@ body {
   color: var(--accent-h);
   border: 1px solid var(--accent-line);
   border-radius: 999px;
-  padding: 3px 6px 3px 10px;
+  padding: 2px 6px 2px 10px;
   font-size: 12.5px; font-weight: 700;
   direction: ltr;
 }
@@ -991,7 +996,7 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
   border: 1px solid var(--danger-line); border-radius: var(--r-ctl);
   background: var(--card); color: var(--text);
   font: inherit; font-size: 13px;
-  padding: 7px 12px;
+  padding: 8px 12px;
 }
 .danger-confirm input:focus { outline: none; border-color: var(--danger); }
 
@@ -1026,7 +1031,7 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
   from { transform: scale(.96); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
-.modal-card h2 { margin: 0 0 12px; font-size: 17px; font-weight: 800; }
+.modal-card h2 { margin: 0 0 12px; font-size: 17px; font-weight: 700; }
 .modal-summary { display: flex; flex-direction: column; margin-bottom: var(--sp-4); }
 .sum-row {
   display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
@@ -1064,7 +1069,7 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
   margin-top: 2px;
 }
 .exp-sec:first-of-type { border-top: none; }
-.exp-sec h3 { margin: 0 0 4px; font-size: 14.5px; font-weight: 800; }
+.exp-sec h3 { margin: 0 0 4px; font-size: 14.5px; font-weight: 700; }
 .exp-sec .muted { margin: 0 0 12px; }
 .exp-sec .btn { width: 100%; justify-content: center; }
 .exp-sec + .exp-sec { margin-top: 2px; }
@@ -1139,7 +1144,7 @@ html[dir="ltr"] .host-add input::placeholder { direction: ltr; text-align: left;
   margin-bottom: 12px;
 }
 .hl-head h2 {
-  margin: 0; font-size: 15px; font-weight: 800; /* v0.6.4 — a notch smaller (the owner's ask) */
+  margin: 0; font-size: 15px; font-weight: 700; /* v0.6.4 — a notch smaller (the owner's ask) */
   /* v0.6.4 — the article's own title, FULLY direction-smart: one line with
      ellipsis as the backstop (the view excerpts at 60 — same policy as the
      card header), and NO pinned alignment — text-align: start resolves
