@@ -280,6 +280,24 @@ export async function setSettings(patch: Partial<Settings>): Promise<void> {
   }
 }
 
+/** The theme action (audit R7): the ONE theme write path — the optimistic
+ *  visual apply (ui.applyThemeNow) happens HERE, not in the component, so
+ *  "data.ts is the single action layer" holds again. Same semantics as the
+ *  ThemeRegion inline flow it replaces: apply only on an actual change,
+ *  roll the visual back with the write on failure, rethrow (the caller
+ *  owns the toast). */
+export async function applyThemeAction(theme: ThemeKey): Promise<void> {
+  const prev = state.settings.theme;
+  if (theme !== prev) applyThemeNow(theme);
+  try {
+    await store.setSettings({ theme: theme });
+  } catch (e) {
+    applyThemeNow(prev); /* the optimistic visual rolls back with the write */
+    await reloadSettings();
+    throw e;
+  }
+}
+
 /* ---------- list actions (the controller's handlers, verbatim) ---------- */
 
 export function openArticle(g: { url?: string }): void {

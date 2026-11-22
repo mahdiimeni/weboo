@@ -53,6 +53,7 @@ import {
   setSort,
   toggleTagFilter,
   bulkApply,
+  applyThemeAction,
 } from "./data";
 import { toast } from "./toast";
 import { t } from "../../extension/shared/i18n.js";
@@ -68,11 +69,13 @@ import { EmptyState } from "./components/EmptyState";
 import { ThemeRadios } from "./components/ThemeRadios";
 import { ColorDots } from "./components/ColorDots";
 import { BehaviorSwitches } from "./components/BehaviorSwitches";
-import { ui } from "../../extension/shared/ui/base.js";
 import { Toolbar } from "./components/Toolbar";
 import { DirSection } from "./components/DirSection";
 import { LanguageSelect } from "./components/LanguageSelect";
-import { PreviewModal, RestoreModal, BookletModal, BackupModal } from "./components/Modals";
+import { PreviewModal } from "./components/PreviewModal";
+import { RestoreModal } from "./components/RestoreModal";
+import { BookletModal } from "./components/BookletModal";
+import { BackupModal } from "./components/BackupModal";
 import { TopbarActionsRegion, RestoreSectionRegion, DangerSectionRegion } from "./components/PageChrome";
 export { TopbarActionsRegion, RestoreSectionRegion, DangerSectionRegion };
 
@@ -96,21 +99,16 @@ export function HostsRegion() {
 }
 
 /** Region root 3 — mounted into the «ظاهر» .set-sec (slice 7). The theme's
- *  immediate visual effect (HL.applyThemeNow — the classic theme-boot
- *  contract) mirrors the controller's optimistic setSetting: apply now,
- *  re-apply the previous theme when the storage write fails. */
+ *  immediate visual effect rides the data layer's ONE theme write path
+ *  (applyThemeAction — audit R7): optimistic apply, rollback on a failed
+ *  storage write; this component owns only the toast. */
 export function ThemeRegion() {
   const { settings } = useSyncExternalStore(subscribeData, getData);
   return (
     <ThemeRadios
       theme={settings.theme}
       onSelect={(k: ThemeKey) => {
-        const prev = settings.theme;
-        if (k !== prev) ui.applyThemeNow(k);
-        setSettings({ theme: k }).catch(() => {
-          ui.applyThemeNow(prev);
-          toast(t("common.saveFail"), "error");
-        });
+        applyThemeAction(k).catch(() => toast(t("common.saveFail"), "error"));
       }}
     />
   );
