@@ -459,7 +459,10 @@ import { tags } from "../shared/tags.js"; /* 7c-3 */
       if (!tally[h]) { tally[h] = { host: h, articles: 0 }; sites.push(tally[h]); }
       tally[h].articles++;
     });
-    sites.sort(function (a, b) { return (b.articles - a.articles) || a.host.localeCompare(b.host, 'fa'); });
+    /* the tie-break locale follows the ACTIVE UI language — the exact policy
+       groupRecords' 'page' sort uses (one locale decision for the module) */
+    var loc = LOCALES[getLanguage()];
+    sites.sort(function (a, b) { return (b.articles - a.articles) || a.host.localeCompare(b.host, loc); });
     return { sites: sites, articles: articleOptionsOf(groups), tags: tags.tagCounts(tagMap) };
   }
 
